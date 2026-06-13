@@ -1,8 +1,12 @@
 """SAR generator — REQUIREMENTS.md §11 (Owner: P5).
 
 Drafts a Suspicious Activity Report for a detected ring.
-Order of preference: **Anthropic API** -> (optional) AWS Bedrock -> deterministic template.
-The template means the demo NEVER depends on the network — AI is additive.
+Order of preference: **OpenRouter** (any/free model) -> **Anthropic API** -> AWS Bedrock ->
+deterministic template. The template means the demo NEVER depends on the network — AI is additive.
+
+Provider selection (by env var):
+  - OPENROUTER_API_KEY  -> OpenRouter (OpenAI-compatible); model from MULENET_MODEL
+  - ANTHROPIC_API_KEY   -> Anthropic; model from MULENET_MODEL (default claude-haiku-4-5)
 """
 from __future__ import annotations
 
@@ -11,6 +15,24 @@ import os
 
 # Configurable; tokens here are tiny/cheap. Shared with copilot.py.
 MODEL = os.getenv("MULENET_MODEL", "claude-haiku-4-5")
+
+# OpenRouter (OpenAI-compatible) — set OPENROUTER_API_KEY + MULENET_MODEL to use a free/any model.
+OPENROUTER_BASE = "https://openrouter.ai/api/v1"
+OPENROUTER_MODEL = os.getenv("MULENET_MODEL") or "nvidia/nemotron-3-ultra-550b-a55b:free"
+
+
+def _openrouter_text(messages: list[dict], max_tokens: int = 800) -> str:
+    """One-shot chat completion via OpenRouter; returns the assistant text."""
+    import httpx
+
+    r = httpx.post(
+        f"{OPENROUTER_BASE}/chat/completions",
+        headers={"Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}"},
+        json={"model": OPENROUTER_MODEL, "messages": messages, "max_tokens": max_tokens},
+        timeout=120,
+    )
+    r.raise_for_status()
+    return r.json()["choices"][0]["message"]["content"]
 
 PROMPT = """You are an AML compliance analyst. Write a concise Suspicious Activity Report (SAR)
 for the money-laundering ring described below. Be factual, cite the patterns and amounts.
@@ -63,8 +85,17 @@ def _wrap_ai(txt: str, ctx: dict, source: str) -> dict:
 
 def generate_sar(ring, accounts, transactions, findings) -> dict:
     ctx = _context(ring, accounts, transactions, findings)
+    prompt = PROMPT.format(ctx=json.dumps(ctx))
 
-    # 1) Anthropic API (primary)
+    # 1) OpenRouter (OpenAI-compatible — free/any model via OPENROUTER_API_KEY)
+    try:
+        if os.getenv("OPENROUTER_API_KEY"):
+            txt = _openrouter_text([{"role": "user", "content": prompt}], max_tokens=800)
+            return _wrap_ai(txt, ctx, "openrouter")
+    except Exception as e:
+        print(f"[sar] OpenRouter unavailable, trying next: {e}")
+
+    # 2) Anthropic API
     try:
         if os.getenv("ANTHROPIC_API_KEY"):
             import anthropic
@@ -77,7 +108,7 @@ def generate_sar(ring, accounts, transactions, findings) -> dict:
     except Exception as e:
         print(f"[sar] Anthropic API unavailable, trying next: {e}")
 
-    # 2) AWS Bedrock (optional fallback — only if we end up with AWS creds)
+    # 3) AWS Bedrock (optional fallback — only if we end up with AWS creds)
     try:
         if os.getenv("AWS_ACCESS_KEY_ID") or os.getenv("AWS_PROFILE"):
             import boto3
@@ -91,5 +122,5 @@ def generate_sar(ring, accounts, transactions, findings) -> dict:
     except Exception as e:
         print(f"[sar] Bedrock unavailable, using template: {e}")
 
-    # 3) deterministic template (always works — demo never depends on the network)
+    # 4) deterministic template (always works — demo never depends on the network)
     return _template(ctx)

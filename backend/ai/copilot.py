@@ -23,6 +23,10 @@ from collections import deque
 # Configurable; bump to a stronger model for deeper reasoning. Tokens here are tiny/cheap.
 MODEL = os.getenv("MULENET_MODEL", "claude-haiku-4-5")
 
+# OpenRouter (OpenAI-compatible) — set OPENROUTER_API_KEY + MULENET_MODEL to use a free/any model.
+OPENROUTER_BASE = "https://openrouter.ai/api/v1"
+OPENROUTER_MODEL = os.getenv("MULENET_MODEL") or "nvidia/nemotron-3-ultra-550b-a55b:free"
+
 SYSTEM = (
     "You are MuleNet's AML analyst copilot. Use the provided tools to investigate the detected "
     "money-laundering network before you answer — list rings, inspect a ring, look up accounts, "
@@ -143,9 +147,48 @@ def _tools_impl(result, dataset):
             "trace_path": trace_path, "compare_rings": compare_rings}
 
 
+def _ask_openrouter(question: str, result: dict, dataset: dict) -> dict:
+    """Tool-using loop via OpenRouter's OpenAI-compatible function-calling API."""
+    import httpx
+
+    impl = _tools_impl(result, dataset)
+    oa_tools = [{"type": "function",
+                 "function": {"name": t["name"], "description": t["description"],
+                              "parameters": t["input_schema"]}} for t in TOOLS]
+    messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": question}]
+    headers = {"Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}"}
+    trace = []
+
+    try:
+        for _ in range(8):  # bounded agentic loop
+            r = httpx.post(f"{OPENROUTER_BASE}/chat/completions", headers=headers, timeout=120,
+                           json={"model": OPENROUTER_MODEL, "messages": messages,
+                                 "tools": oa_tools, "max_tokens": 1024})
+            r.raise_for_status()
+            msg = r.json()["choices"][0]["message"]
+            calls = msg.get("tool_calls") or []
+            if not calls:
+                return {"answer": msg.get("content") or "", "tool_calls": trace, "source": "openrouter"}
+            messages.append(msg)  # assistant turn with tool_calls
+            for tc in calls:
+                name = tc["function"]["name"]
+                raw = tc["function"].get("arguments") or "{}"
+                args = json.loads(raw) if isinstance(raw, str) else raw
+                fn = impl.get(name)
+                out = fn(**args) if fn else {"error": "unknown tool"}
+                trace.append({"tool": name, "input": args, "output": out})
+                messages.append({"role": "tool", "tool_call_id": tc["id"], "content": json.dumps(out)})
+        return {"answer": "(stopped after max tool iterations)", "tool_calls": trace, "source": "openrouter"}
+    except Exception as e:
+        return {"answer": f"OpenRouter request failed: {e}", "tool_calls": trace, "source": "error"}
+
+
 def ask(question: str, result: dict, dataset: dict, labels: dict | None = None) -> dict:
+    # Provider order: OpenRouter (free/any model) -> Anthropic -> disabled.
+    if os.getenv("OPENROUTER_API_KEY"):
+        return _ask_openrouter(question, result, dataset)
     if not os.getenv("ANTHROPIC_API_KEY"):
-        return {"answer": "Set ANTHROPIC_API_KEY to enable the AI copilot. "
+        return {"answer": "Set ANTHROPIC_API_KEY or OPENROUTER_API_KEY to enable the AI copilot. "
                           "Meanwhile, browse the detected rings and the eval panel.",
                 "tool_calls": [], "source": "disabled"}
     import anthropic
