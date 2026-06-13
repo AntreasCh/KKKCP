@@ -564,12 +564,17 @@ if ($("review-modal")) $("review-modal").addEventListener("click", (e) => { if (
 // money, runs an agentic loop, and returns {answer, tool_calls, source}. We render the
 // conversation as chat bubbles + a collapsible "investigation" trace for transparency.
 const CHAT = { open: false, busy: false, history: [] };
+const CHAT_KEY = "mulenet_chat";
+
+function chatSave() { try { localStorage.setItem(CHAT_KEY, JSON.stringify(CHAT.history)); } catch (e) {} }
+function chatLoad() { try { return JSON.parse(localStorage.getItem(CHAT_KEY) || "[]"); } catch (e) { return []; } }
 
 function chatOpen() {
   CHAT.open = true;
   $("chat-panel").classList.remove("hidden");
   $("chat-fab").classList.add("hidden");
-  if (!CHAT.history.length) chatRenderEmpty();
+  if (!CHAT.history.length) chatRenderEmpty();   // only show the welcome when there's no conversation
+  chatScroll();
   setTimeout(() => $("chat-input").focus(), 80);
 }
 function chatClose() {
@@ -598,15 +603,6 @@ function chatFormat(text) {
     .replace(/`([^`]+?)`/g, "<code>$1</code>");
 }
 
-function chatAddUser(text) {
-  if ($("chat-log").querySelector(".chat-empty")) $("chat-log").innerHTML = "";
-  const el = document.createElement("div");
-  el.className = "msg user";
-  el.innerHTML = `<div class="bubble">${esc(text)}</div>`;
-  $("chat-log").appendChild(el);
-  chatScroll();
-}
-
 function chatTrace(calls) {
   if (!calls || !calls.length) return "";
   const steps = calls.map((c) => {
@@ -619,13 +615,42 @@ function chatTrace(calls) {
     `<div class="trace-steps">${steps}</div></details>`;
 }
 
-function chatAddBot(answer, calls, source) {
+// render one stored message to the log (no state change) — used by add + restore
+function chatRenderMsg(m) {
+  if ($("chat-log").querySelector(".chat-empty")) $("chat-log").innerHTML = "";
   const el = document.createElement("div");
-  el.className = "msg bot";
-  el.innerHTML = `<div class="bubble">${chatFormat(answer)}</div>${chatTrace(calls)}` +
-    (source && source !== "error" && source !== "disabled" ? `<div class="msg-meta">via ${esc(source)}</div>` : "");
+  if (m.role === "user") {
+    el.className = "msg user";
+    el.innerHTML = `<div class="bubble">${esc(m.text)}</div>`;
+  } else {
+    el.className = "msg bot";
+    el.innerHTML = `<div class="bubble">${chatFormat(m.answer)}</div>${chatTrace(m.calls)}` +
+      (m.source && m.source !== "error" && m.source !== "disabled" ? `<div class="msg-meta">via ${esc(m.source)}</div>` : "");
+  }
   $("chat-log").appendChild(el);
-  chatScroll();
+}
+
+function chatAddUser(text) {
+  const m = { role: "user", text };
+  CHAT.history.push(m); chatSave();
+  chatRenderMsg(m); chatScroll();
+}
+
+function chatAddBot(answer, calls, source) {
+  const m = { role: "bot", answer, calls, source };
+  CHAT.history.push(m); chatSave();
+  chatRenderMsg(m); chatScroll();
+}
+
+// rebuild the log DOM from persisted history (on page load)
+function chatRestore() {
+  CHAT.history = chatLoad();
+  if (!CHAT.history.length) return;
+  $("chat-log").innerHTML = "";
+  CHAT.history.forEach(chatRenderMsg);
+  $("chat-suggest").classList.add("hidden");       // a conversation exists → hide the starter chips
+  const last = [...CHAT.history].reverse().find((m) => m.role === "bot");
+  if (last) chatStatus(last.source);
 }
 
 function chatTyping(on) {
@@ -670,9 +695,10 @@ async function chatSend(text) {
 if ($("chat-fab")) {
   $("chat-fab").onclick = chatOpen;
   $("chat-close").onclick = chatClose;
-  $("chat-clear").onclick = () => { CHAT.history = []; chatRenderEmpty(); $("chat-suggest").classList.remove("hidden"); chatStatus(null); };
+  $("chat-clear").onclick = () => { CHAT.history = []; chatSave(); chatRenderEmpty(); $("chat-suggest").classList.remove("hidden"); chatStatus(null); };
   $("chat-form").addEventListener("submit", (e) => { e.preventDefault(); chatSend($("chat-input").value); });
   $("chat-input").addEventListener("input", (e) => { $("chat-send").disabled = !e.target.value.trim() || CHAT.busy; });
   document.querySelectorAll(".cs-chip").forEach((b) => b.onclick = () => chatSend(b.dataset.q));
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && CHAT.open) chatClose(); });
+  chatRestore();   // re-hydrate any prior conversation so it survives close/reopen + reloads
 }
