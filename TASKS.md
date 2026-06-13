@@ -64,6 +64,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P5 (Alexandros): logged a **feature request — risk-threshold account freezing & manual review** (see new §6 below). 🟡 **@savvas (P4):** admin sets a risk-% threshold in the UI → auto-freeze accounts ≥ threshold → review queue → per-account **block/ban/clear** (extends your case workflow; additive API). 🟡 **@kiriakos (P1):** add an optional `status` field (`active|frozen|blocked|banned`, default `active`) to the Account schema/generator/`sample_data` (frozen-schema heads-up needed). Spec only — no code from me. — Alexandros_
 - _2026-06-13 — P4 (savvas): **wired @kiriakos's `LiveFeed` real-time stream** — "▶ Live feed" now does a true server-side stream (new `POST /api/stream/start`, `GET /api/stream/next`, `POST /api/stream/stop` in `api/main.py`): polls every ~1–3s, streams in new edges, grows the network, fires 🚨 on freshly-detected rings, with a **1×/2×/4× speed control**; Stop restores the committed fixture. Additive, §8 stable, 11/11 tests green. (Replaced the earlier replay-based live mode.) — savvas_
 - _2026-06-13 — P1 (kiriakos): **CANCELLED the kingpin "#1 ranking" ask to @P3** — no action needed from Andreas (he hadn't started it). Kingpin ring stays in the data as a normal fully-detected ring; we're not pinning it #1. No code/data change. — kiriakos_
 - _2026-06-13 — P4 (savvas): added the two biggest real-AML must-haves — **watchlist screening** (synthetic sanctions/PEP/adverse-media: accounts-table column, account-inspector panel, ⚠ ring-exposure banner, red-bordered graph nodes, `watchlist` KPI + filter) and **goAML structured STR export** (`GET /api/rings/{id}/goaml` → downloadable XML). **Removed the threshold sandbox** + its `/api/eval/curve` endpoint (unnecessary, per review). Also QC: showRing 404 guard + destroy old graph network (leak). All additive; §8 stable. — savvas_
@@ -166,3 +167,54 @@ false-positive rings → 0.**
 3. Own eval numbers, the **fixed demo seed**, and the 3-min demo script (REQUIREMENTS §17).
 4. Once 1–2 ship (fast), **pair with P2/P3 on detection tuning** — that's where the real hours are.
 - **Done when:** copilot answers by calling tools; SAR drafts a report; `/api/eval` shows the metric; demo runs clean twice.
+
+---
+
+## 6. 📌 Feature request — Risk-threshold account freezing & manual review
+
+**Requested by:** Alexandros (P5), for the demo narrative *detection → enforcement action*.
+**Owners:** **P4 (savvas)** — API + UI (extends the existing case workflow). **P1 (kiriakos)** — the
+account `status` field in the schema/dataset. *(P5 has an optional follow-up, below.)*
+
+### Idea
+An admin sets a **risk threshold from the UI** (e.g. 90%). Accounts with `risk ≥ threshold` are
+**auto-frozen** and queued for **manual review**. The reviewer then decides per account:
+**block**, **ban**, or **clear (unfreeze)**. Freezing is automatic by threshold; block/ban are
+never automatic — they require human review.
+
+### Account status — **P1** (schema + data)  *(this is the "update the dataset" part)*
+- Add a `status` field to **Account**: `"active" | "frozen" | "blocked" | "banned"`, default `"active"`.
+- `schemas.py` is **FROZEN** → post a heads-up in the Activity Log first; make the field
+  optional/defaulted so existing consumers don't break.
+- Generator emits `status: "active"` for every account; regenerate `sample_data/dataset.json`.
+- The dataset carries the *baseline* status; live freeze/review decisions are runtime state (below).
+
+### State machine
+`active → frozen` (auto, when `risk ≥ threshold`) → reviewer sets `blocked` | `banned` |
+`cleared (→ active)`.
+
+### API — **P4** (additive, keep §8 stable)
+- `POST /api/freeze {threshold}` (0..1) → set `status=frozen` on accounts with `risk ≥ threshold`;
+  return the frozen list + count.
+- `GET /api/frozen` → frozen / under-review accounts with their status.
+- `POST /api/accounts/{id}/decision {action}` where `action ∈ {block, ban, clear}` → update status
+  (`clear → active`).
+- Hold status in the in-memory `STATE` so the graph/table reflect it (no DB — matches the local-only
+  constraint), and/or persist via the existing localStorage case workflow.
+
+### UI — **P4**
+- A **Compliance** control: threshold **slider / % input** (default 90%) with a live preview
+  ("will freeze **N** accounts ≥ 90%") and a **Freeze** button.
+- Frozen accounts marked (🔒 / red chip) in the **accounts table**, **graph nodes**, and **inspector**.
+- A **review queue** — filter the accounts table to *frozen / pending review*.
+- In the account inspector: **Block · Ban · Clear (unfreeze)** buttons showing the current status.
+- Reuse the existing case-workflow status chips + persistence rather than a parallel system.
+
+### Optional follow-up — **P5** (Alexandros)
+- Surface the existing `POST /api/accounts/{id}/analyze` AI verdict in the review panel so each
+  frozen account shows an AI recommendation to inform the block/ban/clear decision.
+
+### Definition of Done
+Admin sets a %, clicks **Freeze** → matching accounts flip to `frozen` and appear in a review queue,
+marked across table/graph/inspector; each can be **blocked/banned/cleared** from the UI; status
+persists across reload; the Account schema + `sample_data` carry the `status` field; tests green.
