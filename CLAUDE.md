@@ -94,36 +94,39 @@ Stuck? Ping the team before forcing anything. **Never** `git push --force` to `m
 > Edit **only your own block.** Update "Working on" and "Status" as you go. This is how we
 > see who's touching what and avoid stepping on each other. **5 people, 5 blocks** — claim
 > a feature/area so two of us never run Claude Code on the same files.
+>
+> **P1–P5 below are a proposed starting mapping — swap roles freely, just keep one owner per
+> block. Your detailed first tasks are in [TASKS.md](./TASKS.md).**
 
-### Andreas Christodoulou (@AntreasCh)
-- **Working on:** _________________
-- **Files/area owned:** _________________
-- **Status:** _________________
-- **Blockers:** _________________
+### Andreas Christodoulou (@AntreasCh) — proposed **P1: Data & Schemas**
+- **Working on:** synthetic data generator; harden realism + AMLSim-shaped data (TASKS.md)
+- **Files/area owned:** `backend/schemas.py`, `backend/data/generator.py`, `sample_data/`
+- **Status:** not started
+- **Blockers:** —
 
-### Panayiotis (@pkonto04)
-- **Working on:** _________________
-- **Files/area owned:** _________________
-- **Status:** _________________
-- **Blockers:** _________________
+### Panayiotis (@pkonto04) — proposed **P2: Graph & Structural Detection**
+- **Working on:** cut false positives in structuring / circular / pass-through detectors
+- **Files/area owned:** `backend/graph/build.py`, `backend/detect/structural.py`
+- **Status:** not started
+- **Blockers:** —
 
-### Savvas Kattimeris
-- **Working on:** _________________
-- **Files/area owned:** _________________
-- **Status:** _________________
-- **Blockers:** _________________
+### Savvas Kattimeris — proposed **P3: Network Detection & Scoring**
+- **Working on:** temporal fan detection, Louvain ring scoring, scoring calibration
+- **Files/area owned:** `backend/detect/network.py`, `backend/detect/scoring.py`, `backend/detect/pipeline.py`
+- **Status:** not started
+- **Blockers:** —
 
-### (open slot — add your name + block here)
-- **Working on:** _________________
-- **Files/area owned:** _________________
-- **Status:** _________________
-- **Blockers:** _________________
+### (claim — add your name) — proposed **P4: API & Frontend**
+- **Working on:** graph polish, ring detail panel, SAR + eval display
+- **Files/area owned:** `backend/api/main.py`, `frontend/`
+- **Status:** not started
+- **Blockers:** —
 
-### (open slot — add your name + block here)
-- **Working on:** _________________
-- **Files/area owned:** _________________
-- **Status:** _________________
-- **Blockers:** _________________
+### (claim — add your name) — proposed **P5: AI, Eval & Demo**
+- **Working on:** Bedrock SAR + "Ask MuleNet" copilot, eval numbers, demo script; **get AWS access**
+- **Files/area owned:** `backend/ai/sar.py`, `backend/eval/evaluate.py`, demo
+- **Status:** not started
+- **Blockers:** needs AWS/Bedrock access from organizers
 
 ---
 
