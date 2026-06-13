@@ -2,6 +2,8 @@
 // Left: model eval + ranked ring queue · Center: static network graph · Right: inspector / copilot.
 
 const $ = (id) => document.getElementById(id);
+// keep first occurrence by id — guards the vis DataSet against any duplicate-id crash
+const dedupeById = (arr) => { const seen = new Set(); return arr.filter((x) => !seen.has(x.id) && seen.add(x.id)); };
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -136,10 +138,10 @@ async function loadGraph() {
 
 function renderGraph() {
   const keep = new Set();
-  viewNodes = lastGraph.nodes.filter((n) => showAll || inFocus(n));
+  viewNodes = dedupeById(lastGraph.nodes.filter((n) => showAll || inFocus(n)));
   viewNodes.forEach((n) => keep.add(n.id));
-  viewEdges = lastGraph.edges.filter((e) =>
-    keep.has(e.source) && keep.has(e.target) && (showAll || e.ring || e.suspicious));
+  viewEdges = dedupeById(lastGraph.edges.filter((e) =>
+    keep.has(e.source) && keep.has(e.target) && (showAll || e.ring || e.suspicious)));
 
   if (network) network.destroy();   // avoid leaking the previous network on re-render
   nodesDS = new vis.DataSet(viewNodes.map(nodeStyle));
@@ -1288,6 +1290,41 @@ function scheduleLive() {
   live.timer = setTimeout(pollLive, delay);
 }
 
+// Pick a resting position for each freshly-minted live account NEXT TO a node it
+// connects to, so new nodes slot in beside their neighbours and the frozen layout
+// never has to re-run physics (no churn). New nodes that only link to other new
+// nodes are placed once a neighbour has a spot; any orphan drops near an existing node.
+function placeNewNodes(newNodes, edges) {
+  const newIds = new Set(newNodes.map((n) => n.id));
+  const need = new Set();
+  for (const e of edges) {
+    if (newIds.has(e.source) && !newIds.has(e.target)) need.add(e.target);
+    if (newIds.has(e.target) && !newIds.has(e.source)) need.add(e.source);
+  }
+  const known = need.size ? network.getPositions([...need]) : {};
+  const placed = {};
+  const jitter = () => (Math.random() - 0.5) * 70;
+  const toPlace = new Map(newNodes.map((n) => [n.id, n]));
+  let progress = true;
+  while (toPlace.size && progress) {
+    progress = false;
+    for (const id of [...toPlace.keys()]) {
+      let anchor = null;
+      for (const e of edges) {
+        const other = e.source === id ? e.target : (e.target === id ? e.source : null);
+        if (other && (known[other] || placed[other])) { anchor = known[other] || placed[other]; break; }
+      }
+      if (anchor) { placed[id] = { x: anchor.x + jitter(), y: anchor.y + jitter() }; toPlace.delete(id); progress = true; }
+    }
+  }
+  if (toPlace.size) {   // no known neighbour yet — settle near an existing node
+    const anyId = nodesDS.getIds().find((id) => !newIds.has(id));
+    const c = anyId ? network.getPositions([anyId])[anyId] : { x: 0, y: 0 };
+    for (const id of toPlace.keys()) placed[id] = { x: c.x + (Math.random() - 0.5) * 260, y: c.y + (Math.random() - 0.5) * 260 };
+  }
+  return placed;
+}
+
 async function pollLive() {
   if (!live.on) return;
   let b;
@@ -1299,6 +1336,22 @@ async function pollLive() {
     live.on = false; live.started = false; startLive(); return;
   }
   if (b.summary) { liveStats(b.summary, b.clock); setKpis(b.summary); }
+  // 1) new accounts join as nodes first (placed beside a neighbour, layout stays frozen)
+  //    so the rings/edges that reference them have somewhere to attach.
+  const newNodes = (b.new_nodes || []).filter((n) => !nodesDS.get(n.id));
+  if (newNodes.length) {
+    const pos = placeNewNodes(newNodes, b.new_edges || []);
+    nodesDS.add(newNodes.map((n) => {
+      const s = nodeStyle(n);
+      const p = pos[n.id];
+      if (p) { s.x = p.x; s.y = p.y; }
+      s.physics = false;                  // stay put — never tug the frozen layout
+      return s;
+    }));
+    viewNodes.push(...newNodes);
+    lastGraph.nodes.push(...newNodes);    // keep lastGraph in sync so a later re-render keeps the grown network
+  }
+  // 2) recolor the freshly-detected ring (its nodes now exist) + fire the alert
   if (b.ring) {
     await loadRings();                              // rebuild queue + RING_COLOR with the new ring
     const col = ringColor(b.ring.ring_id);
@@ -1306,13 +1359,13 @@ async function pollLive() {
       .map((id) => ({ id, color: { background: col, border: "#1e293b" }, borderWidth: 2, opacity: 1 })));
     fireRingAlert(b.ring);
   }
+  // 3) new transfers — endpoints now exist; add in final style (no pulse), skip dup ids
   const fresh = (b.new_edges || []).filter((e) =>
-    nodesDS.get(e.source) && nodesDS.get(e.target) && !edgesDS.get(e.id));   // skip ids already present
+    nodesDS.get(e.source) && nodesDS.get(e.target) && !edgesDS.get(e.id));
   if (fresh.length) {
-    // Physics is frozen, so new transfers just appear in place between existing nodes —
-    // added in their final style (no bright pulse) so the feed stays calm and readable.
     edgesDS.add(fresh.map(edgeStyle));
     viewEdges.push(...fresh);
+    lastGraph.edges.push(...fresh);       // keep lastGraph in sync for re-renders
   }
   scheduleLive();
 }

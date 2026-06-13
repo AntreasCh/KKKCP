@@ -123,6 +123,21 @@ def _enriched_edges(txs: list[dict]) -> list[dict]:
             for t in txs]
 
 
+def _enriched_nodes(accounts: list[dict]) -> list[dict]:
+    """Build graph nodes (same shape as GET /api/graph) for freshly-minted live accounts,
+    so the frontend can render them as the live network grows."""
+    risk = {a["account_id"]: a["risk"] for a in STATE["result"]["account_risk"]}
+    node_ring: dict[str, str] = {}
+    for ring in STATE["result"]["rings"]:
+        for acc in ring["account_ids"]:
+            node_ring.setdefault(acc, ring["ring_id"])
+    return [{"id": a["account_id"], "label": a["account_id"], "risk": risk.get(a["account_id"], 0),
+             "type": a["account_type"], "ring": node_ring.get(a["account_id"]),
+             "owner_name": a.get("owner_name"), "country": a.get("country"), "kyc_risk": a.get("kyc_risk"),
+             "screened": bool(_screening(a, risk.get(a["account_id"], 0)))}
+            for a in accounts]
+
+
 @app.post("/api/stream/start")
 def stream_start(seed: int | None = None):
     """Begin a live monitored stream: a small starting network that grows on each poll."""
@@ -141,6 +156,12 @@ def stream_next():
     if not lf:
         raise HTTPException(409, "no active live stream — call /api/stream/start first")
     batch = lf.next_batch()
+    new_accts = batch.get("accounts", [])
+    # The live network grows nodes, not just edges. NOTE: LiveFeed.initial() returns its own
+    # `accounts` list by reference and _mint() appends to it, so new accounts may already be in
+    # STATE — add only the genuinely-missing ones so we never duplicate an account_id.
+    have = {a["account_id"] for a in STATE["dataset"]["accounts"]}
+    STATE["dataset"]["accounts"].extend(a for a in new_accts if a["account_id"] not in have)
     STATE["dataset"]["transactions"].extend(batch["transactions"])
     burst = batch.get("ring")
     if burst:
@@ -160,8 +181,8 @@ def stream_next():
         if best:
             alert = {"ring_id": best["ring_id"], "account_ids": best["account_ids"],
                      "patterns": best["patterns"], "n_accounts": len(best["account_ids"])}
-    return {"new_edges": _enriched_edges(batch["transactions"]), "ring": alert,
-            "clock": batch.get("clock"), "summary": _summary()}
+    return {"new_nodes": _enriched_nodes(new_accts), "new_edges": _enriched_edges(batch["transactions"]),
+            "ring": alert, "clock": batch.get("clock"), "summary": _summary()}
 
 
 @app.post("/api/stream/stop")
