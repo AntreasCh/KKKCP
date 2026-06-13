@@ -851,6 +851,7 @@ function setView(v) {
   $("graph-view").classList.toggle("hidden", v !== "graph");
   $("accounts-view").classList.toggle("hidden", v !== "accounts");
   $("names-wrap").classList.toggle("hidden", v !== "graph");
+  $("fp-tx").classList.toggle("hidden", v !== "graph");   // transaction filters only apply to the graph
   updateViewCount();
   if (v === "graph" && network) setTimeout(() => network.redraw(), 30);
 }
@@ -878,7 +879,7 @@ $("gen").onclick = async () => {
   btn.disabled = true;
   btn.textContent = "Generating…";
   try {
-    await fetch("/api/dataset/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+    await fetch("/api/dataset/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ seed: Math.floor(Math.random() * 1000000) }) });
     activeRing = null; activeMembers = null; destroyFlow(); hidePlayback();
     CASE = {}; try { localStorage.removeItem("mulenet_cases"); } catch (e) {}  // fresh dataset → fresh cases
     resetFilters();

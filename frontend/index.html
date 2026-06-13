@@ -106,12 +106,15 @@
             <div class="fp-group"><label>Account type</label><div id="f-type" class="chips"></div></div>
             <div class="fp-group"><label>KYC risk</label><div id="f-kyc" class="chips"></div></div>
             <div class="fp-group"><label>Country</label><div id="f-country" class="chips"></div></div>
-            <div class="fp-sep">Transaction filters (graph)</div>
-            <div class="fp-group"><label>Channel</label><div id="f-channel" class="chips"></div></div>
-            <div class="fp-group"><label>Amount range (€)</label>
-              <div class="fp-row"><input id="f-amin" type="number" placeholder="min" /><span>–</span><input id="f-amax" type="number" placeholder="max" /></div></div>
-            <div class="fp-group"><label>Date range</label>
-              <div class="fp-row"><input id="f-dfrom" type="date" /><span>–</span><input id="f-dto" type="date" /></div></div>
+            <!-- transaction filters only affect the graph; hidden in the Accounts view -->
+            <div id="fp-tx">
+              <div class="fp-sep">Transaction filters (graph)</div>
+              <div class="fp-group"><label>Channel</label><div id="f-channel" class="chips"></div></div>
+              <div class="fp-group"><label>Amount range (€)</label>
+                <div class="fp-row"><input id="f-amin" type="number" placeholder="min" /><span>–</span><input id="f-amax" type="number" placeholder="max" /></div></div>
+              <div class="fp-group"><label>Date range</label>
+                <div class="fp-row"><input id="f-dfrom" type="date" /><span>–</span><input id="f-dto" type="date" /></div></div>
+            </div>
           </div>
         </aside>
       </div>

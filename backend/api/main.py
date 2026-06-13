@@ -50,9 +50,10 @@ def _summary() -> dict:
 
 
 class GenReq(BaseModel):
-    n_accounts: int = 600
-    n_legit_tx: int = 2500
-    n_rings: int = 6
+    # defaults match backend/data/generator.py so "Generate" yields a rich network
+    n_accounts: int = 800
+    n_legit_tx: int = 4000
+    n_rings: int = 15
     seed: int = 42
 
 
