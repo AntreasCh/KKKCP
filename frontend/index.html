@@ -4,8 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MuleNet — AML Network Detector</title>
-  <!-- apply saved theme before first paint to avoid a flash of the wrong theme -->
-  <script>try { if (localStorage.getItem("mulenet_theme") === "dark") document.documentElement.setAttribute("data-theme", "dark"); } catch (e) {}</script>
   <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
   <link rel="stylesheet" href="/style.css" />
 </head>
@@ -16,55 +14,20 @@
       <span class="tag">Money-Laundering Network Detector · team KKKCP</span>
     </div>
     <div class="topbar-right">
-      <button id="search-btn" class="search-trigger" title="Search (Ctrl / ⌘ K)">
-        🔍 <span>Search owners, accounts, rings</span> <kbd>⌘K</kbd>
-      </button>
       <div id="kpis" class="kpis"></div>
-      <label class="toggle" title="Show the full network, including legitimate background traffic">
-        <input type="checkbox" id="showall" /> Show all traffic
-      </label>
-      <button id="notif-btn" class="icon-btn" title="Live-feed alerts">
-        🔔<span id="notif-badge" class="notif-badge hidden">0</span>
-      </button>
-      <button id="theme-btn" class="icon-btn" title="Toggle dark mode">🌙</button>
       <button id="gen" class="btn-primary">↻ Generate</button>
     </div>
   </header>
 
-  <!-- live-feed notifications inbox (grouped, persisted) -->
-  <div id="notif-panel" class="notif-panel hidden">
-    <div class="np-head">
-      <b>Live-feed alerts</b>
-      <span id="np-sub" class="np-sub"></span>
-      <button id="notif-clear" class="link-btn">Clear all</button>
-      <button id="notif-close" class="pb-btn close" title="Close">✕</button>
-    </div>
-    <div id="notif-list" class="np-list"></div>
-  </div>
-
   <main class="three-pane">
-    <!-- LEFT: model performance + ranked ring queue -->
-    <aside class="rail-left">
-      <div id="eval" class="eval-card">evaluating…</div>
-      <div class="rail-section-head">Detected rings <span id="rings-count" class="count-badge">·</span></div>
-      <div id="case-filter" class="case-filter"></div>
-      <div id="rings" class="rings"></div>
-    </aside>
-
-    <!-- CENTER: graph ↔ accounts table, with shared filters -->
+    <!-- CENTER: accounts table ↔ account-scoped Visual Review graph -->
     <section class="graph-pane">
       <div class="pane-header">
-        <div class="view-toggle">
-          <button class="vt active" data-view="graph">◉ Graph</button>
-          <button class="vt" data-view="accounts">▦ Accounts</button>
-        </div>
         <div class="pane-tools">
           <span id="view-count" class="view-count"></span>
           <label class="toggle" id="names-wrap" title="Show owner names on graph nodes">
             <input type="checkbox" id="names" /> Names
           </label>
-          <button id="live-btn" class="btn-ghost" title="Pause / resume the live monitored feed">▶ Live feed</button>
-          <button id="filter-btn" class="btn-ghost">⚙ Filters <span id="filter-count" class="fcount hidden">0</span></button>
           <button id="fitbtn" class="btn-ghost" title="Reset / fit the view">⤢ Fit</button>
         </div>
       </div>
@@ -78,23 +41,7 @@
             <span class="focus-ico">🔎</span>
             <span id="focus-label" class="focus-label"></span>
             <button id="focus-hop" class="focus-btn">+1 hop</button>
-            <button id="focus-clear" class="focus-btn clear">← Overview</button>
-          </div>
-          <div id="live-bar" class="live-bar hidden">
-            <span class="live-dot"></span><b id="live-label">LIVE</b>
-            <span id="live-stats" class="live-stats"></span>
-            <span class="live-speed">
-              <button class="spd active" data-spd="1">1×</button>
-              <button class="spd" data-spd="2">2×</button>
-              <button class="spd" data-spd="4">4×</button>
-            </span>
-            <button id="live-stop" class="live-stop">⏸ Pause</button>
-          </div>
-          <div id="playback" class="playback hidden">
-            <button id="pb-play" class="pb-btn" title="Play / pause">▶</button>
-            <input id="pb-range" type="range" min="0" max="0" value="0" />
-            <span id="pb-label" class="pb-label"></span>
-            <button id="pb-close" class="pb-btn close" title="Exit playback">✕</button>
+            <button id="focus-clear" class="focus-btn clear">← Back to Accounts</button>
           </div>
           <div id="legend" class="legend">
             <div class="legend-title">Legend <span id="nodecount" class="nodecount"></span></div>
@@ -113,8 +60,7 @@
             <span id="acct-count" class="subtle">—</span>
             <span id="focus-note" class="focus-note hidden"></span>
             <div class="acct-tools">
-              <label class="af-ctl" title="Accounts at/above this risk are auto-frozen">🔒 Auto-freeze ≥ <b id="fz-val">90</b>%
-                <input id="fz-threshold" type="range" min="0" max="100" value="90" /></label>
+              <span class="af-label" title="Accounts at/above this risk are auto-frozen">🔒 Auto-freeze ≥ 90%</span>
               <span id="fz-count" class="af-count subtle">—</span>
               <label class="toggle"><input type="checkbox" id="f-under-review" /> Under review only</label>
             </div>
@@ -127,7 +73,6 @@
                 <th data-sort="account_type">Type</th>
                 <th data-sort="country">Country</th>
                 <th data-sort="kyc_risk">KYC</th>
-                <th data-sort="screening">Screening</th>
                 <th data-sort="n_findings" class="num">Flags</th>
                 <th data-sort="rings">Rings</th>
                 <th data-sort="risk" class="num sorted">Risk</th>
@@ -139,75 +84,21 @@
           </div>
         </div>
 
-        <!-- FILTER drawer (shared by graph + table) -->
-        <aside id="filter-panel" class="filter-panel hidden">
-          <div class="fp-head"><b>Filters</b>
-            <button id="filter-reset" class="link-btn">Reset all</button>
-            <button id="filter-close" class="pb-btn close" title="Close">✕</button>
-          </div>
-          <div class="fp-body">
-            <div class="fp-group"><label>Search owner / account</label>
-              <input id="f-text" type="text" placeholder="e.g. Maria, ACC00012" /></div>
-            <div class="fp-group"><label>Minimum risk <b id="f-risk-val">0</b>%</label>
-              <input id="f-risk" type="range" min="0" max="100" value="0" /></div>
-            <div class="fp-group"><label>Account type</label><div id="f-type" class="chips"></div></div>
-            <div class="fp-group"><label>KYC risk</label><div id="f-kyc" class="chips"></div></div>
-            <div class="fp-group"><label>Country</label><div id="f-country" class="chips"></div></div>
-            <div class="fp-group"><label>Compliance screening</label>
-              <label class="toggle fp-check"><input type="checkbox" id="f-watchlist" /> On a watchlist (sanctions / PEP / adverse media)</label></div>
-            <!-- transaction filters only affect the graph; hidden in the Accounts view -->
-            <div id="fp-tx">
-              <div class="fp-sep">Transaction filters (graph)</div>
-              <div class="fp-group"><label>Channel</label><div id="f-channel" class="chips"></div></div>
-              <div class="fp-group"><label>Amount range (€)</label>
-                <div class="fp-row"><input id="f-amin" type="number" placeholder="min" /><span>–</span><input id="f-amax" type="number" placeholder="max" /></div></div>
-              <div class="fp-group"><label>Date range</label>
-                <div class="fp-row"><input id="f-dfrom" type="date" /><span>–</span><input id="f-dto" type="date" /></div></div>
-            </div>
-          </div>
-        </aside>
       </div>
     </section>
 
-    <!-- RIGHT: tabbed inspector / copilot -->
+    <!-- RIGHT: account inspector -->
     <aside class="rail-right">
-      <div class="tabs">
-        <button class="tab active" data-tab="inspector">Inspector</button>
-        <button class="tab" data-tab="ask">Ask MuleNet</button>
-      </div>
-
       <div id="tab-inspector" class="tabpane">
         <div id="detail">
           <div class="empty-state">
             <div class="ico">🔍</div>
-            <p>Select a ring from the queue to investigate the laundering pattern, money flow, and draft a SAR.</p>
+            <p>Select an account to inspect.</p>
           </div>
         </div>
       </div>
-
-      <div id="tab-ask" class="tabpane chat hidden">
-        <div class="chat-intro"><b>Ask MuleNet</b> — an AI analyst that investigates the detected network by calling tools, then answers.</div>
-        <div id="chat-log" class="chat-log"></div>
-        <form id="chat-form" class="chat-form" autocomplete="off">
-          <input id="chat-input" type="text" placeholder="e.g. What's the riskiest ring and why?" />
-          <button type="submit" class="btn-primary">Ask</button>
-        </form>
-      </div>
     </aside>
   </main>
-
-  <!-- global search / command palette (⌘K) -->
-  <div id="search-modal" class="search-modal hidden">
-    <div class="search-box">
-      <div class="search-inwrap">
-        <span class="search-ico">🔍</span>
-        <input id="search-input" type="text" placeholder="Search by owner, account or ring… e.g. Maria, ACC00042, DET_003" />
-      </div>
-      <div id="search-results" class="search-results"></div>
-      <div class="search-foot"><kbd>↑</kbd><kbd>↓</kbd> navigate · <kbd>↵</kbd> open · <kbd>esc</kbd> close</div>
-    </div>
-  </div>
-
   <!-- account review modal — info + reason a frozen account is under review (§6) -->
   <div id="review-modal" class="review-modal hidden">
     <div class="review-card">
@@ -219,7 +110,7 @@
     </div>
   </div>
 
-  <!-- live-feed alert toasts -->
+  <!-- transient notification toasts -->
   <div id="toasts" class="toasts"></div>
 
   <script src="/app.js"></script>

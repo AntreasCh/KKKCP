@@ -7,18 +7,14 @@ Run from the repo root:
 """
 from __future__ import annotations
 
-import datetime
-import hashlib
 import json
 from pathlib import Path
-from xml.sax.saxutils import escape as _xesc
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from backend.ai.sar import generate_sar
-from backend.data.generator import LiveFeed, generate_dataset
+from backend.data.generator import generate_dataset
 from backend.detect import pipeline
 from backend.eval.evaluate import evaluate
 
@@ -26,40 +22,13 @@ ROOT = Path(__file__).resolve().parents[2]
 SAMPLE = ROOT / "sample_data"
 FRONTEND = ROOT / "frontend"
 
+# Auto-freeze rule: accounts at/above this risk are auto-frozen. Fixed constant (no slider).
+FREEZE_THRESHOLD = 0.90
+
 app = FastAPI(title="MuleNet API")
-# freeze_threshold: accounts at/above this risk are auto-frozen. manual: account ids whose status
-# was set by a human reviewer (block/ban/clear) — these are sticky and ignore the auto-freeze.
-STATE: dict = {"dataset": None, "labels": None, "result": None, "live": None,
-               "freeze_threshold": 0.9, "manual": set()}
-
-# ── watchlist screening (synthetic, deterministic per account) ──────────────
-# Mirrors a real AML stack screening every customer against sanctions / PEP /
-# adverse-media lists. Derived deterministically from the account id (+ risk),
-# biased toward high-risk accounts, so results are stable per dataset.
-_SANCTION_LISTS = ("OFAC SDN", "EU Consolidated List", "UN Security Council")
-_ADVERSE = ("fraud investigation", "money-laundering allegations",
-            "organised-crime ties", "embezzlement charges")
-
-
-def _ahash(aid: str) -> int:
-    return int(hashlib.md5(aid.encode()).hexdigest()[:8], 16)
-
-
-def _screening(acc: dict, risk: float) -> list[dict]:
-    h = _ahash(acc["account_id"])
-    flagged = risk >= 0.5
-    hits: list[dict] = []
-    if (flagged and h % 6 == 0) or h % 120 == 0:
-        hits.append({"type": "sanctions", "label": "Sanctions match",
-                     "list": _SANCTION_LISTS[h % len(_SANCTION_LISTS)],
-                     "detail": "Strong name/identifier match — escalate for manual review"})
-    if (flagged and h % 7 == 1) or h % 40 == 0:
-        hits.append({"type": "pep", "label": "PEP", "list": "Dow Jones PEP",
-                     "detail": "Politically exposed person or close associate"})
-    if (flagged and h % 5 == 2) or h % 35 == 0:
-        hits.append({"type": "adverse_media", "label": "Adverse media", "list": "Refinitiv World-Check",
-                     "detail": "Negative news: " + _ADVERSE[h % len(_ADVERSE)]})
-    return hits
+# manual: account ids whose status was set by a human reviewer (block/ban/clear) — these are
+# sticky and ignore the auto-freeze.
+STATE: dict = {"dataset": None, "labels": None, "result": None, "manual": set()}
 
 
 def _recompute():
@@ -85,12 +54,9 @@ def _startup():
 
 def _summary() -> dict:
     d, r = STATE["dataset"], STATE["result"]
-    risk = {a["account_id"]: a["risk"] for a in r["account_risk"]}
-    screened = sum(1 for a in d["accounts"] if _screening(a, risk.get(a["account_id"], 0)))
     return {"accounts": len(d["accounts"]), "transactions": len(d["transactions"]),
             "rings_detected": len(r["rings"]),
-            "flagged_accounts": sum(1 for a in r["account_risk"] if a["risk"] >= 0.5),
-            "screening_hits": screened}
+            "flagged_accounts": sum(1 for a in r["account_risk"] if a["risk"] >= 0.5)}
 
 
 class GenReq(BaseModel):
@@ -103,14 +69,13 @@ class GenReq(BaseModel):
 
 @app.post("/api/dataset/generate")
 def gen(req: GenReq):
-    STATE["live"] = None
     STATE["manual"] = set()  # fresh dataset → forget prior manual decisions
     STATE["dataset"], STATE["labels"] = generate_dataset(req.n_accounts, req.n_legit_tx, req.n_rings, req.seed)
     _recompute()
     return {"dataset_id": f"seed{req.seed}", "summary": _summary()}
 
 
-# ── LIVE STREAM (P1's LiveFeed engine, wired by P4) ─────────────────────────
+# ── graph enrichment helpers (shared by the account-scoped ego graph) ───────
 def _enriched_edges(txs: list[dict]) -> list[dict]:
     risk = {a["account_id"]: a["risk"] for a in STATE["result"]["account_risk"]}
     tx_ring: dict[str, str] = {}
@@ -124,8 +89,8 @@ def _enriched_edges(txs: list[dict]) -> list[dict]:
 
 
 def _enriched_nodes(accounts: list[dict]) -> list[dict]:
-    """Build graph nodes (same shape as GET /api/graph) for freshly-minted live accounts,
-    so the frontend can render them as the live network grows."""
+    """Build graph nodes for the account-scoped ego graph: each carries risk + ring membership
+    so the frontend can risk-color the network and highlight ring members."""
     risk = {a["account_id"]: a["risk"] for a in STATE["result"]["account_risk"]}
     node_ring: dict[str, str] = {}
     for ring in STATE["result"]["rings"]:
@@ -133,91 +98,8 @@ def _enriched_nodes(accounts: list[dict]) -> list[dict]:
             node_ring.setdefault(acc, ring["ring_id"])
     return [{"id": a["account_id"], "label": a["account_id"], "risk": risk.get(a["account_id"], 0),
              "type": a["account_type"], "ring": node_ring.get(a["account_id"]),
-             "owner_name": a.get("owner_name"), "country": a.get("country"), "kyc_risk": a.get("kyc_risk"),
-             "screened": bool(_screening(a, risk.get(a["account_id"], 0)))}
+             "owner_name": a.get("owner_name"), "country": a.get("country"), "kyc_risk": a.get("kyc_risk")}
             for a in accounts]
-
-
-@app.post("/api/stream/start")
-def stream_start(seed: int | None = None):
-    """Begin a live monitored stream: a small starting network that grows on each poll."""
-    lf = LiveFeed(seed=seed)
-    STATE["dataset"], STATE["labels"] = lf.initial(100)
-    STATE["live"] = lf
-    _recompute()
-    return {"summary": _summary()}
-
-
-def _enforced_ids() -> set[str]:
-    """Accounts whose status forbids them from transacting (frozen / blocked / banned).
-    A freeze is a freeze: such an account must neither send nor receive money."""
-    return {a["account_id"] for a in STATE["dataset"]["accounts"]
-            if a.get("status", "active") != "active"}
-
-
-@app.get("/api/stream/next")
-def stream_next():
-    """One tick of the live stream: emit new transactions, re-run detection, return the new
-    edges + any freshly-detected ring (for a 🚨 alert) + an updated summary.
-
-    Enforcement: a frozen/blocked/banned account cannot move money. Any freshly-streamed
-    transaction touching such an account (as sender OR receiver) is *prevented* here — it
-    never enters the dataset, so the live feed actually stops mules transacting once frozen."""
-    lf = STATE.get("live")
-    if not lf:
-        raise HTTPException(409, "no active live stream — call /api/stream/start first")
-    batch = lf.next_batch()
-    new_accts = batch.get("accounts", [])
-    # The live network grows nodes, not just edges. NOTE: LiveFeed.initial() returns its own
-    # `accounts` list by reference and _mint() appends to it, so new accounts may already be in
-    # STATE — add only the genuinely-missing ones so we never duplicate an account_id.
-    have = {a["account_id"] for a in STATE["dataset"]["accounts"]}
-    STATE["dataset"]["accounts"].extend(a for a in new_accts if a["account_id"] not in have)
-
-    # Enforcement: a frozen/blocked/banned account cannot move money. Drop any freshly-streamed
-    # tx whose sender OR receiver is under enforcement (and any burst leg/ring that empties out).
-    enforced = _enforced_ids()
-    prevented = [t for t in batch["transactions"] if t["src"] in enforced or t["dst"] in enforced]
-    if prevented:
-        blk = {t["tx_id"] for t in prevented}
-        batch["transactions"] = [t for t in batch["transactions"] if t["tx_id"] not in blk]
-        rb = batch.get("ring")
-        if rb:  # a planted burst whose accounts got frozen — drop the prevented legs / dead ring
-            rb["tx_ids"] = [tid for tid in rb.get("tx_ids", []) if tid not in blk]
-            if not rb["tx_ids"]:
-                batch["ring"] = None
-
-    STATE["dataset"]["transactions"].extend(batch["transactions"])
-    burst = batch.get("ring")
-    if burst:
-        mule = burst.pop("_mule_accounts", [])
-        STATE["labels"]["rings"].append({k: v for k, v in burst.items() if not k.startswith("_")})
-        STATE["labels"]["mule_accounts"] = sorted(set(STATE["labels"]["mule_accounts"]) | set(mule))
-    _recompute()
-
-    alert = None
-    if burst:  # map the planted burst to the detected ring it best overlaps, for a clickable alert
-        ba = set(burst["account_ids"])
-        best, best_ov = None, 0
-        for dr in STATE["result"]["rings"]:
-            ov = len(set(dr["account_ids"]) & ba)
-            if ov > best_ov:
-                best, best_ov = dr, ov
-        if best:
-            alert = {"ring_id": best["ring_id"], "account_ids": best["account_ids"],
-                     "patterns": best["patterns"], "n_accounts": len(best["account_ids"])}
-    return {"new_nodes": _enriched_nodes(new_accts), "new_edges": _enriched_edges(batch["transactions"]),
-            "ring": alert, "clock": batch.get("clock"), "summary": _summary(),
-            # transactions stopped this tick because a party is frozen/blocked/banned
-            "prevented": [{"src": t["src"], "dst": t["dst"], "amount": t["amount"]} for t in prevented]}
-
-
-@app.post("/api/stream/stop")
-def stream_stop():
-    """End the live stream and restore the committed fixture."""
-    STATE["live"] = None
-    _load_committed()
-    return {"summary": _summary()}
 
 
 @app.get("/api/dataset/current")
@@ -225,44 +107,9 @@ def current():
     return _summary()
 
 
-@app.get("/api/graph")
-def graph(max_nodes: int = 400):
-    d, r = STATE["dataset"], STATE["result"]
-    risk = {a["account_id"]: a["risk"] for a in r["account_risk"]}
-    # Map each account / transaction to the highest-scoring ring it belongs to.
-    # rings are sorted by score desc, so setdefault keeps the strongest ring.
-    # `ring` is an additive field on top of the §8 graph contract — frontend uses
-    # it to color detected clusters; consumers that ignore it are unaffected.
-    node_ring: dict[str, str] = {}
-    tx_ring: dict[str, str] = {}
-    for ring in r["rings"]:
-        for acc in ring["account_ids"]:
-            node_ring.setdefault(acc, ring["ring_id"])
-        for tx in ring["tx_ids"]:
-            tx_ring.setdefault(tx, ring["ring_id"])
-    keep = set()
-    for ring in r["rings"]:
-        keep |= set(ring["account_ids"])
-    for a in sorted(d["accounts"], key=lambda a: -risk.get(a["account_id"], 0)):
-        if len(keep) >= max_nodes:
-            break
-        keep.add(a["account_id"])
-    # owner/country/KYC on nodes and channel/timestamp on edges are additive fields
-    # so the frontend can show human detail and filter on it (§8 consumers unaffected).
-    nodes = [{"id": a["account_id"], "label": a["account_id"], "risk": risk.get(a["account_id"], 0),
-              "type": a["account_type"], "ring": node_ring.get(a["account_id"]),
-              "owner_name": a.get("owner_name"), "country": a.get("country"), "kyc_risk": a.get("kyc_risk"),
-              "screened": bool(_screening(a, risk.get(a["account_id"], 0)))}
-             for a in d["accounts"] if a["account_id"] in keep]
-    edges = [{"id": t["tx_id"], "source": t["src"], "target": t["dst"], "amount": t["amount"],
-              "suspicious": risk.get(t["src"], 0) >= 0.5 or risk.get(t["dst"], 0) >= 0.5,
-              "ring": tx_ring.get(t["tx_id"]), "channel": t.get("channel"), "timestamp": t.get("timestamp")}
-             for t in d["transactions"] if t["src"] in keep and t["dst"] in keep]
-    return {"nodes": nodes, "edges": edges}
-
-
 @app.get("/api/graph/account/{account_id}")
-def graph_account(account_id: str, hops: int = 1, max_nodes: int = 400, max_edges: int = 1500):
+def graph_account(account_id: str, hops: int = 1, max_nodes: int = 400, max_edges: int = 1500,
+                  suspicious_only: bool = False):
     """Ego-network around one account — the scalable lens. Returns the account + its direct
     counterparties (hops=1) or one step further (hops=2) + the transfers among them, in the
     same node/edge shape as /api/graph. The full dataset can be millions of transactions; this
@@ -300,8 +147,18 @@ def graph_account(account_id: str, hops: int = 1, max_nodes: int = 400, max_edge
         truncated = True
 
     node_dicts = [accts[a] for a in keep if a in accts]
+    out_edges = _enriched_edges(edges)
+    out_nodes = _enriched_nodes(node_dicts)
+    if suspicious_only:
+        # Visual Review: account + ONLY its suspicious/ring counterparties — keep edges flagged
+        # suspicious or in a ring, the nodes incident to those edges, plus the focus account node.
+        out_edges = [e for e in out_edges if e["suspicious"] or e["ring"]]
+        incident = {account_id}
+        for e in out_edges:
+            incident.add(e["source"]); incident.add(e["target"])
+        out_nodes = [n for n in out_nodes if n["id"] in incident]
     return {"focus": account_id, "owner": accts[account_id].get("owner_name"), "hops": hops,
-            "nodes": _enriched_nodes(node_dicts), "edges": _enriched_edges(edges),
+            "nodes": out_nodes, "edges": out_edges,
             "tx_count": len(own), "total_tx": len(txs), "truncated": truncated}
 
 
@@ -321,8 +178,7 @@ def accounts_list():
             fcount[a] = fcount.get(a, 0) + 1
     return [{**a, "risk": round(rmap.get(a["account_id"], 0), 3),
              "rings": acc_rings.get(a["account_id"], []),
-             "n_findings": fcount.get(a["account_id"], 0),
-             "screening": _screening(a, rmap.get(a["account_id"], 0))} for a in d["accounts"]]
+             "n_findings": fcount.get(a["account_id"], 0)} for a in d["accounts"]]
 
 
 @app.get("/api/rings")
@@ -356,8 +212,7 @@ def account(acc_id: str):
     txs = [t for t in STATE["dataset"]["transactions"] if t["src"] == acc_id or t["dst"] == acc_id][:200]
     acc_risk = rmap.get(acc_id, {}).get("risk", 0)
     return {"account": amap[acc_id], "risk": acc_risk,
-            "findings": findings, "transactions": txs,
-            "screening": _screening(amap[acc_id], acc_risk)}
+            "findings": findings, "transactions": txs}
 
 
 @app.post("/api/accounts/{acc_id}/analyze")
@@ -370,44 +225,38 @@ def analyze(acc_id: str):
 
 
 # ── enforcement: risk-threshold freezing + manual review (§6) ────────────────
-# Mutates Account.status on the in-memory dataset. Auto-freeze tracks freeze_threshold;
+# Mutates Account.status on the in-memory dataset. Auto-freeze uses the fixed FREEZE_THRESHOLD;
 # accounts a human reviewed (block/ban/clear) are sticky and ignore the auto-freeze.
 _RISK = lambda: {a["account_id"]: a["risk"] for a in STATE["result"]["account_risk"]}
 _DECISIONS = {"block": "blocked", "ban": "banned", "clear": "active", "freeze": "frozen"}
 
 
 def _apply_freeze():
-    """(Re)apply the auto-freeze: status='frozen' when risk ≥ threshold, else 'active' — except
-    accounts in STATE['manual'] (a human already decided those), which are left untouched."""
+    """(Re)apply the auto-freeze: status='frozen' when risk ≥ FREEZE_THRESHOLD, else 'active' —
+    except accounts in STATE['manual'] (a human already decided those), left untouched."""
     if not STATE.get("result"):
         return
     risk = _RISK()
-    thr = STATE.get("freeze_threshold", 0.9)
     manual = STATE.setdefault("manual", set())
     for a in STATE["dataset"]["accounts"]:
         if a["account_id"] in manual:
             continue
-        a["status"] = "frozen" if risk.get(a["account_id"], 0) >= thr else "active"
+        a["status"] = "frozen" if risk.get(a["account_id"], 0) >= FREEZE_THRESHOLD else "active"
 
 
 def _freeze_reason(acc_id: str, risk: float) -> dict:
     """Why this account is under enforcement: threshold + the detector findings that drove the risk."""
-    thr = STATE.get("freeze_threshold", 0.9)
     fs = [f for f in STATE["result"]["findings"] if acc_id in f["subject_ids"]]
     patterns = sorted({f["detector"] for f in fs})
     manual = acc_id in STATE.get("manual", set())
     return {
-        "threshold": thr,
+        "threshold": FREEZE_THRESHOLD,
         "auto": not manual,
-        "summary": (f"Risk {risk*100:.0f}% ≥ freeze threshold {thr*100:.0f}%"
-                    if risk >= thr else f"Risk {risk*100:.0f}% (manually actioned)"),
+        "summary": (f"Risk {risk*100:.0f}% ≥ freeze threshold {FREEZE_THRESHOLD*100:.0f}%"
+                    if risk >= FREEZE_THRESHOLD else f"Risk {risk*100:.0f}% (manually actioned)"),
         "patterns": patterns,
         "findings": fs[:10],
     }
-
-
-class FreezeReq(BaseModel):
-    threshold: float = 0.9  # risk fraction 0..1 (UI sends percentage / 100)
 
 
 class DecisionReq(BaseModel):
@@ -416,19 +265,9 @@ class DecisionReq(BaseModel):
 
 @app.get("/api/freeze")
 def freeze_config():
-    """Current auto-freeze threshold + how many accounts are frozen/under review."""
+    """Fixed auto-freeze threshold + how many accounts are frozen/under review."""
     n = sum(1 for a in STATE["dataset"]["accounts"] if a.get("status", "active") != "active")
-    return {"threshold": STATE.get("freeze_threshold", 0.9), "under_review": n}
-
-
-@app.post("/api/freeze")
-def freeze(req: FreezeReq):
-    """Set the auto-freeze threshold and re-apply it. Manual decisions are preserved."""
-    STATE["freeze_threshold"] = max(0.0, min(1.0, req.threshold))
-    _apply_freeze()
-    risk = _RISK()
-    frozen = [a["account_id"] for a in STATE["dataset"]["accounts"] if a.get("status") == "frozen"]
-    return {"threshold": STATE["freeze_threshold"], "frozen": frozen, "count": len(frozen)}
+    return {"threshold": FREEZE_THRESHOLD, "under_review": n}
 
 
 @app.get("/api/frozen")
@@ -461,75 +300,6 @@ def decision(acc_id: str, req: DecisionReq):
     amap[acc_id]["status"] = _DECISIONS[req.action]
     STATE.setdefault("manual", set()).add(acc_id)  # sticky: ignore auto-freeze from now on
     return {"account_id": acc_id, "status": amap[acc_id]["status"]}
-
-
-@app.post("/api/rings/{ring_id}/sar")
-def sar(ring_id: str):
-    r = next((x for x in STATE["result"]["rings"] if x["ring_id"] == ring_id), None)
-    if not r:
-        raise HTTPException(404, "ring not found")
-    out = generate_sar(r, STATE["dataset"]["accounts"], STATE["dataset"]["transactions"],
-                        STATE["result"]["findings"])
-    r["narrative"] = out["narrative"]
-    return out
-
-
-@app.get("/api/rings/{ring_id}/goaml")
-def goaml(ring_id: str):
-    """Structured regulatory STR filing in goAML-style XML (the UN/FIU format) — the
-    machine-readable filing that complements the human SAR narrative (P4)."""
-    r = next((x for x in STATE["result"]["rings"] if x["ring_id"] == ring_id), None)
-    if not r:
-        raise HTTPException(404, "ring not found")
-    d, res = STATE["dataset"], STATE["result"]
-    amap = {a["account_id"]: a for a in d["accounts"]}
-    txs = [t for t in d["transactions"] if t["tx_id"] in set(r["tx_ids"])]
-    total = round(sum(t["amount"] for t in txs), 2)
-    sar_out = generate_sar(r, d["accounts"], d["transactions"], res["findings"])
-    now = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
-
-    def acct(aid: str) -> str:
-        a = amap.get(aid, {})
-        return ("<t_account><institution_name>MuleNet Bank</institution_name>"
-                f"<account>{_xesc(aid)}</account><currency_code>EUR</currency_code>"
-                f"<account_name>{_xesc(a.get('owner_name', ''))}</account_name>"
-                f"<personal_account_type>{_xesc(a.get('account_type', ''))}</personal_account_type>"
-                "</t_account>")
-
-    tx_xml = "".join(
-        "<transaction>"
-        f"<transactionnumber>{_xesc(t['tx_id'])}</transactionnumber>"
-        f"<date_transaction>{_xesc(t['timestamp'])}</date_transaction>"
-        f"<transmode_code>{_xesc(t.get('channel', ''))}</transmode_code>"
-        f"<amount_local>{t['amount']}</amount_local>"
-        f"<t_from>{acct(t['src'])}</t_from><t_to>{acct(t['dst'])}</t_to>"
-        "</transaction>" for t in txs)
-    indicators = "".join(f"<indicator>{_xesc(p)}</indicator>" for p in r.get("patterns", []))
-
-    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n<report>\n'
-           "  <rentity_id>MULENET-KKKCP</rentity_id>\n  <submission_code>E</submission_code>\n"
-           "  <report_code>STR</report_code>\n"
-           f"  <entity_reference>{_xesc(ring_id)}</entity_reference>\n"
-           f"  <submission_date>{now}</submission_date>\n  <currency_code_local>EUR</currency_code_local>\n"
-           "  <reporting_person><first_name>MuleNet</first_name><last_name>Compliance</last_name>"
-           "<title>AML Analyst</title></reporting_person>\n"
-           f"  <reason>{_xesc(sar_out.get('narrative', ''))}</reason>\n"
-           f"  <report_indicators>{indicators}</report_indicators>\n"
-           f"  <total_amount>{total}</total_amount>\n"
-           f"  <transactions>{tx_xml}</transactions>\n</report>\n")
-    return Response(content=xml, media_type="application/xml",
-                    headers={"Content-Disposition": f'attachment; filename="STR_{ring_id}.xml"'})
-
-
-class AskReq(BaseModel):
-    question: str
-
-
-@app.post("/api/ask")
-def ask(req: AskReq):
-    """'Ask MuleNet' analyst copilot — a tool-using agent over the detection results (P5)."""
-    from backend.ai.copilot import ask as copilot_ask
-    return copilot_ask(req.question, STATE["result"], STATE["dataset"], STATE["labels"])
 
 
 @app.get("/api/eval")
