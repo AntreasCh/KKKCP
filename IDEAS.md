@@ -1,127 +1,132 @@
 # 💡 Project Ideas — Track: "Keep Money Safe"
 
-**Team:** KKKCP · **Event:** iFX Hack 2026 (13–14 June, University of Limassol) · **Sponsor:** AWS
+**Team:** KKKCP · **Event:** iFX Hack 2026 · **Sponsor:** AWS
+**Constraints (decided):** runs **locally only** (no server/hosting; demo on `localhost`) ·
+AI layer is **Anthropic Claude** (via AWS **Bedrock** for sponsor points, or the Anthropic API) ·
+**hybrid: rule-based engine + AI** · team of **5** each running Claude Code.
 
-Track goal: *Protect people, businesses, and financial systems from fraud, scams, and
-financial crime.* Sub-themes: fraud detection · identity verification · AML · financial
-security · consumer protection.
+> ⚠️ **THE RULE: don't build a wrapper.** A "paste text → call Claude → print answer" app
+> loses. Every idea below is built so the **LLM is one signal/layer among several**, sitting
+> on top of a **rule-based / algorithmic core that does real work and runs with the AI turned
+> off**. That core is the differentiator, the engineering substance, and what fills 20 hours
+> for 5 people. If a component can't be explained without saying "we ask Claude," it's a
+> wrapper — push the logic into code.
 
-> **How to use this file:** Read the ideas, add comments under each one (sign with your
-> name), and vote with 👍 in the "Votes" line. We lock in a decision at the bottom.
-> This is the *online-trading* expo (iFX), so ideas that touch **trading / broker / forex /
-> crypto fraud** will land hardest with the judges (Industry Impact).
-
----
-
-## ⭐ Recommendation (read this first)
-
-For a 24-hour build with a strong live demo and high relevance to an **online-trading**
-audience, the two strongest bets are:
-
-1. **Idea 1 — ScamBroker Shield** (consumer protection, most relatable demo, AI-heavy)
-2. **Idea 4 — MuleNet** (AML graph detection, most technically impressive)
-
-Both are demoable, both map cleanly to AWS services, and both hit all five judging
-criteria. Pick one as the build, keep the other as the backup pitch.
+> **How to use this file:** read, add 👍 on the **Votes** line, comment with your name. Lock
+> the decision at the bottom.
 
 ---
 
-## Idea 1 — 🎣 ScamBroker Shield
-**"Is this broker/investment a scam?" — instant AI verdict**
+## ⭐ Recommendation
 
-- **Problem:** "Pig-butchering" and fake-broker scams are the #1 fraud in online trading.
-  Victims get a slick WhatsApp/Telegram pitch, a fake trading dashboard, and "guaranteed
-  returns." They have no easy way to check legitimacy before wiring money.
-- **Solution:** Paste a broker URL, a chat screenshot, or a message. The app returns a
-  **risk score + red-flag breakdown**: unregulated/fake license number, domain age,
-  "guaranteed profit" language, pressure tactics, mismatched company details, lookalike
-  domains of real brokers.
-- **Demo (the money shot):** Paste a real scam message → red "HIGH RISK 92%" with a list
-  of reasons. Paste a legit regulated broker → green "LOW RISK" with verified license.
-- **Stack:** Frontend (React/Next). **Amazon Bedrock** (Claude) for message/text analysis
-  and red-flag extraction. **Amazon Textract** to read uploaded chat/website screenshots.
-  Optional: scrape/check public regulator registries (CySEC, FCA) + WHOIS domain age.
-- **Why it wins:** Innovation (AI scam-pattern detection), Demo (instant + relatable),
-  Industry Impact (directly protects retail traders — iFX's whole audience).
-- **24h MVP:** Text-in → risk score + reasons. Stretch: screenshot OCR + regulator lookup.
+Both top picks are genuine systems, not wrappers, and split cleanly across 5 people:
+
+1. **Idea 1 — MuleNet** (AML graph detection) — *most* engineering substance; the AI is ~5%
+   of it. Best "this is real software" story.
+2. **Idea 2 — ScamBroker Shield** (multi-signal risk engine) — most relatable demo for an
+   online-trading audience; AI is 1 of ~5 scoring signals.
+
+Pick one to build, keep the other as the backup pitch.
+
+---
+
+## Idea 1 — 🕸️ MuleNet — Money-Laundering Network Detector
+
+**Detect laundering *rings* in transaction data — the AI only writes the report.**
+
+The win: 90%+ of this is **graph algorithms + data engineering**. The LLM does one small,
+clearly-bounded job (drafting the suspicious-activity narrative). Impossible to mistake for a
+wrapper.
+
+**Architecture (layers = depth):**
+1. **Synthetic data generator** — emit realistic transaction datasets with *planted* laundering
+   patterns and ground-truth labels (mule fan-in/out, layering chains, circular flows,
+   structuring just under a €10k report threshold). Pure code.
+2. **Graph engine** — build a directed transaction graph (NetworkX / igraph).
+3. **Detection algorithms (no LLM):** structuring/smurfing detection · mule-hub fan-in/out +
+   temporal bursts · cycle detection (circular flows) · community detection (Louvain) to find
+   rings · rapid pass-through (money in→out within N hours) · per-account & per-cluster risk
+   scoring.
+4. **Interactive graph UI** — Cytoscape.js / vis.js / D3; filter by risk, click a ring to inspect.
+5. **AI layer (small):** given a flagged cluster + evidence, Claude drafts a **SAR (Suspicious
+   Activity Report)** narrative via structured output. *This is the only LLM call.*
+6. **Evaluation harness** — precision/recall vs the planted labels. Judges love "we catch 94%
+   of laundering rings with X% false positives."
+
+**5-person split:** P1 data generator + labels · P2 graph build + structuring/cycle algorithms ·
+P3 mule-hub + community detection + risk scoring · P4 graph visualization + interaction · P5 SAR
+generator (Bedrock) + eval harness + demo.
+
+**Demo:** load dataset → graph renders → "3 laundering rings detected" → click one → see the
+pattern + an auto-drafted SAR. **Local-only:** local Python backend + browser viz; no hosting.
+**Wrapper check:** ✅ algorithms do the detection; AI only narrates.
 - **Votes:**
 - **Comments:**
 
 ---
 
-## Idea 2 — 🛡️ Real-Time Transaction Fraud Radar
-**Live fraud scoring with human-readable explanations**
+## Idea 2 — 🎣 ScamBroker Shield — Multi-Signal Scam/Broker Risk Engine
 
-- **Problem:** Card/payment fraud needs to be caught in milliseconds, but black-box models
-  that just say "fraud: yes/no" don't help analysts act or stay compliant.
-- **Solution:** A streaming dashboard that scores each transaction for fraud risk and shows
-  **why** (velocity, geo-mismatch, amount anomaly, new device). Analyst can approve/block.
-- **Demo:** A simulated live feed of transactions scrolls in; suspicious ones light up red
-  with reason tags; click to see the explanation and block.
-- **Stack:** Rules engine + lightweight ML (anomaly detection) in Python. **Amazon Bedrock**
-  to generate plain-English explanations. Optional **Amazon Fraud Detector** for scoring.
-  WebSocket feed → React dashboard.
-- **Why it wins:** Technical Execution + Functionality. Very "fintech ops" credible.
-- **24h MVP:** Pre-recorded/synthetic transaction stream + rules + explanation panel.
+**"Is this broker/message a scam?" scored by ~5 independent signals — Claude is one of them.**
+
+The win: the engine reaches a verdict by combining **independent rule-based detectors**; the LLM
+is one weighted input, not the whole app. The regulator/typosquat/domain logic is the part
+nobody else builds.
+
+**Architecture (layers):**
+1. **Lexical/heuristic detector (no LLM):** weighted scoring of scam patterns — "guaranteed
+   returns", urgency/pressure, crypto-wallet asks, "your account manager", etc.
+2. **Domain forensics (no LLM):** WHOIS domain age, suspicious TLDs, cert/HTTPS checks.
+3. **Typosquat / lookalike detector (no LLM):** edit-distance + homoglyph check against a curated
+   list of *real* regulated brokers — catches `eToreo.com` impersonating `eToro`.
+4. **Regulator registry check (no LLM):** offline dataset of CySEC/FCA license numbers — verify a
+   *claimed* license number is real and matches the named entity. **This is the killer signal.**
+5. **OCR layer:** accept WhatsApp/website screenshots → extract text (local Tesseract, or AWS
+   Textract).
+6. **AI layer (Claude/Bedrock):** nuanced read of the message — social-engineering tactics — and
+   **structured extraction** of claimed entity / license / promised returns to feed signal 4.
+7. **Aggregation engine:** explainable weighted risk score; show *which* signals fired and how
+   much each contributed (not a black box).
+8. **Frontend + eval:** paste/upload → risk gauge + per-signal evidence cards; small curated
+   real-vs-scam test set → accuracy metric.
+
+**5-person split:** P1 lexical/heuristic engine + weights · P2 domain forensics + typosquat +
+regulator dataset/checker · P3 OCR + Claude analysis (structured output) · P4 aggregation +
+explainability + frontend · P5 test-set curation + eval + demo polish.
+
+**Demo:** paste a real scam pitch → "HIGH RISK 92%" with reasons (fake license #, lookalike
+domain, pressure language); paste a regulated broker → "LOW RISK, license verified." **Local-only:**
+local backend + frontend. **Wrapper check:** ✅ LLM is 1 of ~5 signals.
 - **Votes:**
 - **Comments:**
 
 ---
 
-## Idea 3 — 🤳 DeepKYC — Deepfake & Fake-ID Defense
-**Stop AI-generated IDs and face-spoofing at onboarding**
+## Idea 3 — 🛡️ Fraud Radar — Real-Time Transaction Fraud Engine *(solid alternative)*
 
-- **Problem:** Fraudsters now onboard with AI-generated faces, deepfake selfies, and
-  forged/edited ID documents — a massive identity-verification problem for brokers/banks.
-- **Solution:** An onboarding check that does **liveness detection** + **document
-  tamper/forgery detection** and flags AI-generated faces.
-- **Demo:** Try to onboard with a static photo / screen / edited ID → "SPOOF DETECTED."
-  Real live selfie + valid ID → "VERIFIED."
-- **Stack:** **Amazon Rekognition Face Liveness** (built for exactly this) + Rekognition
-  for face match, **Amazon Textract** for ID field extraction, image-forensics checks.
-- **Why it wins:** Highly topical (deepfakes), strong AWS-native story, clear demo.
-- **Risk:** Face Liveness needs the AWS Amplify SDK flow — get this working *early* or fall
-  back to a simpler image-tamper check.
+**Live fraud scoring: feature engineering + anomaly model + rules; AI only explains.**
+
+**Architecture:** synthetic transaction-stream generator · feature engineering (velocity,
+geo-mismatch, amount z-score, new-device, odd-hour) · rules + a lightweight anomaly model
+(Isolation Forest / statistical) for the score · live dashboard scoring a streaming feed ·
+**Claude** turns a flagged transaction's features into a plain-English reason · eval vs labels.
+
+**5-person split:** P1 stream generator · P2 feature engineering · P3 scoring (rules + anomaly
+model) · P4 dashboard/UI · P5 explanation layer + eval.
+
+**Wrapper check:** ✅ the model + features do the scoring. *Slightly more "generic dashboard" than
+Ideas 1–2, but a strong, safe build.*
 - **Votes:**
 - **Comments:**
 
 ---
 
-## Idea 4 — 🕸️ MuleNet — Money-Laundering Network Detector
-**See the laundering ring, not just the transaction**
+## Demoted (given our constraints)
 
-- **Problem:** Money laundering hides in *networks* — mule accounts, layering, structuring
-  ("smurfing"). Single-transaction checks miss the pattern.
-- **Solution:** Build a transaction **graph** and surface suspicious structures: rapid
-  fan-in/fan-out (mule hubs), circular flows, and structuring just under reporting limits.
-  Visual, interactive graph with risk-ranked clusters.
-- **Demo:** Load a transaction dataset → graph renders → "3 suspicious rings detected" →
-  click a ring to see the laundering pattern and a generated SAR (Suspicious Activity
-  Report) summary.
-- **Stack:** Graph analysis (NetworkX, or **Amazon Neptune** for the wow factor),
-  visualization (D3 / Cytoscape / vis.js), **Amazon Bedrock** to auto-draft the SAR.
-- **Why it wins:** Most technically impressive; great visual; strong Industry Impact (AML).
-- **24h MVP:** Synthetic dataset + NetworkX pattern rules + graph viz. Neptune is a stretch.
-- **Votes:**
-- **Comments:**
-
----
-
-## Idea 5 — 💬 ScamGuard — Social-Engineering Scam Interceptor
-**Browser/chat assistant that warns you mid-conversation**
-
-- **Problem:** Romance/investment ("pig butchering") and impersonation scams play out over
-  weeks in chat. Victims don't realize until the money's gone.
-- **Solution:** A browser extension / chat overlay that reads the conversation locally and
-  flags grooming + investment-pitch patterns ("move to Telegram", "guaranteed 20%/week",
-  "send crypto to this wallet") with a real-time warning banner.
-- **Demo:** Paste/replay a scam chat → escalating warnings appear as the manipulation
-  unfolds; ends with "🚨 This looks like an investment scam — do not send money."
-- **Stack:** Browser extension (or web chat sim) + **Amazon Bedrock** for conversation
-  classification. Keep analysis privacy-respecting.
-- **Why it wins:** Strong consumer-protection + UX story; emotionally resonant demo.
-- **Votes:**
-- **Comments:**
+- **DeepKYC (deepfake/fake-ID):** AWS Rekognition **Face Liveness** needs the hosted Amplify flow —
+  awkward under local-only and risky in 24h. Skip unless someone has it working fast.
+- **ScamGuard (chat-overlay scam interceptor):** hard to make it *not* a wrapper — most of the
+  value is the LLM read. Fold its best ideas into Idea 2 instead.
 
 ---
 
@@ -129,5 +134,5 @@ criteria. Pick one as the build, keep the other as the backup pitch.
 
 - **Chosen idea:** _(fill in once we vote)_
 - **One-line pitch:** _________________________________________________
-- **Who's doing what:** see `CLAUDE.md` → Team Sync
+- **Who's doing what:** mirror the 5-person split into `CLAUDE.md` → Team Sync
 - **Decided on / by:** _______________
