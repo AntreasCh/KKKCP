@@ -32,11 +32,11 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Updated:** —
 
 ### P3 — Andreas — Network Detection & Scoring
-- **Status:** 🟡 in progress
-- **Right now:** temporal fan window + flagged-subgraph ring assembly + volume-based ring scoring
+- **Status:** 🟡 core pass done (will finalize after P2's circular fix)
+- **Right now:** done first pass — rings 30→7, FP rings 26→3, ring-recall 1.0
 - **Files I'm touching:** `backend/detect/network.py`, `backend/detect/scoring.py`
-- **Blockers:** —
-- **Notes for the team:** detect_fan is now account-type (hub in subject_ids, counterparties in evidence) — still a valid Finding, no schema change. Rings now built from flagged-account clusters + tx volume, not raw Louvain.
+- **Blockers:** residual FP / ring-bloat is circular-driven → needs **P2** (panagiotis) circular timestamp+amount filter
+- **Notes for the team:** detect_fan is now account-type (hub in subject_ids, counterparties in evidence) — still a valid Finding, no schema change. Rings are built from strong-detector seeds + tx volume (≥€15k) with a €5k money-edge filter; community detection is context-only now.
 - **Updated:** 2026-06-13
 
 ### P4 — savvas — API & Frontend
@@ -59,6 +59,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P3 (Andreas): temporal fan window + hub-centric risk + money/volume ring assembly → rings 30→7, false-positive rings 26→3, ring-recall held at 1.0. Residual FP/bloat is circular over-detection — drops further once P2's circular timestamp/amount filter lands. — Andreas_
 - _2026-06-13 — Phase 0 scaffold landed: app runs end-to-end, contracts frozen, sample_data committed. Baseline `/api/eval`: ring-recall 1.0, precision 0.023, 26 FP rings. — Claude_
 
 ---
