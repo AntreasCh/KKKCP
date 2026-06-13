@@ -23,7 +23,13 @@ def _ts(s: str) -> datetime:
 
 
 def detect_structuring(graph, accounts, transactions) -> list[dict]:
-    """#1: many sub-threshold deposits into one account within 72h summing >= T."""
+    """#1: many sub-threshold deposits into one account within 72h summing >= T.
+
+    Score reflects the three things that make a deposit burst look deliberate (§9 #1):
+    the COUNT of sub-threshold deposits, how CLOSE each one sits to the reporting line
+    (amounts hugging €9,9xx are obvious threshold-dodging), and how TIGHT the burst is in
+    time. Ranking by these surfaces the most blatant structuring first for an analyst.
+    """
     findings = []
     incoming = defaultdict(list)
     for t in transactions:
@@ -40,10 +46,19 @@ def detect_structuring(graph, accounts, transactions) -> list[dict]:
                     window.append(txs[j])
             total = sum(t["amount"] for t in window)
             if len(window) >= 3 and total >= T:
+                span_h = (_ts(window[-1]["timestamp"]) - _ts(window[0]["timestamp"])).total_seconds() / 3600
+                tightness = 1.0 - min(1.0, span_h / 72)              # whole burst in an hour -> ~1.0
+                # closeness: mean deposit's position in the [0.7T, T) band, 0 (at 0.7T) .. 1 (just under T)
+                closeness = ((total / len(window)) / T - 0.7) / 0.3
+                closeness = max(0.0, min(1.0, closeness))
+                # floor 0.6 (3 sub-threshold deposits summing >=T is already structuring), up to 1.0
+                score = round(min(1.0, 0.6 + 0.1 * (len(window) - 3)
+                                  + 0.18 * closeness + 0.12 * tightness), 2)
                 findings.append({
                     "detector": "structuring", "subject_type": "account",
-                    "subject_ids": [acc], "score": round(min(1.0, 0.4 + 0.1 * len(window)), 2),
-                    "evidence": {"count": len(window), "total": round(total, 2), "threshold": T},
+                    "subject_ids": [acc], "score": score,
+                    "evidence": {"count": len(window), "total": round(total, 2), "threshold": T,
+                                 "closeness": round(closeness, 2), "span_hours": round(span_h, 1)},
                     "window": {"start": window[0]["timestamp"], "end": window[-1]["timestamp"]},
                 })
                 break
