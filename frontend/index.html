@@ -14,6 +14,9 @@
       <span class="tag">Money-Laundering Network Detector · team KKKCP</span>
     </div>
     <div class="topbar-right">
+      <button id="search-btn" class="search-trigger" title="Search (Ctrl / ⌘ K)">
+        🔍 <span>Search rings &amp; accounts</span> <kbd>⌘K</kbd>
+      </button>
       <div id="kpis" class="kpis"></div>
       <label class="toggle" title="Show the full network, including legitimate background traffic">
         <input type="checkbox" id="showall" /> Show all traffic
@@ -27,6 +30,7 @@
     <aside class="rail-left">
       <div id="eval" class="eval-card">evaluating…</div>
       <div class="rail-section-head">Detected rings <span id="rings-count" class="count-badge">·</span></div>
+      <div id="case-filter" class="case-filter"></div>
       <div id="rings" class="rings"></div>
     </aside>
 
@@ -35,6 +39,14 @@
       <div id="graph"></div>
       <div class="graph-toolbar">
         <button id="fitbtn" class="btn-ghost" title="Reset / fit the view">⤢ Fit</button>
+      </div>
+
+      <!-- temporal playback: scrub a ring's transactions over time -->
+      <div id="playback" class="playback hidden">
+        <button id="pb-play" class="pb-btn" title="Play / pause">▶</button>
+        <input id="pb-range" type="range" min="0" max="0" value="0" />
+        <span id="pb-label" class="pb-label"></span>
+        <button id="pb-close" class="pb-btn close" title="Exit playback">✕</button>
       </div>
       <div id="legend" class="legend">
         <div class="legend-title">Legend <span id="nodecount" class="nodecount"></span></div>
@@ -73,6 +85,18 @@
       </div>
     </aside>
   </main>
+
+  <!-- global search / command palette (⌘K) -->
+  <div id="search-modal" class="search-modal hidden">
+    <div class="search-box">
+      <div class="search-inwrap">
+        <span class="search-ico">🔍</span>
+        <input id="search-input" type="text" placeholder="Search rings or accounts… e.g. DET_003, ACC00042" />
+      </div>
+      <div id="search-results" class="search-results"></div>
+      <div class="search-foot"><kbd>↑</kbd><kbd>↓</kbd> navigate · <kbd>↵</kbd> open · <kbd>esc</kbd> close</div>
+    </div>
+  </div>
 
   <script src="/app.js"></script>
 </body>

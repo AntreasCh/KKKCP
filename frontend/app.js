@@ -39,6 +39,28 @@ let viewNodes = [], viewEdges = [];
 
 const inFocus = (n) => !!n.ring || n.risk >= 0.5;
 
+// Per-detector colors for the risk-breakdown bar.
+const DET_COLORS = { structuring: "#dc2626", circular: "#7c3aed", passthrough: "#0891b2",
+  fan_in: "#d97706", fan_out: "#ea580c", community: "#64748b" };
+const detColor = (d) => DET_COLORS[d] || "#94a3b8";
+
+// Case-management workflow (client-side, persisted to localStorage).
+const CASE_STATUSES = {
+  new: { label: "New", cls: "st-new" }, reviewing: { label: "Reviewing", cls: "st-rev" },
+  escalated: { label: "Escalated", cls: "st-esc" }, cleared: { label: "Cleared", cls: "st-clr" },
+  filed: { label: "SAR Filed", cls: "st-fil" },
+};
+let CASE = {};
+try { CASE = JSON.parse(localStorage.getItem("mulenet_cases") || "{}"); } catch (e) { CASE = {}; }
+const caseStatus = (id) => CASE[id] || "new";
+let caseFilter = "all";
+
+let ALL_RINGS = [];        // loaded rings (for search + case counts)
+let ACCOUNT_INDEX = [];    // {id, risk, ring} for search
+
+// Temporal playback state.
+let pb = { txs: [], members: null, k: 0, timer: null, playing: false };
+
 // ── graph (settles once, then freezes — no perpetual motion) ────────────────
 async function loadGraph() {
   lastGraph = await fetch("/api/graph").then((r) => r.json());
@@ -68,6 +90,7 @@ function renderGraph() {
     const n = lastGraph.nodes.find((x) => x.id === p.nodes[0]);
     if (n && n.ring) showRing(n.ring);
   });
+  ACCOUNT_INDEX = lastGraph.nodes.map((n) => ({ id: n.id, risk: n.risk, ring: n.ring }));
   const nc = $("nodecount");
   if (nc) nc.textContent = `· ${viewNodes.length}${showAll ? "" : " key"} nodes`;
   if (activeMembers) highlightGraph([...activeMembers]);
@@ -112,6 +135,7 @@ function highlightGraph(members) {
   }));
   edgesDS.update(viewEdges.map((e) => {
     const base = edgeStyle(e);
+    base.hidden = false;                 // un-hide anything the playback scrubber hid
     if (!set) return base;
     const on = set.has(e.source) && set.has(e.target);
     base.color = { color: on ? base.color.color : "#e2e8f0", opacity: on ? 0.9 : 0.15 };
@@ -156,30 +180,68 @@ async function loadEval() {
 // ── ring queue ──────────────────────────────────────────────────────────────
 async function loadRings() {
   const rings = await fetch("/api/rings").then((r) => r.json());
+  ALL_RINGS = rings;
   RING_COLOR = {};
   rings.forEach((r, i) => { RING_COLOR[r.ring_id] = RING_COLORS[i % RING_COLORS.length]; });
   $("rings-count").textContent = rings.length;
   const box = $("rings");
-  if (!rings.length) { box.innerHTML = `<div class="empty-state"><p>No rings detected.</p></div>`; return; }
+  if (!rings.length) { box.innerHTML = `<div class="empty-state"><p>No rings detected.</p></div>`; $("case-filter").innerHTML = ""; return; }
   box.innerHTML = "";
   for (const r of rings) {
     const tier = riskTier(r.score);
+    const st = CASE_STATUSES[caseStatus(r.ring_id)];
     const div = document.createElement("div");
     div.className = "ring";
     div.dataset.ring = r.ring_id;
     div.style.setProperty("--ringcolor", ringColor(r.ring_id));
     div.innerHTML =
       `<span></span>` +
-      `<div class="ring-main"><div class="rid">${esc(r.ring_id)}</div>` +
+      `<div class="ring-main"><div class="rid">${esc(r.ring_id)}` +
+        `<span class="status-chip ${st.cls}">${st.label}</span></div>` +
         `<div class="meta">${r.account_ids.length} accounts · ${r.tx_ids.length} txns · ${esc(r.patterns.join(", "))}</div></div>` +
       `<span class="ring-score risk-chip ${tier}">${(r.score * 100).toFixed(0)}</span>`;
     div.onclick = () => showRing(r.ring_id);
     box.appendChild(div);
   }
+  renderCaseCounts();
+  applyCaseFilter();
 }
 
 function markActiveRing(id) {
   document.querySelectorAll(".ring").forEach((el) => el.classList.toggle("active", el.dataset.ring === id));
+}
+
+// ── case workflow ───────────────────────────────────────────────────────────
+function setCaseStatus(id, status) {
+  CASE[id] = status;
+  try { localStorage.setItem("mulenet_cases", JSON.stringify(CASE)); } catch (e) {}
+  const m = CASE_STATUSES[status];
+  const chip = document.querySelector(`.ring[data-ring="${id}"] .status-chip`);
+  if (chip) { chip.className = `status-chip ${m.cls}`; chip.textContent = m.label; }
+  const cur = $("case-current");
+  if (cur && activeRing === id) { cur.className = `status-chip ${m.cls}`; cur.textContent = m.label; }
+  document.querySelectorAll(".case-actions .ca-btn").forEach((b) => b.classList.toggle("active", b.dataset.status === status));
+  renderCaseCounts();
+  applyCaseFilter();
+}
+
+function renderCaseCounts() {
+  const counts = { all: ALL_RINGS.length, new: 0, reviewing: 0, escalated: 0, cleared: 0, filed: 0 };
+  ALL_RINGS.forEach((r) => { counts[caseStatus(r.ring_id)]++; });
+  const order = ["all", "new", "reviewing", "escalated", "cleared", "filed"];
+  $("case-filter").innerHTML = order.filter((k) => k === "all" || counts[k] > 0).map((k) => {
+    const label = k === "all" ? "All" : CASE_STATUSES[k].label;
+    return `<button class="cf-chip ${caseFilter === k ? "active" : ""}" data-cf="${k}">${label}<b>${counts[k]}</b></button>`;
+  }).join("");
+  $("case-filter").querySelectorAll(".cf-chip").forEach((b) =>
+    b.onclick = () => { caseFilter = b.dataset.cf; renderCaseCounts(); applyCaseFilter(); });
+}
+
+function applyCaseFilter() {
+  document.querySelectorAll(".ring").forEach((el) => {
+    const show = caseFilter === "all" || caseStatus(el.dataset.ring) === caseFilter;
+    el.classList.toggle("hidden", !show);
+  });
 }
 
 // ── evidence text (human-readable per detector) ─────────────────────────────
@@ -274,6 +336,74 @@ function renderRingFlow(r) {
   if (note) note.textContent = total > CAP ? `top ${CAP} of ${total} transfers` : `${total} transfers`;
 }
 
+// ── score-explainability bar (per-detector contribution to ring risk) ──────
+function riskBreakdown(findings) {
+  const sum = {};
+  (findings || []).forEach((f) => { sum[f.detector] = (sum[f.detector] || 0) + f.score; });
+  const parts = Object.entries(sum).sort((a, b) => b[1] - a[1]);
+  const total = parts.reduce((a, [, v]) => a + v, 0);
+  if (!total) return "";
+  const bar = parts.map(([d, v]) =>
+    `<div class="rb-seg" style="width:${(v / total * 100).toFixed(1)}%;background:${detColor(d)}" title="${esc(d)} ${(v / total * 100).toFixed(0)}%"></div>`).join("");
+  const leg = parts.map(([d, v]) =>
+    `<span class="rb-leg"><i style="background:${detColor(d)}"></i>${esc(d)} ${(v / total * 100).toFixed(0)}%</span>`).join("");
+  return `<div class="section-label">Risk breakdown</div><div class="rb-bar">${bar}</div><div class="rb-legend">${leg}</div>`;
+}
+
+// ── temporal playback (scrub a ring's transactions over time) ───────────────
+function stopPlayback() {
+  if (pb.timer) clearInterval(pb.timer);
+  pb.timer = null; pb.playing = false;
+  const p = $("pb-play"); if (p) p.textContent = "▶";
+}
+function hidePlayback() { stopPlayback(); const el = $("playback"); if (el) el.classList.add("hidden"); }
+
+function setupPlayback(r) {
+  stopPlayback();
+  pb.txs = (r.transactions || []).slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  pb.members = new Set(r.account_ids);
+  const el = $("playback");
+  if (pb.txs.length < 2) { el.classList.add("hidden"); return; }
+  el.classList.remove("hidden");
+  const range = $("pb-range");
+  range.min = 0; range.max = pb.txs.length; range.value = pb.txs.length;
+  renderPlaybackFrame(pb.txs.length);   // start fully revealed
+}
+
+function renderPlaybackFrame(k) {
+  pb.k = k;
+  if (!pb.members || !nodesDS) return;
+  const full = k >= pb.txs.length;
+  const revealedTx = new Set(pb.txs.slice(0, k).map((t) => t.tx_id));
+  const transacted = new Set();
+  pb.txs.slice(0, k).forEach((t) => { transacted.add(t.src); transacted.add(t.dst); });
+  edgesDS.update(viewEdges.filter((e) => pb.members.has(e.source) && pb.members.has(e.target)).map((e) => {
+    const on = full || revealedTx.has(e.id);
+    const base = edgeStyle(e);
+    return { id: e.id, hidden: !on, width: on ? 2.4 : 1, color: { color: base.color.color, opacity: 0.95 } };
+  }));
+  nodesDS.update(viewNodes.filter((n) => pb.members.has(n.id)).map((n) => {
+    const base = nodeStyle(n);
+    base.opacity = (full || transacted.has(n.id)) ? 1 : 0.18;
+    return base;
+  }));
+  const lbl = $("pb-label");
+  if (lbl) lbl.textContent = k <= 0 ? "start" : full ? `full · ${pb.txs.length} txns`
+    : `${k}/${pb.txs.length} · ${fmtDate(pb.txs[k - 1].timestamp)}`;
+}
+
+function playbackStep() {
+  if (pb.k >= pb.txs.length) { stopPlayback(); return; }
+  renderPlaybackFrame(pb.k + 1);
+  $("pb-range").value = pb.k;
+}
+function startPlayback() {
+  if (pb.txs.length < 2) return;
+  if (pb.k >= pb.txs.length) { renderPlaybackFrame(0); $("pb-range").value = 0; }  // replay from start
+  pb.playing = true; $("pb-play").textContent = "⏸";
+  pb.timer = setInterval(playbackStep, Math.max(110, Math.min(380, 4500 / pb.txs.length)));
+}
+
 // ── inspector: ring detail ──────────────────────────────────────────────────
 async function showRing(id) {
   const r = await fetch(`/api/rings/${id}`).then((x) => x.json());
@@ -304,9 +434,18 @@ async function showRing(id) {
   d.innerHTML =
     `<div class="detail-head"><span class="ringdot" style="background:${col}"></span>` +
       `<h2>${esc(r.ring_id)}</h2><span class="risk-chip ${tier}">risk ${(r.score * 100).toFixed(0)}</span></div>` +
+    `<div class="case-bar"><span class="case-lbl">Case:</span>` +
+      `<span id="case-current" class="status-chip ${CASE_STATUSES[caseStatus(id)].cls}">${CASE_STATUSES[caseStatus(id)].label}</span>` +
+      `<div class="case-actions">` +
+        `<button class="ca-btn" data-status="escalated">▲ Escalate</button>` +
+        `<button class="ca-btn" data-status="cleared">✓ Clear</button>` +
+        `<button class="ca-btn" data-status="filed">🧾 File SAR</button>` +
+      `</div></div>` +
     `<div>${r.patterns.map((p) => `<span class="pill">${esc(p)}</span>`).join("")}</div>` +
     `<p class="subtle">${r.account_ids.length} accounts · ${r.tx_ids.length} transactions · ` +
       `total ${eur(txs.reduce((s, t) => s + (t.amount || 0), 0))}</p>` +
+
+    riskBreakdown(r.findings) +
 
     `<div class="section-label">Key accounts</div>${keyAccts || "<span class='subtle'>—</span>"}` +
 
@@ -342,11 +481,19 @@ async function showRing(id) {
     } finally { btn.disabled = false; }
   };
 
+  // wire case-management actions; opening a "new" ring moves it to "reviewing"
+  document.querySelectorAll(".case-actions .ca-btn").forEach((b) =>
+    b.onclick = () => setCaseStatus(id, b.dataset.status));
+  document.querySelectorAll(".case-actions .ca-btn").forEach((b) =>
+    b.classList.toggle("active", b.dataset.status === caseStatus(id)));
+
   renderRingFlow(r);
   markActiveRing(id);
   activeRing = id;
+  if (caseStatus(id) === "new") setCaseStatus(id, "reviewing");
   if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
   highlightGraph(r.account_ids);
+  setupPlayback(r);
   $("tab-inspector").scrollTop = 0;
 }
 
@@ -354,6 +501,7 @@ async function showRing(id) {
 async function showAccount(id) {
   const a = await fetch(`/api/accounts/${id}`).then((x) => x.json());
   destroyFlow();
+  hidePlayback();
   switchTab("inspector");
   const acc = a.account || {};
   const findings = (a.findings || []).slice().sort((x, y) => y.score - x.score);
@@ -424,6 +572,60 @@ $("chat-form").onsubmit = async (e) => {
   }
 };
 
+// ── global search / command palette (⌘K) ────────────────────────────────────
+function openSearch() {
+  $("search-modal").classList.remove("hidden");
+  const i = $("search-input");
+  i.value = ""; renderSearch(""); i.focus();
+}
+function closeSearch() { $("search-modal").classList.add("hidden"); }
+
+function renderSearch(q) {
+  q = q.trim().toLowerCase();
+  const out = [];
+  for (const r of ALL_RINGS) {
+    const hay = (r.ring_id + " " + r.patterns.join(" ")).toLowerCase();
+    if (!q || hay.includes(q)) out.push({ type: "ring", id: r.ring_id, sub: `${r.account_ids.length} accts · ${r.patterns.join(", ")}`, sort: -r.score });
+  }
+  let accts = ACCOUNT_INDEX.filter((a) => !q || a.id.toLowerCase().includes(q)).sort((a, b) => b.risk - a.risk);
+  for (const a of accts.slice(0, 8)) out.push({ type: "account", id: a.id, sub: `risk ${pct(a.risk)}${a.ring ? " · ring " + a.ring : ""}` });
+  if (/^acc/i.test(q) && !ACCOUNT_INDEX.some((a) => a.id.toLowerCase() === q))
+    out.push({ type: "account", id: q.toUpperCase(), sub: "open account" });
+  const rings = out.filter((x) => x.type === "ring").sort((a, b) => (a.sort || 0) - (b.sort || 0));
+  const list = [...rings, ...out.filter((x) => x.type === "account")].slice(0, 12);
+  $("search-results").innerHTML = list.length ? list.map((x, i) =>
+    `<div class="sr-item ${i === 0 ? "sel" : ""}" data-type="${x.type}" data-id="${esc(x.id)}">` +
+      `<span class="sr-type ${x.type}">${x.type}</span><span class="sr-id">${esc(x.id)}</span>` +
+      `<span class="sr-sub">${esc(x.sub || "")}</span></div>`).join("")
+    : `<div class="sr-empty">No matches for “${esc(q)}”</div>`;
+  $("search-results").querySelectorAll(".sr-item").forEach((el) => el.onclick = () => pickSearch(el));
+}
+function pickSearch(el) {
+  closeSearch();
+  if (el.dataset.type === "ring") showRing(el.dataset.id); else showAccount(el.dataset.id);
+}
+
+$("search-btn").onclick = openSearch;
+$("search-modal").onclick = (e) => { if (e.target.id === "search-modal") closeSearch(); };
+$("search-input").oninput = (e) => renderSearch(e.target.value);
+$("search-input").onkeydown = (e) => {
+  const items = [...$("search-results").querySelectorAll(".sr-item")];
+  let i = items.findIndex((x) => x.classList.contains("sel"));
+  if (e.key === "ArrowDown") { e.preventDefault(); if (items.length) { if (i >= 0) items[i].classList.remove("sel"); items[Math.min(items.length - 1, i + 1)].classList.add("sel"); } }
+  else if (e.key === "ArrowUp") { e.preventDefault(); if (items.length) { if (i >= 0) items[i].classList.remove("sel"); items[Math.max(0, i - 1)].classList.add("sel"); } }
+  else if (e.key === "Enter") { e.preventDefault(); const sel = items.find((x) => x.classList.contains("sel")) || items[0]; if (sel) pickSearch(sel); }
+  else if (e.key === "Escape") closeSearch();
+};
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openSearch(); }
+  else if (e.key === "Escape" && !$("search-modal").classList.contains("hidden")) closeSearch();
+});
+
+// ── playback controls ───────────────────────────────────────────────────────
+$("pb-play").onclick = () => { if (pb.playing) stopPlayback(); else startPlayback(); };
+$("pb-range").oninput = (e) => { stopPlayback(); renderPlaybackFrame(+e.target.value); };
+$("pb-close").onclick = () => { hidePlayback(); if (activeMembers) highlightGraph([...activeMembers]); };
+
 // ── boot ────────────────────────────────────────────────────────────────────
 async function refresh() {
   await loadRings();
@@ -432,7 +634,7 @@ async function refresh() {
   if (id && RING_COLOR[id]) showRing(id);
 }
 
-$("fitbtn").onclick = () => { activeRing = null; markActiveRing(null); highlightGraph(null); if (network) network.fit({ animation: true }); };
+$("fitbtn").onclick = () => { activeRing = null; markActiveRing(null); hidePlayback(); highlightGraph(null); if (network) network.fit({ animation: true }); };
 $("showall").onchange = (e) => { showAll = e.target.checked; renderGraph(); };
 
 $("gen").onclick = async () => {
@@ -441,7 +643,8 @@ $("gen").onclick = async () => {
   btn.textContent = "Generating…";
   try {
     await fetch("/api/dataset/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
-    activeRing = null; activeMembers = null; destroyFlow();
+    activeRing = null; activeMembers = null; destroyFlow(); hidePlayback();
+    CASE = {}; try { localStorage.removeItem("mulenet_cases"); } catch (e) {}  // fresh dataset → fresh cases
     $("detail").innerHTML = `<div class="empty-state"><div class="ico">🔍</div><p>Select a ring from the queue to investigate.</p></div>`;
     await refresh();
   } finally { btn.disabled = false; btn.textContent = "↻ Generate"; }
