@@ -29,7 +29,6 @@
     <!-- LEFT: model performance + ranked ring queue -->
     <aside class="rail-left">
       <div id="eval" class="eval-card">evaluating…</div>
-      <button id="tune-btn" class="tune-trigger">🎚 Tune detection threshold</button>
       <div class="rail-section-head">Detected rings <span id="rings-count" class="count-badge">·</span></div>
       <div id="case-filter" class="case-filter"></div>
       <div id="rings" class="rings"></div>
@@ -90,6 +89,7 @@
                 <th data-sort="account_type">Type</th>
                 <th data-sort="country">Country</th>
                 <th data-sort="kyc_risk">KYC</th>
+                <th data-sort="screening">Screening</th>
                 <th data-sort="n_findings" class="num">Flags</th>
                 <th data-sort="rings">Rings</th>
                 <th data-sort="risk" class="num sorted">Risk</th>
@@ -113,6 +113,8 @@
             <div class="fp-group"><label>Account type</label><div id="f-type" class="chips"></div></div>
             <div class="fp-group"><label>KYC risk</label><div id="f-kyc" class="chips"></div></div>
             <div class="fp-group"><label>Country</label><div id="f-country" class="chips"></div></div>
+            <div class="fp-group"><label>Compliance screening</label>
+              <label class="toggle fp-check"><input type="checkbox" id="f-watchlist" /> On a watchlist (sanctions / PEP / adverse media)</label></div>
             <!-- transaction filters only affect the graph; hidden in the Accounts view -->
             <div id="fp-tx">
               <div class="fp-sep">Transaction filters (graph)</div>
@@ -163,26 +165,6 @@
       </div>
       <div id="search-results" class="search-results"></div>
       <div class="search-foot"><kbd>↑</kbd><kbd>↓</kbd> navigate · <kbd>↵</kbd> open · <kbd>esc</kbd> close</div>
-    </div>
-  </div>
-
-  <!-- threshold sandbox -->
-  <div id="sandbox-modal" class="modal hidden">
-    <div class="modal-box">
-      <div class="modal-head"><b>🎚 Detection threshold sandbox</b>
-        <button id="sandbox-close" class="pb-btn close" title="Close">✕</button></div>
-      <p class="modal-sub">Slide the alert threshold τ and watch precision vs. recall trade off live. Detection is unchanged — this is the operating point an analyst tunes.</p>
-      <div id="pr-chart" class="pr-chart"></div>
-      <div class="sandbox-controls">
-        <label>Alert threshold τ = <b id="tau-val">0.50</b></label>
-        <input id="tau-slider" type="range" min="0" max="100" value="50" />
-      </div>
-      <div class="sandbox-stats">
-        <div class="cell"><div class="v" id="sb-prec">–</div><div class="k">precision</div></div>
-        <div class="cell"><div class="v" id="sb-rec">–</div><div class="k">recall</div></div>
-        <div class="cell"><div class="v" id="sb-f1">–</div><div class="k">F1</div></div>
-        <div class="cell"><div class="v" id="sb-pred">–</div><div class="k">flagged mules</div></div>
-      </div>
     </div>
   </div>
 

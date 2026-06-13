@@ -57,6 +57,22 @@ let caseFilter = "all";
 
 let ALL_RINGS = [];        // loaded rings (for search + case counts)
 
+// Watchlist screening (sanctions / PEP / adverse-media), keyed by account id.
+const SCREEN_META = {
+  sanctions: { icon: "⛔", cls: "scr-sanctions", short: "Sanctions" },
+  pep: { icon: "🏛️", cls: "scr-pep", short: "PEP" },
+  adverse_media: { icon: "📰", cls: "scr-adverse", short: "Adverse media" },
+};
+let SCREEN_BY_ID = {};
+const screenMeta = (t) => SCREEN_META[t] || { icon: "⚠️", cls: "scr-other", short: "Watchlist" };
+function screenBadges(list, full) {
+  return (list || []).map((s) => {
+    const m = screenMeta(s.type);
+    return `<span class="scr-badge ${m.cls}" title="${esc(s.list)} — ${esc(s.detail || "")}">` +
+      `${m.icon} ${esc(full ? s.label : m.short)}</span>`;
+  }).join("");
+}
+
 // Temporal playback state.
 let pb = { txs: [], members: null, k: 0, timer: null, playing: false };
 
@@ -66,13 +82,14 @@ let ALL_ACCOUNTS = [];
 let curView = "graph", showNames = false;
 let acctSort = { key: "risk", dir: -1 };
 const FILTERS = { text: "", riskMin: 0, types: new Set(), kyc: new Set(), countries: new Set(),
-  channels: new Set(), amtMin: null, amtMax: null, dateFrom: null, dateTo: null };
+  channels: new Set(), amtMin: null, amtMax: null, dateFrom: null, dateTo: null, watchlist: false };
 
 const matchText = (id, owner) => {
   const t = FILTERS.text.trim().toLowerCase();
   return !t || id.toLowerCase().includes(t) || (owner || "").toLowerCase().includes(t);
 };
 function nodePasses(n) {
+  if (FILTERS.watchlist && !n.screened) return false;
   if (FILTERS.riskMin && n.risk * 100 < FILTERS.riskMin) return false;
   if (FILTERS.types.size && !FILTERS.types.has(n.type)) return false;
   if (FILTERS.kyc.size && !FILTERS.kyc.has(n.kyc_risk)) return false;
@@ -88,6 +105,7 @@ function edgePasses(e) {
   return true;
 }
 function acctPasses(a) {
+  if (FILTERS.watchlist && !(a.screening && a.screening.length)) return false;
   if (FILTERS.riskMin && a.risk * 100 < FILTERS.riskMin) return false;
   if (FILTERS.types.size && !FILTERS.types.has(a.account_type)) return false;
   if (FILTERS.kyc.size && !FILTERS.kyc.has(a.kyc_risk)) return false;
@@ -104,6 +122,7 @@ function activeFilterCount() {
   if (FILTERS.channels.size) n++;
   if (FILTERS.amtMin != null || FILTERS.amtMax != null) n++;
   if (FILTERS.dateFrom || FILTERS.dateTo) n++;
+  if (FILTERS.watchlist) n++;
   return n;
 }
 
@@ -166,10 +185,11 @@ function nodeStyle(n) {
     title: `${n.id}${n.owner_name ? " — " + n.owner_name : ""}\n` +
       `${n.type || ""}${n.country ? " · " + n.country : ""} · KYC ${n.kyc_risk || "?"}\n` +
       `risk ${pct(n.risk)}${n.ring ? " · ring " + n.ring : ""}`,
+    // accounts on a watchlist get a bold red ring so they pop out of the graph
     color: { background: inRing ? ringColor(n.ring) : riskColor(n.risk),
-             border: inRing ? "#1e293b" : "#94a3b8",
-             highlight: { background: inRing ? ringColor(n.ring) : riskColor(n.risk), border: "#1e293b" } },
-    borderWidth: inRing ? 2 : 1,
+             border: n.screened ? "#b91c1c" : (inRing ? "#1e293b" : "#94a3b8"),
+             highlight: { background: inRing ? ringColor(n.ring) : riskColor(n.risk), border: n.screened ? "#b91c1c" : "#1e293b" } },
+    borderWidth: n.screened ? 4 : (inRing ? 2 : 1),
     font: { color: "#0f172a", size: 12 },
     opacity: inRing ? 1 : (flagged ? 0.95 : 0.55),
   };
@@ -225,7 +245,8 @@ async function loadSummary() {
     `<div class="kpi"><b>${s.accounts}</b><span>accounts</span></div>` +
     `<div class="kpi"><b>${s.transactions.toLocaleString()}</b><span>txns</span></div>` +
     `<div class="kpi"><b>${s.rings_detected}</b><span>rings</span></div>` +
-    `<div class="kpi flag"><b>${s.flagged_accounts}</b><span>flagged</span></div>`;
+    `<div class="kpi flag"><b>${s.flagged_accounts}</b><span>flagged</span></div>` +
+    (s.screening_hits != null ? `<div class="kpi watch" title="Accounts matching sanctions / PEP / adverse-media lists"><b>${s.screening_hits}</b><span>⚠ watchlist</span></div>` : "");
 }
 
 async function loadEval() {
@@ -513,6 +534,16 @@ async function showRing(id) {
   const keyAccts = (r.key_accounts || []).map((a) =>
     `<span class="pill acc" onclick="showAccount('${esc(a)}')">${esc(a)}${ownerOf[a] ? " · " + esc(ownerOf[a]) : ""}</span>`).join("");
 
+  // watchlist exposure across the ring's accounts
+  const screenedMembers = (r.account_ids || []).filter((a) => SCREEN_BY_ID[a]);
+  let scrBanner = "";
+  if (screenedMembers.length) {
+    const counts = {};
+    screenedMembers.forEach((a) => SCREEN_BY_ID[a].forEach((s) => { counts[s.type] = (counts[s.type] || 0) + 1; }));
+    const parts = Object.entries(counts).map(([t, n]) => `${n} ${screenMeta(t).short.toLowerCase()}`).join(" · ");
+    scrBanner = `<div class="scr-alert">⚠️ <b>${screenedMembers.length} account${screenedMembers.length > 1 ? "s" : ""} on watchlists</b> — ${parts}</div>`;
+  }
+
   d.innerHTML =
     `<button class="back-btn" onclick="clearSelection()">← Back to all rings</button>` +
     `<div class="detail-head"><span class="ringdot" style="background:${col}"></span>` +
@@ -527,6 +558,8 @@ async function showRing(id) {
     `<div>${r.patterns.map((p) => `<span class="pill">${esc(p)}</span>`).join("")}</div>` +
     `<p class="subtle">${r.account_ids.length} accounts · ${r.tx_ids.length} transactions · ` +
       `total ${eur(txs.reduce((s, t) => s + (t.amount || 0), 0))}</p>` +
+
+    scrBanner +
 
     riskBreakdown(r.findings) +
 
@@ -549,6 +582,7 @@ async function showRing(id) {
 
     `<div class="sar-actions"><button id="sarbtn" class="btn-primary">🧾 Generate SAR</button>` +
       `<button id="reportbtn" class="btn-ghost">📄 Export report</button>` +
+      `<button id="goamlbtn" class="btn-ghost" title="Download the structured STR filing (goAML XML)">⬇ goAML XML</button>` +
       `<span id="sarsource" class="sar-source"></span></div>` +
     `<pre class="sar" id="sarout">Click “Generate SAR” to draft the report an analyst would file.</pre>`;
 
@@ -565,6 +599,7 @@ async function showRing(id) {
     } finally { btn.disabled = false; }
   };
   $("reportbtn").onclick = () => exportReport(id);
+  $("goamlbtn").onclick = () => downloadGoAML(id);
 
   // wire case-management actions; opening a "new" ring moves it to "reviewing"
   document.querySelectorAll(".case-actions .ca-btn").forEach((b) =>
@@ -603,6 +638,11 @@ async function showAccount(id) {
       `<h2>${esc(id)}</h2><span class="risk-chip ${riskTier(a.risk)}">risk ${(a.risk * 100).toFixed(0)}</span></div>` +
     `<p class="subtle">${esc(acc.owner_name || "")} · ${esc(acc.account_type || "")} · ` +
       `${esc(acc.country || "")} · KYC ${esc(acc.kyc_risk || "")}</p>` +
+    ((a.screening && a.screening.length)
+      ? `<div class="scr-panel">${a.screening.map((s) => { const m = screenMeta(s.type);
+          return `<div class="scr-row"><span class="scr-badge ${m.cls}">${m.icon} ${esc(s.label)}</span>` +
+            `<span class="scr-detail"><b>${esc(s.list)}</b> — ${esc(s.detail || "")}</span></div>`; }).join("")}</div>`
+      : `<div class="scr-clear">✓ No sanctions / PEP / adverse-media matches</div>`) +
     `<div class="ai-block"><button class="ai-btn" onclick="runAccountAnalysis('${esc(id)}')">` +
       `🔍 AI analysis</button><div id="ai-analysis" class="ai-analysis"></div></div>` +
     `<div class="section-label">Findings (${findings.length})</div>` +
@@ -649,6 +689,14 @@ async function exportReport(id) {
   w.document.close();
   w.focus();
   setTimeout(() => w.print(), 500);
+}
+
+// download the structured goAML STR filing (server sets the filename)
+function downloadGoAML(id) {
+  const a = document.createElement("a");
+  a.href = `/api/rings/${id}/goaml`;
+  a.download = `STR_${id}.xml`;
+  document.body.appendChild(a); a.click(); a.remove();
 }
 
 function buildReportHtml(r, sar) {
@@ -854,6 +902,8 @@ $("pb-close").onclick = () => { hidePlayback(); if (activeMembers) highlightGrap
 // ── accounts table (center view #2) ─────────────────────────────────────────
 async function loadAccounts() {
   ALL_ACCOUNTS = await fetch("/api/accounts").then((r) => r.json());
+  SCREEN_BY_ID = {};
+  ALL_ACCOUNTS.forEach((a) => { if (a.screening && a.screening.length) SCREEN_BY_ID[a.account_id] = a.screening; });
   buildFilterOptions();
   renderAccountsTable();
 }
@@ -865,6 +915,7 @@ function renderAccountsTable() {
   rows.sort((a, b) => {
     let x = a[key], y = b[key];
     if (key === "rings") { x = (a.rings || []).length; y = (b.rings || []).length; }
+    if (key === "screening") { x = (a.screening || []).length; y = (b.screening || []).length; }
     if (typeof x === "string") { x = x.toLowerCase(); y = (y || "").toLowerCase(); }
     return x < y ? -dir : x > y ? dir : 0;
   });
@@ -879,10 +930,11 @@ function renderAccountsTable() {
       `<td>${esc(a.account_type || "")}</td>` +
       `<td>${esc(a.country || "")}</td>` +
       `<td><span class="kyc-pill kyc-${esc(a.kyc_risk || "low")}">${esc(a.kyc_risk || "")}</span></td>` +
+      `<td>${(a.screening && a.screening.length) ? screenBadges(a.screening, false) : "<span class='subtle'>clear</span>"}</td>` +
       `<td class="num">${a.n_findings || 0}</td>` +
       `<td>${rings ? `<span class="pill">${esc((a.rings || [])[0])}${rings > 1 ? " +" + (rings - 1) : ""}</span>` : "—"}</td>` +
       `<td class="num"><span class="risk-chip ${tier}">${(a.risk * 100).toFixed(0)}</span></td></tr>`;
-  }).join("") || `<tr><td colspan="8" class="subtle" style="padding:24px;text-align:center">No accounts match the filters.</td></tr>`;
+  }).join("") || `<tr><td colspan="9" class="subtle" style="padding:24px;text-align:center">No accounts match the filters.</td></tr>`;
   document.querySelectorAll("#acct-table th").forEach((th) => {
     th.classList.toggle("sorted", th.dataset.sort === key);
     th.classList.toggle("asc", th.dataset.sort === key && dir === 1);
@@ -891,7 +943,7 @@ function renderAccountsTable() {
 document.querySelectorAll("#acct-table th").forEach((th) => th.onclick = () => {
   const k = th.dataset.sort;
   if (acctSort.key === k) acctSort.dir *= -1;
-  else { acctSort.key = k; acctSort.dir = (k === "risk" || k === "n_findings" || k === "rings") ? -1 : 1; }
+  else { acctSort.key = k; acctSort.dir = (k === "risk" || k === "n_findings" || k === "rings" || k === "screening") ? -1 : 1; }
   renderAccountsTable();
 });
 
@@ -924,8 +976,10 @@ function resetFilters() {
   FILTERS.text = ""; FILTERS.riskMin = 0;
   FILTERS.types.clear(); FILTERS.kyc.clear(); FILTERS.countries.clear(); FILTERS.channels.clear();
   FILTERS.amtMin = FILTERS.amtMax = FILTERS.dateFrom = FILTERS.dateTo = null;
+  FILTERS.watchlist = false;
   $("f-text").value = ""; $("f-risk").value = 0; $("f-risk-val").textContent = "0";
   $("f-amin").value = ""; $("f-amax").value = ""; $("f-dfrom").value = ""; $("f-dto").value = "";
+  $("f-watchlist").checked = false;
   buildFilterOptions();
   onFiltersChanged();
 }
@@ -939,6 +993,7 @@ $("f-amin").oninput = (e) => { FILTERS.amtMin = e.target.value === "" ? null : +
 $("f-amax").oninput = (e) => { FILTERS.amtMax = e.target.value === "" ? null : +e.target.value; onFiltersChanged(); };
 $("f-dfrom").oninput = (e) => { FILTERS.dateFrom = e.target.value ? new Date(e.target.value) : null; onFiltersChanged(); };
 $("f-dto").oninput = (e) => { FILTERS.dateTo = e.target.value ? new Date(e.target.value + "T23:59:59") : null; onFiltersChanged(); };
+$("f-watchlist").onchange = (e) => { FILTERS.watchlist = e.target.checked; onFiltersChanged(); };
 
 // ── center view toggle (Graph / Accounts) + name labels ─────────────────────
 function setView(v) {
@@ -1039,51 +1094,6 @@ function stopLive() {
 $("live-btn").onclick = () => { if (live.on) stopLive(); else startLive(); };
 $("live-stop").onclick = stopLive;
 
-// ── threshold sandbox (precision/recall vs alert threshold τ) ───────────────
-let SANDBOX_CURVE = [];
-async function openSandbox() {
-  $("sandbox-modal").classList.remove("hidden");
-  if (!SANDBOX_CURVE.length) SANDBOX_CURVE = await fetch("/api/eval/curve").then((r) => r.json());
-  $("tau-slider").value = 50;
-  updateSandbox(0.5);
-}
-function closeSandbox() { $("sandbox-modal").classList.add("hidden"); }
-function nearestPoint(tau) {
-  return SANDBOX_CURVE.reduce((best, c) => Math.abs(c.tau - tau) < Math.abs(best.tau - tau) ? c : best, SANDBOX_CURVE[0]);
-}
-function prChartSvg(tau) {
-  const W = 380, H = 180, pad = 30;
-  const X = (t) => pad + t * (W - 2 * pad);
-  const Y = (v) => (H - pad) - v * (H - 2 * pad);
-  const line = (key) => SANDBOX_CURVE.map((c, i) => `${i ? "L" : "M"}${X(c.tau).toFixed(1)},${Y(c[key]).toFixed(1)}`).join("");
-  const mx = X(tau).toFixed(1);
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">` +
-    `<line x1="${pad}" y1="${H - pad}" x2="${W - pad}" y2="${H - pad}" stroke="#cbd5e1"/>` +
-    `<line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H - pad}" stroke="#cbd5e1"/>` +
-    `<line x1="${mx}" y1="${pad}" x2="${mx}" y2="${H - pad}" stroke="#4f46e5" stroke-dasharray="3 3"/>` +
-    `<path d="${line("precision")}" fill="none" stroke="#dc2626" stroke-width="2"/>` +
-    `<path d="${line("recall")}" fill="none" stroke="#16a34a" stroke-width="2"/>` +
-    `<text x="${pad}" y="${H - 10}" font-size="9" fill="#64748b">τ 0</text>` +
-    `<text x="${W - pad - 18}" y="${H - 10}" font-size="9" fill="#64748b">τ 1</text>` +
-    `<text x="6" y="${pad + 4}" font-size="9" fill="#64748b">1.0</text>` +
-    `<text x="6" y="${H - pad}" font-size="9" fill="#64748b">0</text></svg>` +
-    `<div class="pr-legend"><span><i style="background:#dc2626"></i>precision</span><span><i style="background:#16a34a"></i>recall</span></div>`;
-}
-function updateSandbox(tau) {
-  if (!SANDBOX_CURVE.length) return;
-  const p = nearestPoint(tau);
-  $("tau-val").textContent = tau.toFixed(2);
-  $("sb-prec").textContent = p.precision.toFixed(2);
-  $("sb-rec").textContent = p.recall.toFixed(2);
-  $("sb-f1").textContent = p.f1.toFixed(2);
-  $("sb-pred").textContent = p.predicted;
-  $("pr-chart").innerHTML = prChartSvg(tau);
-}
-$("tune-btn").onclick = openSandbox;
-$("sandbox-close").onclick = closeSandbox;
-$("sandbox-modal").onclick = (e) => { if (e.target.id === "sandbox-modal") closeSandbox(); };
-$("tau-slider").oninput = (e) => updateSandbox(+e.target.value / 100);
-
 // ── boot ────────────────────────────────────────────────────────────────────
 async function refresh() {
   await loadRings();
@@ -1096,7 +1106,6 @@ async function refresh() {
   const sq = params.get("q");
   if (sq) { openSearch(); $("search-input").value = sq; renderSearch(sq); }
   if (params.get("live") === "1") setTimeout(startLive, 400);
-  if (params.get("sandbox") === "1") openSandbox();
 }
 
 $("fitbtn").onclick = () => clearSelection();
@@ -1111,7 +1120,6 @@ $("gen").onclick = async () => {
     await fetch("/api/dataset/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ seed: Math.floor(Math.random() * 1000000) }) });
     activeRing = null; activeMembers = null; destroyFlow(); hidePlayback();
     CASE = {}; try { localStorage.removeItem("mulenet_cases"); } catch (e) {}  // fresh dataset → fresh cases
-    SANDBOX_CURVE = [];   // recompute the τ curve for the new dataset
     resetFilters();
     $("detail").innerHTML = `<div class="empty-state"><div class="ico">🔍</div><p>Select a ring from the queue to investigate.</p></div>`;
     await refresh();
