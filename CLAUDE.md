@@ -16,6 +16,7 @@ feature per person. There's **no shared server** — everything runs **locally**
 - **Event:** iFX Hack 2026 — 24h hackathon, 13–14 June, University of Limassol (Cyprus)
 - **Track:** **Keep Money Safe** (fraud / scams / financial crime / AML / consumer protection)
 - **Sponsor:** AWS — using AWS services (Bedrock, Rekognition, Textract, etc.) is a plus.
+- **Project:** **MuleNet** — money-laundering network detector (decided 2026-06-13). Full spec + per-person tasks: **[REQUIREMENTS.md](./REQUIREMENTS.md)**.
 - **Submission deadline:** **Sun 14 June, 12:00 (noon).** Presentations 14:00–15:30.
 - **Repo:** https://github.com/AntreasCh/KKKCP
 - **Idea options & decision:** see [`IDEAS.md`](./IDEAS.md)
@@ -79,14 +80,12 @@ Stuck? Ping the team before forcing anything. **Never** `git push --force` to `m
 > anything that needs a live remote server to demo. Calling cloud **APIs** (e.g. AWS Bedrock)
 > from the local app is fine — that's a remote call, not a server we run.
 
-> ⛔ Stack not decided yet — **fill this in the moment we scaffold the project** so the next
-> person (or Claude) knows how to run it. Replace the placeholders below.
-
-- **Language / framework:** _TBD_
-- **Install deps:** `_TBD_`
-- **Run locally (localhost):** `_TBD_`
-- **Run tests:** `_TBD_`
-- **AWS services in use:** _TBD_
+- **Language / framework:** Python 3.11+ · FastAPI + uvicorn (backend) · vis-network (frontend, no build step)
+- **Graph / detection:** `networkx`, `python-louvain`, `numpy`, `pandas`
+- **Install deps:** `pip install -r backend/requirements.txt`
+- **Run locally (localhost):** `uvicorn backend.api.main:app --reload --port 8000` → open `http://localhost:8000`
+- **Run tests:** `pytest backend/` (add as we go)
+- **AWS services in use:** **Bedrock** (Claude `claude-haiku-4-5`) for the SAR generator — optional; template fallback if no creds. AI is additive, not load-bearing.
 
 ---
 
@@ -130,5 +129,6 @@ Stuck? Ping the team before forcing anything. **Never** `git push --force` to `m
 
 ## 📋 Decision Log (newest at top — append only)
 
+- _2026-06-13 — **Project decided: MuleNet** (AML money-laundering network detector). Stack: Python + FastAPI + networkx + vis-network; Claude (Bedrock) for SAR only. Full spec + 5-person split in [REQUIREMENTS.md](./REQUIREMENTS.md). Each person: claim a block in Team Sync above._
 - _2026-06-13 — Decided: app runs **locally only** (no server to host on); demo runs on localhost. Team of **5**, each running Claude Code individually — one feature/area per person._
 - _2026-06-13 — Repo set up; idea options drafted in `IDEAS.md`; awaiting team vote on track idea._

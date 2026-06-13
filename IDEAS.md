@@ -130,9 +130,12 @@ Ideas 1–2, but a strong, safe build.*
 
 ---
 
-## ✅ Decision
+## ✅ Decision — DECIDED
 
-- **Chosen idea:** _(fill in once we vote)_
-- **One-line pitch:** _________________________________________________
-- **Who's doing what:** mirror the 5-person split into `CLAUDE.md` → Team Sync
-- **Decided on / by:** _______________
+- **Chosen idea:** **Idea 1 — 🕸️ MuleNet — Money-Laundering Network Detector**
+- **One-line pitch:** Build a transaction graph and use graph algorithms to surface
+  money-laundering rings (mules, layering, circular flows, structuring); Claude auto-drafts the SAR.
+- **Full spec & per-person tasks:** see **[REQUIREMENTS.md](./REQUIREMENTS.md)**.
+- **Who's doing what:** 5-person split in REQUIREMENTS.md §13 → claim your block in
+  `CLAUDE.md` → Team Sync.
+- **Decided on / by:** 2026-06-13, team KKKCP.
