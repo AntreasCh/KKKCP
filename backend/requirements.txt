@@ -7,4 +7,5 @@ pandas
 pydantic>=2
 boto3
 anthropic
+openai
 pytest

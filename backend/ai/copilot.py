@@ -145,9 +145,7 @@ def _tools_impl(result, dataset):
 
 
 def _ask_openai_compatible(question: str, result: dict, dataset: dict) -> dict:
-    """Tool-using loop via the OpenAI Chat Completions API (OpenAI or OpenRouter, auto-detected)."""
-    import httpx
-
+    """Tool-using loop via OpenRouter (OpenAI SDK) function-calling."""
     from backend.ai import llm
 
     impl = _tools_impl(result, dataset)
@@ -175,11 +173,9 @@ def _ask_openai_compatible(question: str, result: dict, dataset: dict) -> dict:
                 trace.append({"tool": name, "input": args, "output": out})
                 messages.append({"role": "tool", "tool_call_id": tc["id"], "content": json.dumps(out)})
         return {"answer": "(stopped after max tool iterations)", "tool_calls": trace, "source": source}
-    except httpx.HTTPStatusError as e:
-        hint = llm.bad_key_hint() if e.response.status_code == 401 else ""
-        return {"answer": f"AI request failed: {e}{hint}", "tool_calls": trace, "source": "error"}
     except Exception as e:
-        return {"answer": f"AI request failed: {e}", "tool_calls": trace, "source": "error"}
+        hint = llm.bad_key_hint() if "401" in str(e) else ""
+        return {"answer": f"AI request failed: {e}{hint}", "tool_calls": trace, "source": "error"}
 
 
 def ask(question: str, result: dict, dataset: dict, labels: dict | None = None) -> dict:
