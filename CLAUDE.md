@@ -97,6 +97,9 @@ Stuck? Ping the team before forcing anything. **Never** `git push --force` to `m
 >
 > **P1–P5 below are a proposed starting mapping — swap roles freely, just keep one owner per
 > block. Your detailed first tasks are in [TASKS.md](./TASKS.md).**
+>
+> 📍 **Live status (who's doing what right now) lives in [TASKS.md](./TASKS.md) → Live Status
+> Board — update there, not here. The blocks below are just the durable role assignment.**
 
 ### Andreas Christodoulou (@AntreasCh) — proposed **P1: Data & Schemas**
 - **Working on:** synthetic data generator; harden realism + AMLSim-shaped data (TASKS.md)
