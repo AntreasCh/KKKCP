@@ -72,6 +72,17 @@ def current():
 def graph(max_nodes: int = 400):
     d, r = STATE["dataset"], STATE["result"]
     risk = {a["account_id"]: a["risk"] for a in r["account_risk"]}
+    # Map each account / transaction to the highest-scoring ring it belongs to.
+    # rings are sorted by score desc, so setdefault keeps the strongest ring.
+    # `ring` is an additive field on top of the §8 graph contract — frontend uses
+    # it to color detected clusters; consumers that ignore it are unaffected.
+    node_ring: dict[str, str] = {}
+    tx_ring: dict[str, str] = {}
+    for ring in r["rings"]:
+        for acc in ring["account_ids"]:
+            node_ring.setdefault(acc, ring["ring_id"])
+        for tx in ring["tx_ids"]:
+            tx_ring.setdefault(tx, ring["ring_id"])
     keep = set()
     for ring in r["rings"]:
         keep |= set(ring["account_ids"])
@@ -80,9 +91,11 @@ def graph(max_nodes: int = 400):
             break
         keep.add(a["account_id"])
     nodes = [{"id": a["account_id"], "label": a["account_id"], "risk": risk.get(a["account_id"], 0),
-              "type": a["account_type"]} for a in d["accounts"] if a["account_id"] in keep]
+              "type": a["account_type"], "ring": node_ring.get(a["account_id"])}
+             for a in d["accounts"] if a["account_id"] in keep]
     edges = [{"id": t["tx_id"], "source": t["src"], "target": t["dst"], "amount": t["amount"],
-              "suspicious": risk.get(t["src"], 0) >= 0.5 or risk.get(t["dst"], 0) >= 0.5}
+              "suspicious": risk.get(t["src"], 0) >= 0.5 or risk.get(t["dst"], 0) >= 0.5,
+              "ring": tx_ring.get(t["tx_id"])}
              for t in d["transactions"] if t["src"] in keep and t["dst"] in keep]
     return {"nodes": nodes, "edges": edges}
 

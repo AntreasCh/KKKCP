@@ -7,3 +7,7 @@ venv/
 .pytest_cache/
 .DS_Store
 node_modules/
+
+# local run artifacts
+.uvicorn.log
+.shot*.png

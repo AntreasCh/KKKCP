@@ -14,17 +14,47 @@
       <span class="tag">Money-Laundering Network Detector · team KKKCP</span>
     </div>
     <div class="controls">
-      <button id="gen">↻ Generate dataset</button>
-      <span id="summary" class="summary">loading…</span>
+      <div id="summary" class="summary-chips">loading…</div>
+      <button id="gen" class="btn-primary">↻ Generate dataset</button>
     </div>
   </header>
 
   <main>
-    <section id="graph"></section>
+    <section id="graph-wrap">
+      <div id="graph"></div>
+      <div id="legend" class="legend">
+        <div class="legend-title">Legend</div>
+        <div class="legend-row"><span class="dot" style="background:#ff5a5f"></span> high risk (≥66%)</div>
+        <div class="legend-row"><span class="dot" style="background:#e3b341"></span> medium risk (≥33%)</div>
+        <div class="legend-row"><span class="dot" style="background:#3a4756"></span> low / background</div>
+        <div class="legend-row"><span class="dot ring-dot"></span> in a detected ring</div>
+        <div class="legend-row"><span class="edge-swatch"></span> suspicious transfer</div>
+      </div>
+      <button id="fitbtn" class="btn-ghost graph-btn" title="Reset / fit view">⤢ Fit</button>
+    </section>
+
     <aside id="side">
-      <div id="eval" class="card metric">eval…</div>
-      <h2>Detected rings</h2>
-      <div id="rings" class="rings"></div>
+      <!-- Headline metric for the judges -->
+      <div id="eval" class="card eval-card">eval…</div>
+
+      <!-- Ask MuleNet copilot -->
+      <div class="card chat-card">
+        <h2>💬 Ask MuleNet</h2>
+        <p class="hint">An AI analyst that investigates the network by calling tools.</p>
+        <div id="chat-log" class="chat-log"></div>
+        <form id="chat-form" class="chat-form" autocomplete="off">
+          <input id="chat-input" type="text" placeholder="e.g. What's the riskiest ring and why?" />
+          <button type="submit" class="btn-primary">Ask</button>
+        </form>
+      </div>
+
+      <!-- Detected rings -->
+      <div class="card">
+        <h2>Detected rings <span id="rings-count" class="count"></span></h2>
+        <div id="rings" class="rings"></div>
+      </div>
+
+      <!-- Click-through detail -->
       <div id="detail" class="card hidden"></div>
     </aside>
   </main>
