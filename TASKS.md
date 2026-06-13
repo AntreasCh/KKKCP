@@ -42,10 +42,10 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ### P4 — savvas — API & Frontend
 - **Status:** 🔵 in review
-- **Right now:** added AML-tool features on the light console — temporal playback (scrub a ring's txns over time), case workflow (status chips + filter + escalate/clear/file, persisted), global search (⌘K palette over rings & accounts), and a per-ring risk-breakdown bar (detector contributions). Builds on the three-pane redesign + static graph + flow diagram.
+- **Right now:** advanced data filtering + human detail — new **Accounts table** view (toggle with the graph; owner/type/country/KYC/flags/rings/risk, sortable) and a shared **Filters drawer** (text, risk, type, KYC, country, channel, amount, date) that applies to BOTH the table and the graph; owner names now surface in tooltips, an optional "Names" graph toggle, and ring key-accounts/transactions. Builds on playback/case/search/breakdown.
 - **Files I'm touching:** `backend/api/main.py`, `frontend/index.html`, `frontend/app.js`, `frontend/style.css`
 - **Blockers:** —
-- **Notes for the team:** §8 API contract stays stable (only additive `ring` field on /api/graph). Copilot needs `ANTHROPIC_API_KEY` (or `OPENROUTER_API_KEY` per P5) for a live demo; degrades gracefully otherwise.
+- **Notes for the team:** §8 stays stable — **additive only**: `/api/graph` nodes now also carry `owner_name/country/kyc_risk`, edges carry `channel/timestamp`; new `GET /api/accounts` (full list w/ risk, rings, n_findings). Kept P5's account AI-analysis additions intact.
 - **Updated:** 2026-06-13
 
 ### P5 — Alexandros — AI, Eval & Demo
@@ -62,6 +62,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P4 (savvas): advanced data filtering + human detail — new **Accounts table** view (toggle w/ graph; owner/type/country/KYC/flags/rings/risk, sortable) + a shared **Filters drawer** (text/risk/type/KYC/country/channel/amount/date) applying to both table and graph; owner names in node tooltips, a "Names" graph toggle, and ring key-accounts/transactions. **Additive API:** `/api/graph` nodes +owner_name/country/kyc_risk, edges +channel/timestamp; new `GET /api/accounts`. §8 otherwise unchanged; P5's AI-analysis kept. — savvas_
 - _2026-06-13 — P3 (Andreas): **account recall 0.359→0.769, precision held 1.0, F1 →0.870**; ring metrics unchanged (recall 1.0, 0 FP rings). Root cause: scoring NORMALIZER=1.6 required two corroborating signals so single-role mules (10 passthrough relays @0.30, fan/circular-only) stalled under τ — recalibrated to 0.9. Safe: strong detectors fire on 0 legit accts; verified precision stays 1.0 down to NORM=0.7. Added `backend/tests/test_scoring.py` (4 guardrails). `scoring.py` only, no schema/API change. Remaining 9 FNs are no-detector-fire collectors/structuring-band misses. — Andreas_
 - _2026-06-13 — P5 (Alexandros): AI is now **OpenRouter-only** (per request) via the OpenAI SDK pointed at OpenRouter, reasoning enabled, key read from gitignored `.env`. **⚠️ Added `openai` to `backend/requirements.txt` → run `pip install -r backend/requirements.txt`.** Bad-key 401s fall back to template (analysis) / show a hint (copilot). — Alexandros_
 - _2026-06-13 — P5 (Alexandros): account AI-analysis feature — click an account → one-shot LLM verdict over it + its connected accounts (`ai/analysis.py`), new route `POST /api/accounts/{id}/analyze`, "🔍 AI analysis" button in the inspector. New `ai/llm.py` auto-detects provider from key (sk-or-→OpenRouter w/ reasoning, sk-→OpenAI); copilot+SAR route through it. **Additive edits to api/main.py + frontend/ (heads-up @savvas in §1).** Tested: endpoint 200/404, template fallback, provider detection. — Alexandros_
