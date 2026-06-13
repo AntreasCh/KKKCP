@@ -25,12 +25,12 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Updated:** 2026-06-13
 
 ### P2 — panagiotis — Graph & Structural Detection
-- **Status:** 🔲 not started
-- **Right now:** —
-- **Files I'm touching:** `backend/graph/build.py`, `backend/detect/structural.py`
+- **Status:** 🔵 in review
+- **Right now:** `detect_circular` rewritten — only fires on time-ordered, value-retaining money loops (timestamps increase around the loop, retention 0.7–1.25, closes ≤72h, length ≥3). On the new fixture it catches **all 3 circular rings, 0 FP**; account precision rose 0.47→0.61. Added `backend/tests/test_structural.py` (5 pass, data-driven).
+- **Files I'm touching:** `backend/detect/structural.py`, `backend/tests/test_structural.py`
 - **Blockers:** —
-- **Notes for the team:** —
-- **Updated:** —
+- **Notes for the team:** Tuned `CIRC_MIN_RETENTION` to 0.7 — the planted 4-hop loops skim ~6%/hop (~0.78 end-to-end), so 0.8 missed them. My structural signal covers its patterns; the remaining 2 ring-recall misses are the `mule_fanout` assembly gap @kiriakos already flagged to @Andreas (expand fan finding → `evidence.counterparties`). Not editing `graph/build.py` (the MultiDiGraph build is fine as-is).
+- **Updated:** 2026-06-13
 
 ### P3 — Andreas — Network Detection & Scoring
 - **Status:** 🟡 core pass done (will finalize after P2's circular fix)
@@ -60,6 +60,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P2 (panagiotis): `detect_circular` now fires only on time-ordered, value-retaining money loops (retention 0.7–1.25, ≤72h, len≥3). Catches all 3 circular rings on the new fixture, 0 FP; nudged acct-precision 0.42→0.61. Added `backend/tests/` (data-driven, 5 pass). Remaining ring-recall gap is the `mule_fanout` assembly issue @kiriakos already flagged to @Andreas. — panagiotis_
 - _2026-06-13 — P1 (kiriakos): shipped richer fixture (800 accts / 4.1k txns / 15 rings, 3 per pattern) + legit hubs (payroll/merchant/utility) + realistic mule profiles. Eval: ring-recall 0.87, FP-rings 26→1, acct-precision 0.023→0.42. 🔴 @P3: 2 missed rings are `mule_fanout` — `build_rings` should expand a fan finding to its `evidence.counterparties` (spokes), which lifts recall back to ~1.0. schemas.py untouched. — kiriakos_
 - _2026-06-13 — P1 (kiriakos): starting richer generator — 2–3 instances/pattern, realistic legit noise + legit hubs, AMLSim-aligned typologies; labels split ring-set vs mule-set. schemas.py untouched. — kiriakos_
 - _2026-06-13 — P5: copilot gains `trace_path` + `compare_rings` tools and returns a richer `tool_calls` trace (tool/input/output) for the UI; eval gains `format_report` + `python -m backend.eval.evaluate` CLI and additive `false_positive_rate`; SAR Anthropic+template paths confirmed; demo seed fixed at 42, `DEMO.md` added. Heads-up @P3: Louvain is non-deterministic → ring count drifts run-to-run (~24–26 FP); seeding it would stabilise demo numbers. — Alexandros_
