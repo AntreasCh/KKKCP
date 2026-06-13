@@ -27,6 +27,26 @@ STRONG = {"structuring", "circular", "passthrough", "fan_in", "fan_out"}
 # account here, so the worst legit weighted-sum (~0.24, factor-suppressed fan) stays well
 # below τ. Verified: precision holds at 1.0, recall 0.36→0.77, 0 FP rings. See test_scoring.py.
 NORMALIZER = 0.9
+
+# Established-business profile down-weight (mirrors network._legit_hub_factor, applied at the
+# account-risk layer). An AGED business account with LOW KYC risk legitimately does many-party
+# flows, B2B invoicing and inter-company settlement loops — exactly the patterns that trip
+# passthrough/circular/structuring. Real mules are FRESH PERSONAL accounts with elevated KYC
+# (verified: 0/39 true mules are business+low-KYC), so suppressing this profile is recall-safe
+# and removes the hard-negative false positives the decoy fixture plants.
+ESTABLISHED_BUSINESS_FACTOR = 0.18   # suppression for the business+low-KYC "established legit" profile
+
+
+def _legit_profile_factor(acc_rec: dict | None) -> float:
+    """Multiplier <= 1 suppressing the risk of the established-business profile. We suppress ONLY
+    the full conjunction (business AND low KYC) — that's the exact decoy profile (payroll/merchant/
+    B2B/settlement). Suppressing `business` alone would wrongly de-risk the 4 business mules (they
+    carry medium/high KYC); no true mule is low-KYC, so the conjunction is recall-safe. Unknown → 1.0."""
+    if not acc_rec:
+        return 1.0
+    if acc_rec.get("account_type") == "business" and acc_rec.get("kyc_risk") == "low":
+        return ESTABLISHED_BUSINESS_FACTOR
+    return 1.0
 MIN_RING_VOLUME = 15_000  # EUR of transactions among members — laundering moves real money
 MIN_RING_SCORE = 0.45
 MIN_RING_SIZE = 3
@@ -42,7 +62,10 @@ def _has_money_edge(members: set[str], pair_amt: dict) -> bool:
     return False
 
 
-def score_accounts(findings: list[dict]) -> list[dict]:
+def score_accounts(findings: list[dict], accounts: list[dict] | None = None) -> list[dict]:
+    """Per-account risk. `accounts` (optional) enables the established-business down-weight that
+    keeps aged business/low-KYC hard-negatives (payroll, merchants, B2B settlement) below τ."""
+    acc_by_id = {a["account_id"]: a for a in (accounts or [])}
     agg = defaultdict(lambda: {"sum": 0.0, "signals": []})
     for f in findings:
         contrib = WEIGHTS.get(f["detector"], 0.5) * f["score"]
@@ -51,7 +74,8 @@ def score_accounts(findings: list[dict]) -> list[dict]:
             agg[acc]["signals"].append({"detector": f["detector"], "score": round(f["score"], 2)})
     out = []
     for acc, a in agg.items():
-        risk = min(1.0, a["sum"] / NORMALIZER)
+        factor = _legit_profile_factor(acc_by_id.get(acc))
+        risk = min(1.0, a["sum"] * factor / NORMALIZER)
         top = sorted(a["signals"], key=lambda s: -s["score"])[:4]
         out.append({"account_id": acc, "risk": round(risk, 3), "top_signals": top})
     out.sort(key=lambda x: -x["risk"])

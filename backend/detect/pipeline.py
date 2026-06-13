@@ -21,6 +21,6 @@ def run(dataset: dict) -> dict:
     findings += network.detect_fan(graph, accounts, transactions)
     findings += network.detect_communities(graph, accounts, transactions)
 
-    account_risk = scoring.score_accounts(findings)
+    account_risk = scoring.score_accounts(findings, accounts)
     rings = scoring.build_rings(findings, account_risk, transactions)
     return {"findings": findings, "account_risk": account_risk, "rings": rings}
