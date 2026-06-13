@@ -42,7 +42,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ### P4 — savvas — API & Frontend
 - **Status:** 🔵 in review
-- **Right now:** graph decluttered (focus view = rings + flagged by default, "Show all traffic" toggle, labels→tooltips, size/opacity hierarchy) + per-ring money-flow diagram (source→mule→destination) in the detail panel. Earlier: ring highlighting, evidence panel, copilot chat, eval/SAR display.
+- **Right now:** full UI redesign — light "analyst console" (Unit21/Sardine style), three-pane layout (ranked ring queue · network graph · tabbed Inspector/Ask-MuleNet), and the graph is now **static** (settles once, then physics off — no perpetual drift). Keeps focus view + flow diagram + evidence + SAR + copilot.
 - **Files I'm touching:** `backend/api/main.py`, `frontend/index.html`, `frontend/app.js`, `frontend/style.css`
 - **Blockers:** —
 - **Notes for the team:** §8 API contract stays stable (only additive `ring` field on /api/graph). Copilot needs `ANTHROPIC_API_KEY` for a live demo; degrades gracefully otherwise.
@@ -60,6 +60,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P4 (savvas): full UI redesign to a light "analyst console" (Unit21/Sardine style), three-pane layout (ranked ring queue · graph · tabbed Inspector/Ask-MuleNet); graph now settles once then freezes (physics off) so it no longer drifts. Pure frontend; §8 unchanged. — savvas_
 - _2026-06-13 — P1 (kiriakos): data ✅ done — confirmed ring-recall 1.0 / FP-rings 0 / acct-precision 1.0 on the integrated pipeline. Audited the acct-recall gap (0.359): all 25 unflagged "mules" are correctly-labeled relays/hubs being under-scored — `ACC00593` fan-in hub (14 in) →0.00, structuring hubs →0.00, ~11 layering relays pinned at 0.30 (<τ). It's detection-side (P2 flat passthrough score + crediting in-degree hubs), not labels — not changing labels (would just mask it). — kiriakos_
 - _2026-06-13 — P3 (Andreas): integration pass — ring-recall 0.87→1.0 (15/15, mule_fanout now 3/3), account precision 0.61→1.0 (0 FP), FP rings →0, and detection made DETERMINISTIC (was 11–26 rings/run). Fixes in network.py/scoring.py only, no schema/API change: peak-risk blend in ring score, legit-hub fan down-weight (business+low-KYC), order-independent build_rings + seeded Louvain, money-edge-bounded seed expansion (killed the 95-acct mega-blobs). Account recall still 0.359 → P2 passthrough scoring is the next lever. — Andreas_
 - _2026-06-13 — P4 (savvas): graph readability pass — focus view (rings + flagged only) with a "Show all traffic" toggle, labels→hover tooltips, size/opacity hierarchy; plus a per-ring money-flow diagram (source→mule→destination, edge width ∝ amount, top-28 capped) in the detail panel. Pure frontend; §8 unchanged. — savvas_
