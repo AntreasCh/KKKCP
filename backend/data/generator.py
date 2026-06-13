@@ -411,24 +411,43 @@ class LiveFeed:
     # small laundering bursts the stream can inject live (kept short so they complete in one batch)
     BURSTS = ("structuring", "fan_in", "cycle")
 
-    def __init__(self, seed: int | None = None, n_accounts: int = 120):
+    def __init__(self, seed: int | None = None, n_accounts: int = 300):
         self.rng = random.Random(seed)
         self.clock = BASE
         self._n = 0
         self._ring_n = 0
+        # Two DISJOINT pools so live rings never bridge each other (the ring-merge bug):
+        #   • legit pool   — all background traffic flows here only, so legit edges can never
+        #                    wire two burst hubs together.
+        #   • ring pool    — reserved, consumed in fresh disjoint slices by each burst, and
+        #                    pre-stamped with a mule profile (fresh/personal/elevated-KYC, never
+        #                    business+low-KYC) so each planted ring is detectable AND structurally
+        #                    isolated. All accounts exist up front, so the stream's batch shape is
+        #                    unchanged (no need to append accounts mid-stream).
+        legit_n = max(40, int(n_accounts * 0.66))
         self.accounts = []
         for i in range(1, n_accounts + 1):
-            is_biz = self.rng.random() < 0.15
-            self.accounts.append({
-                "account_id": f"ACC{i:05d}",
-                "owner_name": (self.rng.choice(BIZ) if is_biz
-                               else f"{self.rng.choice(FIRST)} {self.rng.choice(LAST)[0]}."),
-                "account_type": "business" if is_biz else "personal",
-                "country": self.rng.choice(COUNTRIES),
-                "opened_at": _iso(BASE - timedelta(days=self.rng.randint(60, 1200)))[:10],
-                "kyc_risk": self.rng.choices(["low", "medium", "high"], weights=[0.8, 0.15, 0.05])[0],
-            })
+            if i > legit_n:  # reserved mule pool
+                acct = {"account_id": f"ACC{i:05d}",
+                        "owner_name": f"{self.rng.choice(FIRST)} {self.rng.choice(LAST)[0]}.",
+                        "account_type": "personal",
+                        "country": self.rng.choice(HIGH_RISK_CC),
+                        "opened_at": _iso(BASE - timedelta(days=self.rng.randint(8, 130)))[:10],
+                        "kyc_risk": self.rng.choices(["medium", "high"], weights=[0.45, 0.55])[0]}
+            else:            # legit background pool
+                is_biz = self.rng.random() < 0.15
+                acct = {"account_id": f"ACC{i:05d}",
+                        "owner_name": (self.rng.choice(BIZ) if is_biz
+                                       else f"{self.rng.choice(FIRST)} {self.rng.choice(LAST)[0]}."),
+                        "account_type": "business" if is_biz else "personal",
+                        "country": self.rng.choice(COUNTRIES),
+                        "opened_at": _iso(BASE - timedelta(days=self.rng.randint(60, 1200)))[:10],
+                        "kyc_risk": self.rng.choices(["low", "medium", "high"], weights=[0.8, 0.15, 0.05])[0]}
+            self.accounts.append(acct)
         self.acc_ids = [a["account_id"] for a in self.accounts]
+        self._legit_ids = self.acc_ids[:legit_n]
+        self._ring_pool = self.acc_ids[legit_n:]
+        self._ring_ptr = 0
 
     def _tx(self, src, dst, amount, channel=None) -> dict:
         self._n += 1
@@ -436,40 +455,56 @@ class LiveFeed:
                 "src": src, "dst": dst, "amount": round(float(amount), 2),
                 "currency": "EUR", "channel": channel or self.rng.choice(CHANNELS)}
 
+    def _take_ring(self, k: int) -> list[str]:
+        """Next `k` fresh, never-before-used accounts from the reserved ring pool (disjoint per
+        burst). Returns [] when the pool is exhausted, so the caller just emits a legit-only tick."""
+        if self._ring_ptr + k > len(self._ring_pool):
+            return []
+        s = self._ring_pool[self._ring_ptr:self._ring_ptr + k]
+        self._ring_ptr += k
+        return s
+
     def _legit(self, k: int) -> list[dict]:
         out = []
         for _ in range(k):
             self.clock += timedelta(seconds=self.rng.randint(20, 240))
-            s, d = self.rng.sample(self.acc_ids, 2)
+            s, d = self.rng.sample(self._legit_ids, 2)   # legit pool only — never touches ring accounts
             out.append(self._tx(s, d, round(self.rng.lognormvariate(6.0, 0.9), 2)))
         return out
 
-    def _burst(self) -> tuple[list[dict], dict]:
-        """Plant one short laundering burst inline; return (transactions, ring-label)."""
+    def _burst(self) -> tuple[list[dict], dict | None]:
+        """Plant one short laundering burst on FRESH disjoint accounts; return (transactions,
+        ring-label) — or ([], None) if the ring pool is exhausted."""
         kind = self.rng.choice(self.BURSTS)
-        self._ring_n += 1
         txs: list[dict] = []
         if kind == "structuring":
-            hub = self.rng.choice(self.acc_ids)
-            srcs = self.rng.sample([a for a in self.acc_ids if a != hub], self.rng.randint(4, 6))
+            members = self._take_ring(self.rng.randint(5, 7))
+            if not members:
+                return [], None
+            hub, srcs = members[0], members[1:]
             for s in srcs:
                 self.clock += timedelta(seconds=self.rng.randint(15, 90))
                 txs.append(self._tx(s, hub, self.rng.uniform(0.75, 0.98) * THRESHOLD, "cash_deposit"))
-            accts, mule = [hub] + srcs, [hub]
+            accts, mule = members, [hub]
         elif kind == "fan_in":
-            hub = self.rng.choice(self.acc_ids)
-            srcs = self.rng.sample([a for a in self.acc_ids if a != hub], self.rng.randint(6, 9))
+            members = self._take_ring(self.rng.randint(7, 10))
+            if not members:
+                return [], None
+            hub, srcs = members[0], members[1:]
             for s in srcs:
                 self.clock += timedelta(seconds=self.rng.randint(10, 70))
                 txs.append(self._tx(s, hub, self.rng.uniform(3_000, 9_000)))
-            accts, mule = [hub] + srcs, [hub]
+            accts, mule = members, [hub]
         else:  # cycle
-            chain = self.rng.sample(self.acc_ids, self.rng.randint(3, 4))
+            chain = self._take_ring(self.rng.randint(3, 4))
+            if not chain:
+                return [], None
             amt = self.rng.uniform(20_000, 60_000)
             for j in range(len(chain)):
                 self.clock += timedelta(seconds=self.rng.randint(20, 120))
                 txs.append(self._tx(chain[j], chain[(j + 1) % len(chain)], amt * (0.92 ** j), "wire"))
             accts, mule = list(chain), list(chain)
+        self._ring_n += 1
         ring = {"ring_id": f"LIVE_{self._ring_n:03d}", "account_ids": accts,
                 "tx_ids": [t["tx_id"] for t in txs], "patterns": [kind], "mule_accounts": mule}
         return txs, ring
@@ -481,7 +516,9 @@ class LiveFeed:
         txs.extend(burst_txs)
         self.rng.shuffle(txs)
         dataset = {"accounts": self.accounts, "transactions": txs}
-        labels = {"mule_accounts": sorted(ring.pop("mule_accounts")), "rings": [ring]}
+        rings = [ring] if ring else []
+        mules = sorted(ring.pop("mule_accounts")) if ring else []
+        labels = {"mule_accounts": mules, "rings": rings}
         return dataset, labels
 
     def next_batch(self) -> dict:
@@ -491,9 +528,9 @@ class LiveFeed:
         ring = None
         if self.rng.random() < 0.25:
             burst_txs, ring = self._burst()
-            mule = ring.pop("mule_accounts")
-            ring["_mule_accounts"] = mule  # caller may fold into labels
-            txs.extend(burst_txs)
+            if ring:  # None when the ring pool is exhausted → just a legit tick
+                ring["_mule_accounts"] = ring.pop("mule_accounts")  # caller may fold into labels
+                txs.extend(burst_txs)
         self.rng.shuffle(txs)
         return {"transactions": txs, "ring": ring, "clock": _iso(self.clock)}
 
