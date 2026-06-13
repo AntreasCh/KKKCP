@@ -327,6 +327,14 @@ async function showAccount(id) {
       `🕸️ Visual Review</button></div>` +
     `<div class="ai-block"><button class="ai-btn" onclick="runAccountAnalysis('${esc(id)}')">` +
       `🔍 AI analysis</button><div id="ai-analysis" class="ai-analysis"></div></div>` +
+    // SAR: an account inside a detected ring can have its ring's Suspicious Activity Report drafted
+    ((a.rings || []).length
+      ? `<div class="sar-block">` +
+          (a.rings.map((r) =>
+            `<button class="ai-btn sar-btn" onclick="generateSar('${esc(r.ring_id)}')">` +
+            `📄 Generate SAR <span class="sar-ring">${esc(r.ring_id)}</span></button>`).join("")) +
+          `<div id="sar-out" class="sar-out"></div></div>`
+      : "") +
     `<div class="section-label">Findings (${findings.length})</div>` +
     (findings.length
       ? `<div class="evidence">${findings.map((f) =>
@@ -373,6 +381,26 @@ async function runAccountAnalysis(id) {
   }
 }
 window.runAccountAnalysis = runAccountAnalysis;
+
+// ── SAR (P5): draft the Suspicious Activity Report for a ring this account belongs to ──
+async function generateSar(ringId) {
+  const box = $("sar-out");
+  if (!box) return;
+  box.classList.add("show");
+  box.innerHTML = `<span class="subtle">📝 drafting the Suspicious Activity Report for ${esc(ringId)}…</span>`;
+  try {
+    const out = await fetch(`/api/rings/${ringId}/sar`, { method: "POST" }).then((r) => r.json());
+    const src = out.source && out.source !== "template" ? `via ${esc(out.source)}` : "deterministic template";
+    box.innerHTML =
+      `<div class="sar-doc"><div class="sar-doc-head">📄 Suspicious Activity Report` +
+        `<button class="sar-copy" title="Copy report" onclick='navigator.clipboard&&navigator.clipboard.writeText(${JSON.stringify(out.narrative || "")})'>⧉ Copy</button></div>` +
+      `<pre class="sar-body">${esc(out.narrative || "(no narrative)")}</pre>` +
+      `<div class="ai-meta">${esc(ringId)} · ${src}</div></div>`;
+  } catch (err) {
+    box.innerHTML = `<span class="subtle">SAR error: ${esc(err)}</span>`;
+  }
+}
+window.generateSar = generateSar;
 
 // ── inspector tab (Ask tab removed — just show the inspector) ────────────────
 function switchTab(name) {
