@@ -26,11 +26,12 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Updated:** 2026-06-13
 
 ### P2 — panagiotis — Graph & Structural Detection
-- **Status:** 🔵 in review
-- **Right now:** `detect_passthrough` now scores by **ratio + speed** (§9 #3) instead of flat 0.6 — that flat score had pinned the layering relays at one sub-τ value. Composes with @Andreas's NORMALIZER→0.9: combined eval is **precision 1.0, recall 0.769, F1 0.87, 0 FP rings, 10/10 tests pass**. Circular detector unchanged (3/3, 0 FP).
+- **Status:** ✅ done — all P2 detectors clean against the decoy-ON fixture
+- **Right now:** **Settlement-loop FP fixed.** `detect_circular` now skips a cycle whose every member is established **business + low-KYC** (the legit inter-company settlement-loop profile) — real laundering loops always carry ≥1 fresh/personal/elevated-KYC account. On the committed decoy-ON fixture: **FP-rings 2 → 0**, all 3 true circular rings still caught, ring-recall 1.0. Plus the earlier passthrough ratio+speed scaling. **11 tests pass.**
 - **Files I'm touching:** `backend/detect/structural.py`, `backend/tests/test_structural.py`
 - **Blockers:** —
-- **Notes for the team:** Account-recall lever landed (mine + P3's normalizer compose cleanly, precision held). **Next P2 items on my plate** (both flagged by teammates): (1) **@kiriakos's decoy stress-test** — my `detect_circular` fires on legit 3-party *settlement loops* (all business+low-KYC+aged) → 2 FP rings; fix = require ≥1 fresh/elevated-KYC account in the loop. (2) **@Andreas** handed me 3 structuring-band misses (`ACC00066/143/735`) — deposits fall outside my `[0.7T,T)/72h` window. Both are in `structural.py`. Will pick up the settlement-loop one first (it's a precision risk if we flip decoys on).
+- **Notes for the team:** Full committed-fixture eval now **ring-recall 1.0, FP-rings 0, account precision 1.0, recall 0.769, F1 0.87** — precision is *earned* against P1's hard negatives. **🟢 @Andreas (P3):** the 2 legit settlement-loop FP rings are gone, so your `test_scoring.py` FP-rings guardrail can tighten to **`fp_rings == 0`** (was ≤2). Recall-safe: 0/39 true mules are business+low-KYC (you confirmed). The 3 structuring-band misses (`ACC00066/143/735`) are an account-recall *nicety*, not a blocker — happy to take them if we want >0.77, but they're outside my `[0.7T,T)/72h` band by design (legit-looking deposit sizes); leaving for now so I don't chase recall into precision risk.
+- **Updated:** 2026-06-13
 
 ### P3 — Andreas — Network Detection & Scoring
 - **Status:** 🔵 in review — decoy hard-negatives handled (precision restored)
@@ -63,6 +64,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P2 (panagiotis): **settlement-loop FP fixed** — `detect_circular` now skips cycles whose every member is established business+low-KYC (the legit inter-company loop profile). On the decoy-ON committed fixture: **FP-rings 2→0**, all 3 true circular rings kept, ring-recall 1.0, account precision 1.0/recall 0.769. structural.py only, no schema/API change, 11 tests pass. 🟢 @Andreas: your `test_scoring.py` FP-rings guardrail can now assert `==0`. — panagiotis_
 - _2026-06-13 — P3 (Andreas): decoy hard-negatives handled — **account precision 0.79→1.000, recall held 0.769, F1 0.870, ring-recall 1.0** (was 8 legit-business FPs incl. mega-merchant `ACC00739` at risk 1.0). Added an established-business (business AND low-KYC) ×0.18 profile down-weight in `scoring.py` (recall-safe: 0/39 mules are low-KYC; verified by sweep). `scoring.py`+`pipeline.py` only, no schema/API change; `test_scoring.py` updated to decoy reality (10/10 pass). **@P2:** cleared the structuring FP ring (3→2); the 2 remaining are the legit circular settlement loops — your detector-source fix. — Andreas_
 
 - _2026-06-13 — P4 (savvas): add a way back from a selected ring — "← Back to all rings" button in the inspector (account view backs to its ring), click-empty-canvas to deselect, and Fit now does a clean full reset via `clearSelection()` (clears highlight, refits, resets inspector + hash). Pure frontend. — savvas_
