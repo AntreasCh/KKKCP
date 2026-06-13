@@ -28,11 +28,10 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ### P2 — panagiotis — Graph & Structural Detection
 - **Status:** 🔵 in review
-- **Right now:** `detect_circular` rewritten — only fires on time-ordered, value-retaining money loops (timestamps increase around the loop, retention 0.7–1.25, closes ≤72h, length ≥3). On the new fixture it catches **all 3 circular rings, 0 FP**; account precision rose 0.47→0.61. Added `backend/tests/test_structural.py` (5 pass, data-driven).
+- **Right now:** `detect_passthrough` now scores by **ratio + speed** (§9 #3) instead of flat 0.6 — that flat score had pinned the layering relays at one sub-τ value. Composes with @Andreas's NORMALIZER→0.9: combined eval is **precision 1.0, recall 0.769, F1 0.87, 0 FP rings, 10/10 tests pass**. Circular detector unchanged (3/3, 0 FP).
 - **Files I'm touching:** `backend/detect/structural.py`, `backend/tests/test_structural.py`
 - **Blockers:** —
-- **Notes for the team:** Tuned `CIRC_MIN_RETENTION` to 0.7 — the planted 4-hop loops skim ~6%/hop (~0.78 end-to-end), so 0.8 missed them. My structural signal covers its patterns; the remaining 2 ring-recall misses are the `mule_fanout` assembly gap @kiriakos already flagged to @Andreas (expand fan finding → `evidence.counterparties`). Not editing `graph/build.py` (the MultiDiGraph build is fine as-is).
-- **Updated:** 2026-06-13
+- **Notes for the team:** Account-recall lever landed (mine + P3's normalizer compose cleanly, precision held). **Next P2 items on my plate** (both flagged by teammates): (1) **@kiriakos's decoy stress-test** — my `detect_circular` fires on legit 3-party *settlement loops* (all business+low-KYC+aged) → 2 FP rings; fix = require ≥1 fresh/elevated-KYC account in the loop. (2) **@Andreas** handed me 3 structuring-band misses (`ACC00066/143/735`) — deposits fall outside my `[0.7T,T)/72h` window. Both are in `structural.py`. Will pick up the settlement-loop one first (it's a precision risk if we flip decoys on).
 
 ### P3 — Andreas — Network Detection & Scoring
 - **Status:** 🔵 in review — scoring recalibration done
@@ -64,6 +63,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P2 (panagiotis): scaled `detect_passthrough` by ratio+speed (§9 #3) — flat 0.6 had pinned all 10 layering relays at risk 0.30 (<τ); scores now 0.82–0.92, all on labeled mules (precision-safe). Composes with @Andreas's NORMALIZER recalibration (relays now sit comfortably above τ); verified combined eval still precision 1.0, recall 0.769, 10/10 tests pass. structural.py only, no schema/API change. — panagiotis_
 - _2026-06-13 — P4 (savvas): UI bug-fix pass — graph tooltips no longer show raw HTML (plain text + themed `.vis-tooltip`); global search now matches **owner name / id / country** over all 800 accounts and shows owners; +404-safe account view, Esc closes the Filters drawer, owner names in flow tooltips, dynamic legend mode text, `?q=` deep-link. Pure frontend. — savvas_
 - _2026-06-13 — P4 (savvas): advanced data filtering + human detail — new **Accounts table** view (toggle w/ graph; owner/type/country/KYC/flags/rings/risk, sortable) + a shared **Filters drawer** (text/risk/type/KYC/country/channel/amount/date) applying to both table and graph; owner names in node tooltips, a "Names" graph toggle, and ring key-accounts/transactions. **Additive API:** `/api/graph` nodes +owner_name/country/kyc_risk, edges +channel/timestamp; new `GET /api/accounts`. §8 otherwise unchanged; P5's AI-analysis kept. — savvas_
 - _2026-06-13 — P3 (Andreas): added **`READINESS.md`** (winning plan: scoring-criteria + per-judge analysis, prioritized gap list, 3-min script, Q&A prep) and **`AWS_DEPLOYMENT.md`** (production architecture + the Bedrock-swap story for the AWS judge). **🟡 @P5 (Alexandros) heads-up:** I refreshed **`DEMO.md`** (your file — corrected stale bits: OpenRouter key not Anthropic, 800/4k counts not 600/2.5k, determinism-resolved note). Doc-only, no `ai/` code touched. **Two P0s for you:** (1) set `OPENROUTER_API_KEY` in `.env` — the copilot is currently disabled; (2) optional Bedrock adapter in `ai/llm.py` for the AWS judge (one function, spec in AWS_DEPLOYMENT.md). — Andreas_
