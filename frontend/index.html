@@ -29,6 +29,7 @@
     <!-- LEFT: model performance + ranked ring queue -->
     <aside class="rail-left">
       <div id="eval" class="eval-card">evaluating…</div>
+      <button id="tune-btn" class="tune-trigger">🎚 Tune detection threshold</button>
       <div class="rail-section-head">Detected rings <span id="rings-count" class="count-badge">·</span></div>
       <div id="case-filter" class="case-filter"></div>
       <div id="rings" class="rings"></div>
@@ -46,6 +47,7 @@
           <label class="toggle" id="names-wrap" title="Show owner names on graph nodes">
             <input type="checkbox" id="names" /> Names
           </label>
+          <button id="live-btn" class="btn-ghost" title="Replay the network as a live monitored feed">▶ Live feed</button>
           <button id="filter-btn" class="btn-ghost">⚙ Filters <span id="filter-count" class="fcount hidden">0</span></button>
           <button id="fitbtn" class="btn-ghost" title="Reset / fit the view">⤢ Fit</button>
         </div>
@@ -55,6 +57,11 @@
         <!-- GRAPH view -->
         <div id="graph-view" class="pane-view">
           <div id="graph"></div>
+          <div id="live-bar" class="live-bar hidden">
+            <span class="live-dot"></span><b>LIVE</b>
+            <span id="live-stats" class="live-stats"></span>
+            <button id="live-stop" class="live-stop">■ Stop</button>
+          </div>
           <div id="playback" class="playback hidden">
             <button id="pb-play" class="pb-btn" title="Play / pause">▶</button>
             <input id="pb-range" type="range" min="0" max="0" value="0" />
@@ -158,6 +165,29 @@
       <div class="search-foot"><kbd>↑</kbd><kbd>↓</kbd> navigate · <kbd>↵</kbd> open · <kbd>esc</kbd> close</div>
     </div>
   </div>
+
+  <!-- threshold sandbox -->
+  <div id="sandbox-modal" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-head"><b>🎚 Detection threshold sandbox</b>
+        <button id="sandbox-close" class="pb-btn close" title="Close">✕</button></div>
+      <p class="modal-sub">Slide the alert threshold τ and watch precision vs. recall trade off live. Detection is unchanged — this is the operating point an analyst tunes.</p>
+      <div id="pr-chart" class="pr-chart"></div>
+      <div class="sandbox-controls">
+        <label>Alert threshold τ = <b id="tau-val">0.50</b></label>
+        <input id="tau-slider" type="range" min="0" max="100" value="50" />
+      </div>
+      <div class="sandbox-stats">
+        <div class="cell"><div class="v" id="sb-prec">–</div><div class="k">precision</div></div>
+        <div class="cell"><div class="v" id="sb-rec">–</div><div class="k">recall</div></div>
+        <div class="cell"><div class="v" id="sb-f1">–</div><div class="k">F1</div></div>
+        <div class="cell"><div class="v" id="sb-pred">–</div><div class="k">flagged mules</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- live-feed alert toasts -->
+  <div id="toasts" class="toasts"></div>
 
   <script src="/app.js"></script>
 </body>

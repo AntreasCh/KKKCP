@@ -157,6 +157,9 @@ button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 .ring::before { content: ""; align-self: stretch; border-radius: 4px 0 0 4px; background: var(--ringcolor, var(--danger)); }
 .ring:hover { border-color: var(--border-strong); box-shadow: var(--shadow-lg); }
 .ring.active { border-color: var(--accent); background: var(--accent-weak); }
+.ring.flash { animation: ringflash 1.4s ease-out; }
+@keyframes ringflash { 0%, 100% { box-shadow: var(--shadow); }
+  30% { box-shadow: 0 0 0 3px rgba(220,38,38,.35); border-color: var(--danger); } }
 .ring .ring-main .rid { font-weight: 700; font-size: 13.5px; }
 .ring .ring-main .meta { color: var(--muted); font-size: 11.5px; margin-top: 1px; }
 .ring .ring-score { margin-right: 12px; }
@@ -375,6 +378,66 @@ div.vis-tooltip {
   font-size: 12px !important; line-height: 1.45 !important; white-space: pre-line !important;
   color-scheme: light; pointer-events: none;
 }
+
+/* ── threshold sandbox ───────────────────────────────────────────────── */
+.tune-trigger { display: block; width: calc(100% - 32px); margin: 0 16px 6px; background: var(--surface-2);
+  border: 1px dashed var(--border-strong); color: var(--text-2); font-size: 12px; font-weight: 600;
+  padding: 7px; border-radius: 8px; }
+.tune-trigger:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-weak); }
+.modal { position: fixed; inset: 0; z-index: 55; background: rgba(15,23,42,.35); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center; }
+.modal-box { width: min(440px, 92vw); background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; box-shadow: 0 20px 50px rgba(15,23,42,.25); padding: 18px; }
+.modal-head { display: flex; align-items: center; justify-content: space-between; }
+.modal-head b { font-size: 15px; }
+.modal-sub { color: var(--muted); font-size: 12px; margin: 6px 0 12px; }
+.pr-chart { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px; }
+.pr-legend { display: flex; gap: 14px; justify-content: center; font-size: 11px; color: var(--muted); margin-top: 2px; }
+.pr-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+.sandbox-controls { margin: 14px 0 6px; }
+.sandbox-controls label { font-size: 12px; color: var(--text-2); }
+.sandbox-controls label b { color: var(--accent); }
+.sandbox-controls input[type=range] { width: 100%; accent-color: var(--accent); margin-top: 6px; }
+.sandbox-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+.sandbox-stats .cell { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+.sandbox-stats .cell .v { font-size: 17px; font-weight: 700; }
+.sandbox-stats .cell .k { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+
+/* ── live feed banner + alert toasts ─────────────────────────────────── */
+.live-bar {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 6;
+  display: flex; align-items: center; gap: 10px; padding: 7px 14px;
+  background: rgba(255,255,255,.97); border: 1px solid var(--border); border-radius: 999px;
+  box-shadow: var(--shadow-lg); font-size: 12.5px;
+}
+.live-bar b { color: var(--danger); letter-spacing: .08em; font-size: 11px; }
+.live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); flex: none;
+  box-shadow: 0 0 0 0 rgba(220,38,38,.6); animation: livepulse 1.2s infinite; }
+@keyframes livepulse {
+  0% { box-shadow: 0 0 0 0 rgba(220,38,38,.55); }
+  70% { box-shadow: 0 0 0 7px rgba(220,38,38,0); }
+  100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+}
+.live-stats { color: var(--text-2); font-variant-numeric: tabular-nums; }
+.live-stats b { color: var(--text); letter-spacing: 0; font-size: 12.5px; }
+.live-stop { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2);
+  padding: 3px 9px; font-size: 11.5px; font-weight: 600; }
+.live-stop:hover { border-color: var(--danger); color: var(--danger); }
+
+.toasts { position: fixed; top: 70px; right: 18px; z-index: 60; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  display: flex; align-items: center; gap: 9px; min-width: 240px; max-width: 320px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--danger);
+  border-radius: 10px; padding: 10px 13px; box-shadow: var(--shadow-lg);
+  animation: toastin .25s ease-out;
+}
+.toast.out { animation: toastout .3s ease-in forwards; }
+@keyframes toastin { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+@keyframes toastout { to { opacity: 0; transform: translateX(20px); } }
+.toast .t-ico { font-size: 18px; }
+.toast .t-body { font-size: 12.5px; line-height: 1.35; }
+.toast .t-body b { color: var(--danger); }
+.toast .t-body small { display: block; color: var(--muted); }
 
 .hidden { display: none !important; }
 

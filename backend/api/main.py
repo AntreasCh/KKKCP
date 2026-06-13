@@ -192,6 +192,19 @@ def api_eval():
     return evaluate(STATE["result"], STATE["labels"])
 
 
+@app.get("/api/eval/curve")
+def eval_curve():
+    """Sweep the alert threshold τ → precision/recall/F1 curve (powers the threshold
+    sandbox, P4). Cheap: re-thresholds existing risk scores, no re-detection."""
+    out = []
+    for i in range(0, 21):
+        tau = i / 20
+        e = evaluate(STATE["result"], STATE["labels"], tau=tau)["account"]
+        out.append({"tau": round(tau, 2), "precision": e["precision"], "recall": e["recall"],
+                    "f1": e["f1"], "predicted": e["tp"] + e["fp"]})
+    return out
+
+
 # Mount the static frontend LAST so /api/* routes win.
 if FRONTEND.exists():
     app.mount("/", StaticFiles(directory=str(FRONTEND), html=True), name="frontend")

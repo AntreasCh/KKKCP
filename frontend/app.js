@@ -541,6 +541,7 @@ async function showRing(id) {
       `<tbody>${txRows || "<tr><td colspan='4' class='subtle'>no transactions</td></tr>"}</tbody></table></div>` +
 
     `<div class="sar-actions"><button id="sarbtn" class="btn-primary">🧾 Generate SAR</button>` +
+      `<button id="reportbtn" class="btn-ghost">📄 Export report</button>` +
       `<span id="sarsource" class="sar-source"></span></div>` +
     `<pre class="sar" id="sarout">Click “Generate SAR” to draft the report an analyst would file.</pre>`;
 
@@ -556,6 +557,7 @@ async function showRing(id) {
       $("sarout").textContent = "SAR generation failed: " + e;
     } finally { btn.disabled = false; }
   };
+  $("reportbtn").onclick = () => exportReport(id);
 
   // wire case-management actions; opening a "new" ring moves it to "reviewing"
   document.querySelectorAll(".case-actions .ca-btn").forEach((b) =>
@@ -628,6 +630,93 @@ function clearSelection() {
     `<p>Select a ring from the queue to investigate the laundering pattern, money flow, and draft a SAR.</p></div>`;
 }
 window.clearSelection = clearSelection;
+
+// ── one-click investigation report (printable / Save-as-PDF) ────────────────
+async function exportReport(id) {
+  const r = await fetch(`/api/rings/${id}`).then((x) => x.json());
+  let sar = null;
+  try { sar = await fetch(`/api/rings/${id}/sar`, { method: "POST" }).then((x) => x.json()); } catch (e) {}
+  const w = window.open("", "_blank");
+  if (!w) { toast(`<span class="t-ico">⚠️</span><div class="t-body">Allow pop-ups to export the report.</div>`); return; }
+  w.document.write(buildReportHtml(r, sar));
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 500);
+}
+
+function buildReportHtml(r, sar) {
+  const ownerOf = {}, kycOf = {}, riskOf = {};
+  (r.accounts || []).forEach((a) => { ownerOf[a.account_id] = a.owner_name; kycOf[a.account_id] = a.kyc_risk; riskOf[a.account_id] = a.risk; });
+  const txs = (r.transactions || []).slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  const total = txs.reduce((s, t) => s + (t.amount || 0), 0);
+
+  const sum = {};
+  (r.findings || []).forEach((f) => { sum[f.detector] = (sum[f.detector] || 0) + f.score; });
+  const sumTot = Object.values(sum).reduce((a, b) => a + b, 0) || 1;
+  const breakdown = Object.entries(sum).sort((a, b) => b[1] - a[1])
+    .map(([d, v]) => `${esc(d)} ${(v / sumTot * 100).toFixed(0)}%`).join(" · ");
+
+  const byDet = {};
+  (r.findings || []).forEach((f) => (byDet[f.detector] ||= []).push(f));
+  const evidence = Object.keys(byDet).map((det) => {
+    const f = byDet[det].sort((a, b) => b.score - a.score)[0];
+    return `<li><b>${esc(det)}</b> — ${evidenceText(f)}</li>`;
+  }).join("");
+
+  const keyRows = (r.key_accounts || []).map((a) =>
+    `<tr><td class="m">${esc(a)}</td><td>${esc(ownerOf[a] || "")}</td><td>${esc(kycOf[a] || "")}</td>` +
+    `<td class="r">${Math.round((riskOf[a] || 0) * 100)}</td></tr>`).join("");
+  const txRows = txs.map((t) =>
+    `<tr><td>${fmtDate(t.timestamp)}</td><td class="m">${esc(t.src)} → ${esc(t.dst)}</td>` +
+    `<td class="r">${eur2(t.amount)}</td><td>${esc(t.channel)}</td></tr>`).join("");
+
+  const narrative = sar && sar.narrative ? esc(sar.narrative) : "(SAR narrative unavailable — AI offline.)";
+  const now = new Date().toLocaleString("en-GB");
+
+  return `<!doctype html><html><head><meta charset="utf-8"><title>MuleNet Report — ${esc(r.ring_id)}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font: 13px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; color: #0f172a; margin: 0; padding: 40px; }
+    .doc { max-width: 820px; margin: 0 auto; }
+    .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #4f46e5; padding-bottom: 14px; margin-bottom: 8px; }
+    .brand { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+    .brand span { color: #4f46e5; }
+    .doctype { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #64748b; margin-top: 4px; }
+    .meta { text-align: right; font-size: 11px; color: #64748b; }
+    h1 { font-size: 18px; margin: 18px 0 2px; }
+    .chip { display: inline-block; background: #fef2f2; color: #dc2626; font-weight: 700; padding: 2px 10px; border-radius: 999px; font-size: 12px; }
+    .lead { color: #334155; margin: 6px 0 0; }
+    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #64748b; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin: 22px 0 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; color: #64748b; font-weight: 600; border-bottom: 1px solid #e2e8f0; padding: 5px 8px; }
+    td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; }
+    td.m { font-family: ui-monospace, Consolas, monospace; }
+    td.r, th.r { text-align: right; }
+    ul { margin: 6px 0; padding-left: 20px; } li { margin: 4px 0; }
+    code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+    pre { white-space: pre-wrap; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; font: 12px/1.5 ui-monospace, Consolas, monospace; }
+    .foot { margin-top: 28px; border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 10.5px; color: #94a3b8; }
+    @media print { body { padding: 0; } .noprint { display: none; } }
+  </style></head><body><div class="doc">
+    <div class="head">
+      <div><div class="brand">🕸️ Mule<span>Net</span></div><div class="doctype">Suspicious Activity Investigation Report</div></div>
+      <div class="meta">Report generated<br>${esc(now)}<br>Confidential</div>
+    </div>
+    <h1>${esc(r.ring_id)} <span class="chip">risk ${(r.score * 100).toFixed(0)}</span></h1>
+    <p class="lead">${r.account_ids.length} accounts · ${txs.length} transactions · total <b>${eur(total)}</b><br>
+      Patterns: ${(r.patterns || []).map(esc).join(", ")}</p>
+
+    <h2>Risk breakdown</h2><p>${breakdown || "—"}</p>
+    <h2>Key accounts</h2>
+    <table><thead><tr><th>Account</th><th>Owner</th><th>KYC</th><th class="r">Risk</th></tr></thead><tbody>${keyRows || ""}</tbody></table>
+    <h2>Why it is suspicious</h2><ul>${evidence || "<li>No detector evidence.</li>"}</ul>
+    <h2>Transactions (${txs.length})</h2>
+    <table><thead><tr><th>When</th><th>Flow</th><th class="r">Amount</th><th>Channel</th></tr></thead><tbody>${txRows || ""}</tbody></table>
+    <h2>Suspicious Activity Report${sar && sar.source ? ` <span style="font-weight:400;text-transform:none;color:#94a3b8">(${esc(sar.source)})</span>` : ""}</h2>
+    <pre>${narrative}</pre>
+    <div class="foot">Generated by MuleNet · team KKKCP · iFX Hack 2026. Detection is deterministic graph analysis; the AI drafts the narrative only. This document is synthetic demo data.</div>
+  </div></body></html>`;
+}
 
 // ── account AI analysis (P5): one-shot LLM read of the account + its connected accounts ──
 async function runAccountAnalysis(id) {
@@ -847,6 +936,7 @@ $("f-dto").oninput = (e) => { FILTERS.dateTo = e.target.value ? new Date(e.targe
 // ── center view toggle (Graph / Accounts) + name labels ─────────────────────
 function setView(v) {
   curView = v;
+  if (v !== "graph") stopLive();
   document.querySelectorAll(".vt").forEach((b) => b.classList.toggle("active", b.dataset.view === v));
   $("graph-view").classList.toggle("hidden", v !== "graph");
   $("accounts-view").classList.toggle("hidden", v !== "accounts");
@@ -857,6 +947,135 @@ function setView(v) {
 }
 document.querySelectorAll(".vt").forEach((b) => b.onclick = () => setView(b.dataset.view));
 $("names").onchange = (e) => { showNames = e.target.checked; applyGraphFilters(); };
+
+// ── live transaction feed (replay the network as a monitored stream) ────────
+let live = { on: false, edges: [], i: 0, timer: null, revealed: 0, vol: 0, ringTotal: {}, ringProg: {}, ringsDone: new Set() };
+
+function toast(html, onClick) {
+  const box = $("toasts");
+  while (box.children.length >= 5) box.firstChild.remove();   // cap the stack
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = html;
+  if (onClick) el.onclick = () => { onClick(); dismissToast(el); };
+  box.appendChild(el);
+  setTimeout(() => dismissToast(el), 5000);
+}
+function dismissToast(el) { if (!el.parentNode) return; el.classList.add("out"); setTimeout(() => el.remove(), 300); }
+
+function updateLiveStats() {
+  $("live-stats").innerHTML = `<b>${live.revealed.toLocaleString()}</b> / ${live.edges.length.toLocaleString()} transactions · ` +
+    `<b>${live.ringsDone.size}</b> rings detected · <b>${eur(live.vol)}</b> screened`;
+}
+function fireRingAlert(ringId) {
+  const r = ALL_RINGS.find((x) => x.ring_id === ringId);
+  toast(`<span class="t-ico">🚨</span><div class="t-body"><b>Laundering ring detected</b>` +
+    `<small>${esc(ringId)} · ${r ? r.account_ids.length : "?"} accounts · ${r ? esc(r.patterns.join(", ")) : ""}</small></div>`,
+    () => showRing(ringId));
+  const card = document.querySelector(`.ring[data-ring="${ringId}"]`);
+  if (card) { card.classList.add("flash"); setTimeout(() => card.classList.remove("flash"), 1500); }
+}
+
+function startLive() {
+  if (live.on) return;
+  if (curView !== "graph") setView("graph");
+  clearSelection();
+  live.edges = viewEdges.filter((e) => e.timestamp).slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  if (live.edges.length < 5) { toast(`<span class="t-ico">ℹ️</span><div class="t-body">Not enough timed transactions to replay here.</div>`); return; }
+  live.on = true; live.i = 0; live.revealed = 0; live.vol = 0;
+  live.ringTotal = {}; live.ringProg = {}; live.ringsDone = new Set();
+  viewEdges.forEach((e) => { if (e.ring) live.ringTotal[e.ring] = (live.ringTotal[e.ring] || 0) + 1; });
+  edgesDS.update(viewEdges.map((e) => ({ id: e.id, hidden: true })));
+  nodesDS.update(viewNodes.map((n) => ({ id: n.id, opacity: 0.1 })));
+  $("live-bar").classList.remove("hidden");
+  $("live-btn").textContent = "■ Stop feed";
+  const batch = Math.max(2, Math.ceil(live.edges.length / 70));
+  updateLiveStats();
+  live.timer = setInterval(() => liveTick(batch), 130);
+}
+function liveTick(batch) {
+  const lit = new Set();
+  const eUp = [], end = Math.min(live.i + batch, live.edges.length);
+  for (; live.i < end; live.i++) {
+    const e = live.edges[live.i];
+    eUp.push({ id: e.id, hidden: false });
+    lit.add(e.source); lit.add(e.target);
+    live.revealed++; live.vol += e.amount || 0;
+    if (e.ring) {
+      live.ringProg[e.ring] = (live.ringProg[e.ring] || 0) + 1;
+      if (!live.ringsDone.has(e.ring) && live.ringProg[e.ring] >= Math.ceil(0.6 * (live.ringTotal[e.ring] || 1))) {
+        live.ringsDone.add(e.ring);
+        fireRingAlert(e.ring);
+      }
+    }
+  }
+  edgesDS.update(eUp);
+  nodesDS.update([...lit].map((id) => ({ id, opacity: 1 })));
+  updateLiveStats();
+  if (live.i >= live.edges.length) finishLive();
+}
+function finishLive() {
+  if (live.timer) clearInterval(live.timer);
+  live.timer = null; live.on = false;
+  $("live-btn").textContent = "▶ Live feed";
+  $("live-stats").innerHTML += " · <b>monitoring complete</b>";
+  setTimeout(() => { $("live-bar").classList.add("hidden"); applyGraphFilters(); }, 2600);
+}
+function stopLive() {
+  if (!live.on) return;
+  if (live.timer) clearInterval(live.timer);
+  live.timer = null; live.on = false;
+  $("live-btn").textContent = "▶ Live feed";
+  $("live-bar").classList.add("hidden");
+  applyGraphFilters();
+}
+$("live-btn").onclick = () => { if (live.on) stopLive(); else startLive(); };
+$("live-stop").onclick = stopLive;
+
+// ── threshold sandbox (precision/recall vs alert threshold τ) ───────────────
+let SANDBOX_CURVE = [];
+async function openSandbox() {
+  $("sandbox-modal").classList.remove("hidden");
+  if (!SANDBOX_CURVE.length) SANDBOX_CURVE = await fetch("/api/eval/curve").then((r) => r.json());
+  $("tau-slider").value = 50;
+  updateSandbox(0.5);
+}
+function closeSandbox() { $("sandbox-modal").classList.add("hidden"); }
+function nearestPoint(tau) {
+  return SANDBOX_CURVE.reduce((best, c) => Math.abs(c.tau - tau) < Math.abs(best.tau - tau) ? c : best, SANDBOX_CURVE[0]);
+}
+function prChartSvg(tau) {
+  const W = 380, H = 180, pad = 30;
+  const X = (t) => pad + t * (W - 2 * pad);
+  const Y = (v) => (H - pad) - v * (H - 2 * pad);
+  const line = (key) => SANDBOX_CURVE.map((c, i) => `${i ? "L" : "M"}${X(c.tau).toFixed(1)},${Y(c[key]).toFixed(1)}`).join("");
+  const mx = X(tau).toFixed(1);
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">` +
+    `<line x1="${pad}" y1="${H - pad}" x2="${W - pad}" y2="${H - pad}" stroke="#cbd5e1"/>` +
+    `<line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H - pad}" stroke="#cbd5e1"/>` +
+    `<line x1="${mx}" y1="${pad}" x2="${mx}" y2="${H - pad}" stroke="#4f46e5" stroke-dasharray="3 3"/>` +
+    `<path d="${line("precision")}" fill="none" stroke="#dc2626" stroke-width="2"/>` +
+    `<path d="${line("recall")}" fill="none" stroke="#16a34a" stroke-width="2"/>` +
+    `<text x="${pad}" y="${H - 10}" font-size="9" fill="#64748b">τ 0</text>` +
+    `<text x="${W - pad - 18}" y="${H - 10}" font-size="9" fill="#64748b">τ 1</text>` +
+    `<text x="6" y="${pad + 4}" font-size="9" fill="#64748b">1.0</text>` +
+    `<text x="6" y="${H - pad}" font-size="9" fill="#64748b">0</text></svg>` +
+    `<div class="pr-legend"><span><i style="background:#dc2626"></i>precision</span><span><i style="background:#16a34a"></i>recall</span></div>`;
+}
+function updateSandbox(tau) {
+  if (!SANDBOX_CURVE.length) return;
+  const p = nearestPoint(tau);
+  $("tau-val").textContent = tau.toFixed(2);
+  $("sb-prec").textContent = p.precision.toFixed(2);
+  $("sb-rec").textContent = p.recall.toFixed(2);
+  $("sb-f1").textContent = p.f1.toFixed(2);
+  $("sb-pred").textContent = p.predicted;
+  $("pr-chart").innerHTML = prChartSvg(tau);
+}
+$("tune-btn").onclick = openSandbox;
+$("sandbox-close").onclick = closeSandbox;
+$("sandbox-modal").onclick = (e) => { if (e.target.id === "sandbox-modal") closeSandbox(); };
+$("tau-slider").oninput = (e) => updateSandbox(+e.target.value / 100);
 
 // ── boot ────────────────────────────────────────────────────────────────────
 async function refresh() {
@@ -869,6 +1088,8 @@ async function refresh() {
   if (params.get("filters") === "1") $("filter-panel").classList.remove("hidden");
   const sq = params.get("q");
   if (sq) { openSearch(); $("search-input").value = sq; renderSearch(sq); }
+  if (params.get("live") === "1") setTimeout(startLive, 400);
+  if (params.get("sandbox") === "1") openSandbox();
 }
 
 $("fitbtn").onclick = () => clearSelection();
@@ -878,10 +1099,12 @@ $("gen").onclick = async () => {
   const btn = $("gen");
   btn.disabled = true;
   btn.textContent = "Generating…";
+  stopLive();
   try {
     await fetch("/api/dataset/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ seed: Math.floor(Math.random() * 1000000) }) });
     activeRing = null; activeMembers = null; destroyFlow(); hidePlayback();
     CASE = {}; try { localStorage.removeItem("mulenet_cases"); } catch (e) {}  // fresh dataset → fresh cases
+    SANDBOX_CURVE = [];   // recompute the τ curve for the new dataset
     resetFilters();
     $("detail").innerHTML = `<div class="empty-state"><div class="ico">🔍</div><p>Select a ring from the queue to investigate.</p></div>`;
     await refresh();
