@@ -510,6 +510,8 @@ async function showAccount(id) {
       `<h2>${esc(id)}</h2><span class="risk-chip ${riskTier(a.risk)}">risk ${(a.risk * 100).toFixed(0)}</span></div>` +
     `<p class="subtle">${esc(acc.owner_name || "")} · ${esc(acc.account_type || "")} · ` +
       `${esc(acc.country || "")} · KYC ${esc(acc.kyc_risk || "")}</p>` +
+    `<div class="ai-block"><button class="ai-btn" onclick="runAccountAnalysis('${esc(id)}')">` +
+      `🔍 AI analysis</button><div id="ai-analysis" class="ai-analysis"></div></div>` +
     `<div class="section-label">Findings (${findings.length})</div>` +
     (findings.length
       ? `<div class="evidence">${findings.map((f) =>
@@ -528,6 +530,26 @@ async function showAccount(id) {
   $("tab-inspector").scrollTop = 0;
 }
 window.showAccount = showAccount;
+
+// ── account AI analysis (P5): one-shot LLM read of the account + its connected accounts ──
+async function runAccountAnalysis(id) {
+  const box = $("ai-analysis");
+  if (!box) return;
+  box.classList.add("show");
+  box.innerHTML = `<span class="subtle">🤖 analysing ${esc(id)} and its connected accounts…</span>`;
+  try {
+    const out = await fetch(`/api/accounts/${id}/analyze`, { method: "POST" }).then((r) => r.json());
+    if (out.error) { box.innerHTML = `<span class="subtle">${esc(out.error)}</span>`; return; }
+    const senders = (out.connected?.senders || []).length;
+    const recips = (out.connected?.recipients || []).length;
+    box.innerHTML =
+      `<div class="ai-verdict">${esc(out.analysis || "(no analysis)")}</div>` +
+      `<div class="ai-meta">${senders} senders · ${recips} recipients · via ${esc(out.source || "?")}</div>`;
+  } catch (err) {
+    box.innerHTML = `<span class="subtle">Analysis error: ${esc(err)}</span>`;
+  }
+}
+window.runAccountAnalysis = runAccountAnalysis;
 
 // ── tabs (Inspector / Ask MuleNet) ──────────────────────────────────────────
 function switchTab(name) {

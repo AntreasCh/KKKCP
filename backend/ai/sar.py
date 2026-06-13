@@ -13,33 +13,9 @@ from __future__ import annotations
 import json
 import os
 
-# Configurable; tokens here are tiny/cheap. Shared with copilot.py.
+# Anthropic model (used only on the Anthropic fallback path). OpenAI/OpenRouter model + provider
+# selection live in backend/ai/llm.py, auto-detected from the API key.
 MODEL = os.getenv("MULENET_MODEL", "claude-haiku-4-5")
-
-# OpenRouter (OpenAI-compatible) — set OPENROUTER_API_KEY + OPENROUTER_MODEL to use a free/any model.
-OPENROUTER_BASE = "https://openrouter.ai/api/v1"
-DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
-
-
-def _openrouter_model() -> str:
-    """The exact OpenRouter model slug to send. OPENROUTER_MODEL wins, then MULENET_MODEL."""
-    return os.getenv("OPENROUTER_MODEL") or os.getenv("MULENET_MODEL") or DEFAULT_OPENROUTER_MODEL
-
-
-def _openrouter_text(messages: list[dict], max_tokens: int = 800) -> str:
-    """One-shot chat completion via OpenRouter; returns the assistant text."""
-    import httpx
-
-    r = httpx.post(
-        f"{OPENROUTER_BASE}/chat/completions",
-        headers={"Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY', '')}",
-                 "Content-Type": "application/json",
-                 "HTTP-Referer": "http://localhost:8000", "X-Title": "MuleNet"},
-        json={"model": _openrouter_model(), "messages": messages, "max_tokens": max_tokens},
-        timeout=120,
-    )
-    r.raise_for_status()
-    return r.json()["choices"][0]["message"]["content"]
 
 PROMPT = """You are an AML compliance analyst. Write a concise Suspicious Activity Report (SAR)
 for the money-laundering ring described below. Be factual, cite the patterns and amounts.
@@ -94,13 +70,14 @@ def generate_sar(ring, accounts, transactions, findings) -> dict:
     ctx = _context(ring, accounts, transactions, findings)
     prompt = PROMPT.format(ctx=json.dumps(ctx))
 
-    # 1) OpenRouter (OpenAI-compatible — free/any model via OPENROUTER_API_KEY)
+    # 1) OpenAI-compatible (OpenAI or OpenRouter, auto-detected from the key in llm.py)
     try:
-        if os.getenv("OPENROUTER_API_KEY"):
-            txt = _openrouter_text([{"role": "user", "content": prompt}], max_tokens=800)
-            return _wrap_ai(txt, ctx, "openrouter")
+        from backend.ai import llm
+        if llm.available():
+            txt, source = llm.text([{"role": "user", "content": prompt}], max_tokens=800)
+            return _wrap_ai(txt, ctx, source)
     except Exception as e:
-        print(f"[sar] OpenRouter unavailable, trying next: {e}")
+        print(f"[sar] OpenAI-compatible provider unavailable, trying next: {e}")
 
     # 2) Anthropic API
     try:

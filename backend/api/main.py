@@ -133,6 +133,15 @@ def account(acc_id: str):
             "findings": findings, "transactions": txs}
 
 
+@app.post("/api/accounts/{acc_id}/analyze")
+def analyze(acc_id: str):
+    """AI analysis of one account + its connected accounts (P5). One-shot LLM call; template fallback."""
+    if acc_id not in {a["account_id"] for a in STATE["dataset"]["accounts"]}:
+        raise HTTPException(404, "account not found")
+    from backend.ai.analysis import analyze_account
+    return analyze_account(acc_id, STATE["result"], STATE["dataset"])
+
+
 @app.post("/api/rings/{ring_id}/sar")
 def sar(ring_id: str):
     r = next((x for x in STATE["result"]["rings"] if x["ring_id"] == ring_id), None)

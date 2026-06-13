@@ -287,6 +287,21 @@ kbd {
 .playback input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
 .pb-label { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 132px; text-align: right; }
 
+/* account AI analysis (P5) */
+.ai-block { margin: 12px 0 4px; }
+.ai-btn {
+  background: var(--accent-weak); color: var(--accent); border: 1px solid #c7d2fe;
+  border-radius: 8px; padding: 7px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.ai-btn:hover { background: #e0e7ff; }
+.ai-analysis { margin-top: 10px; display: none; }
+.ai-analysis.show { display: block; }
+.ai-verdict {
+  background: var(--surface-2); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: 8px; padding: 11px 13px; color: var(--text-2); white-space: pre-wrap;
+}
+.ai-meta { margin-top: 6px; font-size: 11.5px; color: var(--muted); }
+
 .hidden { display: none !important; }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }

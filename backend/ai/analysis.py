@@ -1,0 +1,93 @@
+"""Account AI analysis (P5) — click an account, get the LLM's read on it and its network.
+
+One-shot completion (no tools): we hand the model the subject account, its risk/findings, and its
+connected accounts (transaction counterparties with flows), and ask for an AML assessment.
+Provider is auto-detected in llm.py (OpenAI / OpenRouter). Deterministic template fallback so the
+feature works with no key and never errors the UI.
+"""
+from __future__ import annotations
+
+import json
+
+from backend.ai import llm
+
+PROMPT = """You are an AML analyst. Assess the SUBJECT account below and whether it behaves like a
+money mule or part of a laundering network, using its connected accounts and transaction flows.
+
+Answer in 4-6 sentences:
+1. Verdict: "likely mule", "suspicious", or "probably legitimate".
+2. The key evidence (patterns, amounts, counterparties, KYC, account age).
+3. A recommended action for an analyst.
+
+DATA:
+{ctx}"""
+
+
+def _context(account_id: str, result: dict, dataset: dict) -> dict | None:
+    amap = {a["account_id"]: a for a in dataset["accounts"]}
+    rmap = {a["account_id"]: a for a in result["account_risk"]}
+    acct = amap.get(account_id)
+    if not acct:
+        return None
+
+    inflow: dict[str, list] = {}   # sender -> txns into subject
+    outflow: dict[str, list] = {}  # recipient -> txns out of subject
+    for t in dataset["transactions"]:
+        if t["dst"] == account_id:
+            inflow.setdefault(t["src"], []).append(t)
+        elif t["src"] == account_id:
+            outflow.setdefault(t["dst"], []).append(t)
+
+    def summarize(flows: dict) -> list:
+        ranked = sorted(flows.items(), key=lambda kv: -sum(x["amount"] for x in kv[1]))[:10]
+        return [{"account_id": cp, "owner": amap.get(cp, {}).get("owner_name"),
+                 "kyc_risk": amap.get(cp, {}).get("kyc_risk"),
+                 "risk": rmap.get(cp, {}).get("risk"),
+                 "n_tx": len(ts), "total": round(sum(x["amount"] for x in ts), 2)}
+                for cp, ts in ranked]
+
+    findings = [f for f in result["findings"] if account_id in f["subject_ids"]][:10]
+    return {
+        "subject": {"account_id": account_id, "owner": acct.get("owner_name"),
+                    "account_type": acct.get("account_type"), "country": acct.get("country"),
+                    "kyc_risk": acct.get("kyc_risk"), "opened_at": acct.get("opened_at"),
+                    "risk": rmap.get(account_id, {}).get("risk")},
+        "senders_into_subject": summarize(inflow),
+        "recipients_from_subject": summarize(outflow),
+        "findings": findings,
+    }
+
+
+def _result(ctx: dict, analysis: str, source: str) -> dict:
+    return {"analysis": analysis, "source": source, "subject": ctx["subject"],
+            "connected": {"senders": ctx["senders_into_subject"],
+                          "recipients": ctx["recipients_from_subject"]},
+            "findings": ctx["findings"]}
+
+
+def _template(ctx: dict) -> dict:
+    s = ctx["subject"]
+    n_in, n_out = len(ctx["senders_into_subject"]), len(ctx["recipients_from_subject"])
+    risk = s.get("risk") or 0
+    verdict = "likely mule" if risk >= 0.5 else ("suspicious" if risk >= 0.3 else "probably legitimate")
+    detail = ("High fan-in/out with elevated risk is consistent with relaying funds; recommend "
+              "review and consider a freeze." if risk >= 0.5
+              else "Some network activity but no strong laundering signal; routine monitoring suffices.")
+    text = (f"Account {s['account_id']} ({s.get('owner') or 'unknown'}, {s.get('account_type')}, "
+            f"KYC {s.get('kyc_risk')}, risk {risk}) transacts with {n_in} senders and {n_out} "
+            f"recipients. Verdict: {verdict}. {detail}")
+    return _result(ctx, text, "template")
+
+
+def analyze_account(account_id: str, result: dict, dataset: dict) -> dict:
+    ctx = _context(account_id, result, dataset)
+    if ctx is None:
+        return {"error": "account not found"}
+    if llm.available():
+        try:
+            txt, source = llm.text(
+                [{"role": "user", "content": PROMPT.format(ctx=json.dumps(ctx))}], max_tokens=600)
+            return _result(ctx, txt, source)
+        except Exception as e:  # noqa: BLE001 — any provider failure -> template, never break the UI
+            print(f"[analysis] LLM unavailable, using template: {e}")
+    return _template(ctx)

@@ -20,35 +20,9 @@ import json
 import os
 from collections import deque
 
-# Configurable; bump to a stronger model for deeper reasoning. Tokens here are tiny/cheap.
+# Anthropic model (used only on the Anthropic fallback path). OpenAI/OpenRouter model + provider
+# selection live in backend/ai/llm.py, auto-detected from the API key.
 MODEL = os.getenv("MULENET_MODEL", "claude-haiku-4-5")
-
-# OpenRouter (OpenAI-compatible) — set OPENROUTER_API_KEY + OPENROUTER_MODEL to use a free/any model.
-OPENROUTER_BASE = "https://openrouter.ai/api/v1"
-DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
-
-
-def _openrouter_model() -> str:
-    """The exact OpenRouter model slug to send in the request (e.g. 'nvidia/nemotron-...:free').
-    Resolved at call-time so .env / env changes take effect. OPENROUTER_MODEL wins, then MULENET_MODEL.
-    """
-    return os.getenv("OPENROUTER_MODEL") or os.getenv("MULENET_MODEL") or DEFAULT_OPENROUTER_MODEL
-
-
-def _openrouter_headers() -> dict:
-    """Auth + optional OpenRouter ranking headers (HTTP-Referer / X-Title are optional per their docs)."""
-    return {"Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY', '')}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost:8000", "X-Title": "MuleNet"}
-
-
-def _bad_key_hint() -> str:
-    """If the configured key isn't an OpenRouter key, say so plainly (OpenRouter keys are sk-or-v1-...)."""
-    key = os.getenv("OPENROUTER_API_KEY", "")
-    if key and not key.startswith("sk-or-"):
-        return (f" — your OPENROUTER_API_KEY starts with '{key[:7]}…', but OpenRouter keys begin with "
-                "'sk-or-v1-'. Create one at https://openrouter.ai/keys and put it in .env.")
-    return ""
 
 SYSTEM = (
     "You are MuleNet's AML analyst copilot. Use the provided tools to investigate the detected "
@@ -170,28 +144,27 @@ def _tools_impl(result, dataset):
             "trace_path": trace_path, "compare_rings": compare_rings}
 
 
-def _ask_openrouter(question: str, result: dict, dataset: dict) -> dict:
-    """Tool-using loop via OpenRouter's OpenAI-compatible function-calling API."""
+def _ask_openai_compatible(question: str, result: dict, dataset: dict) -> dict:
+    """Tool-using loop via the OpenAI Chat Completions API (OpenAI or OpenRouter, auto-detected)."""
     import httpx
+
+    from backend.ai import llm
 
     impl = _tools_impl(result, dataset)
     oa_tools = [{"type": "function",
                  "function": {"name": t["name"], "description": t["description"],
                               "parameters": t["input_schema"]}} for t in TOOLS]
     messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": question}]
-    headers = _openrouter_headers()
     trace = []
+    source = llm.provider()
 
     try:
         for _ in range(8):  # bounded agentic loop
-            r = httpx.post(f"{OPENROUTER_BASE}/chat/completions", headers=headers, timeout=120,
-                           json={"model": _openrouter_model(), "messages": messages,
-                                 "tools": oa_tools, "max_tokens": 1024})
-            r.raise_for_status()
-            msg = r.json()["choices"][0]["message"]
+            msg = llm.complete(messages, max_tokens=1024, tools=oa_tools)
+            source = msg.pop("_source", source)
             calls = msg.get("tool_calls") or []
             if not calls:
-                return {"answer": msg.get("content") or "", "tool_calls": trace, "source": "openrouter"}
+                return {"answer": msg.get("content") or "", "tool_calls": trace, "source": source}
             messages.append(msg)  # assistant turn with tool_calls
             for tc in calls:
                 name = tc["function"]["name"]
@@ -201,21 +174,23 @@ def _ask_openrouter(question: str, result: dict, dataset: dict) -> dict:
                 out = fn(**args) if fn else {"error": "unknown tool"}
                 trace.append({"tool": name, "input": args, "output": out})
                 messages.append({"role": "tool", "tool_call_id": tc["id"], "content": json.dumps(out)})
-        return {"answer": "(stopped after max tool iterations)", "tool_calls": trace, "source": "openrouter"}
+        return {"answer": "(stopped after max tool iterations)", "tool_calls": trace, "source": source}
     except httpx.HTTPStatusError as e:
-        hint = _bad_key_hint() if e.response.status_code == 401 else ""
-        return {"answer": f"OpenRouter request failed: {e}{hint}", "tool_calls": trace, "source": "error"}
+        hint = llm.bad_key_hint() if e.response.status_code == 401 else ""
+        return {"answer": f"AI request failed: {e}{hint}", "tool_calls": trace, "source": "error"}
     except Exception as e:
-        return {"answer": f"OpenRouter request failed: {e}", "tool_calls": trace, "source": "error"}
+        return {"answer": f"AI request failed: {e}", "tool_calls": trace, "source": "error"}
 
 
 def ask(question: str, result: dict, dataset: dict, labels: dict | None = None) -> dict:
-    # Provider order: OpenRouter (free/any model) -> Anthropic -> disabled.
-    if os.getenv("OPENROUTER_API_KEY"):
-        return _ask_openrouter(question, result, dataset)
+    from backend.ai import llm
+
+    # Provider order: OpenAI/OpenRouter (auto-detected from key) -> Anthropic -> disabled.
+    if llm.available():
+        return _ask_openai_compatible(question, result, dataset)
     if not os.getenv("ANTHROPIC_API_KEY"):
-        return {"answer": "Set ANTHROPIC_API_KEY or OPENROUTER_API_KEY to enable the AI copilot. "
-                          "Meanwhile, browse the detected rings and the eval panel.",
+        return {"answer": "Set OPENROUTER_API_KEY / OPENAI_API_KEY or ANTHROPIC_API_KEY to enable the AI "
+                          "copilot. Meanwhile, browse the detected rings and the eval panel.",
                 "tool_calls": [], "source": "disabled"}
     import anthropic
 

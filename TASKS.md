@@ -49,17 +49,20 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Updated:** 2026-06-13
 
 ### P5 — Alexandros — AI, Eval & Demo
-- **Status:** 🔵 in review
-- **Right now:** copilot tools + trace, eval CLI, SAR confirmed, DEMO.md shipped; ready to pair on P2/P3 detection tuning
-- **Files I'm touching:** `backend/ai/copilot.py`, `backend/ai/sar.py`, `backend/eval/evaluate.py`, `DEMO.md`
-- **Blockers:** `ANTHROPIC_API_KEY` not set locally → copilot/SAR fall back gracefully (template/disabled); logic still testable offline
-- **Notes for the team:** copilot now returns a richer `tool_calls` trace (each entry has `tool`/`input`/`output`) so P4 can render the agent investigating. API contract unchanged.
+- **Status:** 🟡 in progress — added account AI-analysis feature
+- **Right now:** new `backend/ai/llm.py` unified provider (auto-detects OpenAI vs OpenRouter from key prefix; OpenRouter reasoning on); new `backend/ai/analysis.py` one-shot account analysis (subject + connected accounts → LLM verdict, template fallback). Copilot + SAR now route through `llm.py` too.
+- **Files I'm touching:** `backend/ai/copilot.py`, `backend/ai/sar.py`, `backend/ai/llm.py`, `backend/ai/analysis.py`, `backend/eval/evaluate.py`, `DEMO.md` — **+ additive edits to `backend/api/main.py` & `frontend/` (heads-up below)**
+- **Blockers:** —
+- **Notes for the team:**
+  - **🟡 @P4 (savvas):** I made **additive** changes to your files for the account-analysis feature — new route `POST /api/accounts/{id}/analyze` in `api/main.py`, and in `frontend/` an "🔍 AI analysis" button in the account inspector (`showAccount`) + a `runAccountAnalysis()` handler + `.ai-*` CSS. No existing endpoint/markup changed; pull before your next push to avoid a conflict. Ping me if you'd rather own the frontend bit.
+  - AI provider is now **auto-detected from the key**: `sk-or-…` → OpenRouter, `sk-…` → OpenAI. Same `OPENROUTER_API_KEY`/`OPENAI_API_KEY` var.
 - **Updated:** 2026-06-13
 
 ---
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P5 (Alexandros): account AI-analysis feature — click an account → one-shot LLM verdict over it + its connected accounts (`ai/analysis.py`), new route `POST /api/accounts/{id}/analyze`, "🔍 AI analysis" button in the inspector. New `ai/llm.py` auto-detects provider from key (sk-or-→OpenRouter w/ reasoning, sk-→OpenAI); copilot+SAR route through it. **Additive edits to api/main.py + frontend/ (heads-up @savvas in §1).** Tested: endpoint 200/404, template fallback, provider detection. — Alexandros_
 - _2026-06-13 — P4 (savvas): added AML-tool UX on the console — temporal playback (scrub a ring's transactions over time on the graph), case workflow (status chips + filter + escalate/clear/file, persisted to localStorage), global search/command-palette (⌘K over rings & accounts), and a per-ring risk-breakdown bar (detector contributions). Pure frontend; §8 unchanged. — savvas_
 - _2026-06-13 — P5 (Alexandros): `backend/ai/__init__.py` now auto-loads a repo-root `.env` (dependency-free; real env vars still win) so keys in `.env` are picked up without exporting. `.env` stays gitignored. — Alexandros_
 - _2026-06-13 — P5 (Alexandros): copilot + SAR now support **OpenRouter** (OpenAI-compatible) as primary provider — set `OPENROUTER_API_KEY` + `MULENET_MODEL` (e.g. `nvidia/nemotron-3-ultra-550b-a55b:free`) to run AI on a free/any model; falls back Anthropic→template. Copilot uses OpenAI function-calling for the tool loop. ai/ files only, no schema/API change. — Alexandros_
