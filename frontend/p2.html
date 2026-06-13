@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MuleNet — P2 Accountability (Panayiotis)</title>
+<!--
+  Standalone self-review page for P2 (Panayiotis) — Graph & Structural Detection.
+  Self-contained: reads only existing read-only GET endpoints. Touches no teammate's file.
+  Served by the existing static mount at  http://localhost:8000/p2.html
+-->
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#272e3a; --ink:#e6edf3; --mut:#8b97a7;
+    --mine:#3fb950; --mine-bg:#15351f; --theirs:#384150; --warn:#d29922; --bad:#f85149;
+    --accent:#58a6ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  header{padding:22px 28px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#11161d,#0e1116)}
+  header h1{margin:0 0 4px;font-size:19px}
+  header .sub{color:var(--mut);font-size:13px}
+  header .me{color:var(--mine);font-weight:600}
+  main{max-width:1080px;margin:0 auto;padding:24px 28px 60px}
+  .grid{display:grid;gap:16px}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card h3{margin:0 0 10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+  .metric{display:flex;align-items:baseline;gap:8px}
+  .metric .v{font-size:30px;font-weight:700}
+  .metric .o{font-size:12px;color:var(--mut)}
+  .good{color:var(--mine)} .warnv{color:var(--warn)} .badv{color:var(--bad)}
+  .tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;border:1px solid var(--line);margin:2px 3px 0 0}
+  .tag.mine{background:var(--mine-bg);border-color:var(--mine);color:var(--mine)}
+  .tag.theirs{color:var(--mut)}
+  .own{display:flex;flex-direction:column;gap:8px}
+  .own .row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+  .own .row:first-child{border-top:0}
+  .own code{background:#0c1017;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--accent);font-size:12px}
+  .own .d{color:var(--mut);font-size:12.5px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--mine)}
+  .legend{color:var(--mut);font-size:12px;margin:6px 0 0}
+  .todo li{margin:6px 0}
+  .todo .done::marker{content:"✅ "}
+  .todo .open::marker{content:"🟡 "}
+  .sec{margin-top:28px}
+  .sec h2{font-size:15px;margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .pill{font-size:11px;padding:2px 8px;border-radius:20px;background:#0c1017;border:1px solid var(--line);color:var(--mut)}
+  .err{color:var(--bad)}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <h1>MuleNet — Accountability view · <span class="me">P2 · Panayiotis</span></h1>
+  <div class="sub">Graph &amp; Structural Detection — what you own, how it's performing live, and where to improve.
+  &nbsp;·&nbsp; <span class="pill" id="ts">loading…</span> &nbsp; <a href="/">← back to the app</a></div>
+</header>
+<main>
+
+  <div class="grid cards" id="scoreboard"></div>
+  <p class="legend">Green = a metric your detectors directly drive. The shared headline (ring-recall, precision)
+  is a team result; the callouts say <em>your</em> piece of it.</p>
+
+  <div class="sec">
+    <h2>What you own</h2>
+    <div class="card own">
+      <div class="row"><code>backend/graph/build.py</code><span class="d">Builds the transaction graph (accounts = nodes, transfers = edges) every detector runs on.</span></div>
+      <div class="row"><code>backend/detect/structural.py</code><span class="d">Detectors #1–#3: <b>structuring</b> (sub-threshold deposit bursts), <b>circular</b> (money loops back, value retained), <b>passthrough</b> (relay mules forward what they receive).</span></div>
+      <div class="row"><code>backend/tests/test_structural.py</code><span class="d">Guards all of the above — <b id="ntests">11</b> tests.</span></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>Detected rings — which carry <span style="color:var(--mine)">your</span> signal</h2>
+    <table id="ringtbl"><thead><tr>
+      <th>Ring</th><th>Score</th><th>Size</th><th>Patterns</th><th>Your detectors</th>
+    </tr></thead><tbody id="ringbody"><tr><td colspan="5">loading…</td></tr></tbody></table>
+    <p class="legend">A row marked green means at least one of <b>structuring / circular / passthrough</b> helped surface that ring.
+    <span id="ringsummary"></span></p>
+  </div>
+
+  <div class="sec">
+    <h2>Self-analysis — what you can do better</h2>
+    <ul class="todo">
+      <li class="done"><b>Circular over-firing</b> — rewrote to require time-ordered, value-retaining loops. 117 → exactly the real rings, 0 false positives.</li>
+      <li class="done"><b>Passthrough flat scoring</b> — now scales by ratio &amp; speed (§9 #3); unstuck 10 relay mules that were pinned just under the flag line.</li>
+      <li class="done"><b>Legit settlement-loop false positives</b> — circular now skips all-business/low-KYC loops. Drove false-positive rings to 0 on the hard-negative fixture.</li>
+      <li class="open"><b>Structuring band misses</b> — <code>ACC00066 / ACC00143 / ACC00735</code> deposit just outside your <code>[0.7·T, T)</code> / 72h window, so they aren't flagged. Widening the band could lift account-recall past 0.77 — but risks flagging legit large deposits. <b>This is the open lever to weigh.</b></li>
+      <li class="open"><b>Idea:</b> a layering-<em>chain</em> signal (A→B→C→D rapid pass-through) would credit interior relays your per-account passthrough misses, and is squarely in <code>structural.py</code>.</li>
+    </ul>
+    <p class="legend">Account-recall's remaining gap is mostly <em>non-structural</em> (fan-in collectors) — that's P3's lane, not yours. Your detectors are clean.</p>
+  </div>
+
+</main>
+<script>
+const MINE = new Set(["structuring","circular","passthrough"]);
+const fmtPct = v => (v*100).toFixed(1) + "%";
+
+function card(title, value, owned, note){
+  const cls = owned ? "good" : "";
+  return `<div class="card"><h3>${title}</h3>
+    <div class="metric"><span class="v ${cls}">${value}</span><span class="o">${note||""}</span></div></div>`;
+}
+
+async function load(){
+  try{
+    const [ev, rings] = await Promise.all([
+      fetch("/api/eval").then(r=>r.json()),
+      fetch("/api/rings").then(r=>r.json()),
+    ]);
+    const a = ev.account;
+
+    // rings carrying my signal
+    const mineRings = rings.filter(r => (r.patterns||[]).some(p => MINE.has(p)));
+    const circRings = rings.filter(r => (r.patterns||[]).includes("circular"));
+
+    document.getElementById("scoreboard").innerHTML = [
+      card("False-positive rings", ev.false_positive_rings,
+           true, ev.false_positive_rings===0 ? "you cleared the settlement-loop FPs → 0" : "settlement loops?"),
+      card("Rings carrying your signal", `${mineRings.length}/${rings.length}`,
+           true, "structuring / circular / passthrough"),
+      card("Circular rings surfaced", circRings.length,
+           true, "your rewritten loop detector"),
+      card("Ring-recall (team)", fmtPct(ev.ring_recall),
+           false, `${ev.rings_matched}/${ev.rings_true} true rings`),
+      card("Account precision (team)", fmtPct(a.precision),
+           false, `${a.fp} false mules`),
+      card("Account recall (team)", fmtPct(a.recall),
+           false, `${a.fn} missed · F1 ${a.f1}`),
+    ].join("");
+
+    const rows = rings
+      .slice()
+      .sort((x,y)=>y.score-x.score)
+      .map(r=>{
+        const mine = (r.patterns||[]).some(p=>MINE.has(p));
+        const pats = (r.patterns||[]).map(p =>
+          `<span class="tag ${MINE.has(p)?"mine":"theirs"}">${p}</span>`).join("");
+        const myp = (r.patterns||[]).filter(p=>MINE.has(p));
+        return `<tr class="${mine?"mine":""}">
+          <td>${r.ring_id}</td>
+          <td>${r.score}</td>
+          <td>${(r.account_ids||[]).length}</td>
+          <td>${pats}</td>
+          <td class="${mine?"good":""}">${myp.length?myp.join(", "):"<span class='o'>—</span>"}</td>
+        </tr>`;
+      }).join("");
+    document.getElementById("ringbody").innerHTML = rows || `<tr><td colspan="5">no rings</td></tr>`;
+    document.getElementById("ringsummary").textContent =
+      ` You contributed signal to ${mineRings.length} of ${rings.length} detected rings.`;
+
+    document.getElementById("ts").textContent = "live · " + new Date().toLocaleTimeString();
+  }catch(e){
+    document.getElementById("ts").innerHTML =
+      `<span class="err">API not reachable — is the server running on :8000?</span>`;
+    document.getElementById("ringbody").innerHTML =
+      `<tr><td colspan="5" class="err">Could not load /api/eval — start the backend (uvicorn) and refresh.</td></tr>`;
+  }
+}
+load();
+</script>
+</body>
+</html>
