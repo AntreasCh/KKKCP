@@ -18,7 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from backend.ai.sar import generate_sar
-from backend.data.generator import generate_dataset
+from backend.data.generator import LiveFeed, generate_dataset
 from backend.detect import pipeline
 from backend.eval.evaluate import evaluate
 
@@ -27,7 +27,7 @@ SAMPLE = ROOT / "sample_data"
 FRONTEND = ROOT / "frontend"
 
 app = FastAPI(title="MuleNet API")
-STATE: dict = {"dataset": None, "labels": None, "result": None}
+STATE: dict = {"dataset": None, "labels": None, "result": None, "live": None}
 
 # ── watchlist screening (synthetic, deterministic per account) ──────────────
 # Mirrors a real AML stack screening every customer against sanctions / PEP /
@@ -63,8 +63,8 @@ def _recompute():
     STATE["result"] = pipeline.run(STATE["dataset"])
 
 
-@app.on_event("startup")
-def _startup():
+def _load_committed():
+    """(Re)load the committed sample fixture into STATE and run detection."""
     ds, lb = SAMPLE / "dataset.json", SAMPLE / "labels.json"
     if ds.exists():
         STATE["dataset"] = json.loads(ds.read_text())
@@ -72,6 +72,11 @@ def _startup():
     else:
         STATE["dataset"], STATE["labels"] = generate_dataset()
     _recompute()
+
+
+@app.on_event("startup")
+def _startup():
+    _load_committed()
 
 
 def _summary() -> dict:
@@ -94,9 +99,72 @@ class GenReq(BaseModel):
 
 @app.post("/api/dataset/generate")
 def gen(req: GenReq):
+    STATE["live"] = None
     STATE["dataset"], STATE["labels"] = generate_dataset(req.n_accounts, req.n_legit_tx, req.n_rings, req.seed)
     _recompute()
     return {"dataset_id": f"seed{req.seed}", "summary": _summary()}
+
+
+# ── LIVE STREAM (P1's LiveFeed engine, wired by P4) ─────────────────────────
+def _enriched_edges(txs: list[dict]) -> list[dict]:
+    risk = {a["account_id"]: a["risk"] for a in STATE["result"]["account_risk"]}
+    tx_ring: dict[str, str] = {}
+    for ring in STATE["result"]["rings"]:
+        for tx in ring["tx_ids"]:
+            tx_ring.setdefault(tx, ring["ring_id"])
+    return [{"id": t["tx_id"], "source": t["src"], "target": t["dst"], "amount": t["amount"],
+             "suspicious": risk.get(t["src"], 0) >= 0.5 or risk.get(t["dst"], 0) >= 0.5,
+             "ring": tx_ring.get(t["tx_id"]), "channel": t.get("channel"), "timestamp": t.get("timestamp")}
+            for t in txs]
+
+
+@app.post("/api/stream/start")
+def stream_start(seed: int | None = None):
+    """Begin a live monitored stream: a small starting network that grows on each poll."""
+    lf = LiveFeed(seed=seed)
+    STATE["dataset"], STATE["labels"] = lf.initial(100)
+    STATE["live"] = lf
+    _recompute()
+    return {"summary": _summary()}
+
+
+@app.get("/api/stream/next")
+def stream_next():
+    """One tick of the live stream: emit new transactions, re-run detection, return the new
+    edges + any freshly-detected ring (for a 🚨 alert) + an updated summary."""
+    lf = STATE.get("live")
+    if not lf:
+        raise HTTPException(409, "no active live stream — call /api/stream/start first")
+    batch = lf.next_batch()
+    STATE["dataset"]["transactions"].extend(batch["transactions"])
+    burst = batch.get("ring")
+    if burst:
+        mule = burst.pop("_mule_accounts", [])
+        STATE["labels"]["rings"].append({k: v for k, v in burst.items() if not k.startswith("_")})
+        STATE["labels"]["mule_accounts"] = sorted(set(STATE["labels"]["mule_accounts"]) | set(mule))
+    _recompute()
+
+    alert = None
+    if burst:  # map the planted burst to the detected ring it best overlaps, for a clickable alert
+        ba = set(burst["account_ids"])
+        best, best_ov = None, 0
+        for dr in STATE["result"]["rings"]:
+            ov = len(set(dr["account_ids"]) & ba)
+            if ov > best_ov:
+                best, best_ov = dr, ov
+        if best:
+            alert = {"ring_id": best["ring_id"], "account_ids": best["account_ids"],
+                     "patterns": best["patterns"], "n_accounts": len(best["account_ids"])}
+    return {"new_edges": _enriched_edges(batch["transactions"]), "ring": alert,
+            "clock": batch.get("clock"), "summary": _summary()}
+
+
+@app.post("/api/stream/stop")
+def stream_stop():
+    """End the live stream and restore the committed fixture."""
+    STATE["live"] = None
+    _load_committed()
+    return {"summary": _summary()}
 
 
 @app.get("/api/dataset/current")

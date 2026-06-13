@@ -239,15 +239,15 @@ function applyGraphFilters() {
 }
 
 // ── top-bar KPIs + left-rail eval ───────────────────────────────────────────
-async function loadSummary() {
-  const s = await fetch("/api/dataset/current").then((r) => r.json());
+function setKpis(s) {
   $("kpis").innerHTML =
     `<div class="kpi"><b>${s.accounts}</b><span>accounts</span></div>` +
-    `<div class="kpi"><b>${s.transactions.toLocaleString()}</b><span>txns</span></div>` +
+    `<div class="kpi"><b>${(s.transactions || 0).toLocaleString()}</b><span>txns</span></div>` +
     `<div class="kpi"><b>${s.rings_detected}</b><span>rings</span></div>` +
     `<div class="kpi flag"><b>${s.flagged_accounts}</b><span>flagged</span></div>` +
     (s.screening_hits != null ? `<div class="kpi watch" title="Accounts matching sanctions / PEP / adverse-media lists"><b>${s.screening_hits}</b><span>⚠ watchlist</span></div>` : "");
 }
+async function loadSummary() { setKpis(await fetch("/api/dataset/current").then((r) => r.json())); }
 
 async function loadEval() {
   const e = await fetch("/api/eval").then((r) => r.json());
@@ -1010,8 +1010,10 @@ function setView(v) {
 document.querySelectorAll(".vt").forEach((b) => b.onclick = () => setView(b.dataset.view));
 $("names").onchange = (e) => { showNames = e.target.checked; applyGraphFilters(); };
 
-// ── live transaction feed (replay the network as a monitored stream) ────────
-let live = { on: false, edges: [], i: 0, timer: null, revealed: 0, vol: 0, ringTotal: {}, ringProg: {}, ringsDone: new Set() };
+// ── live transaction feed (true real-time stream via P1's LiveFeed engine) ──
+// Starts a server-side stream, then polls /api/stream/next: new transactions appear
+// as edges, the network grows, and freshly-detected rings fire 🚨 alerts.
+let live = { on: false, timer: null, speed: 1 };
 
 function toast(html, onClick) {
   const box = $("toasts");
@@ -1025,74 +1027,91 @@ function toast(html, onClick) {
 }
 function dismissToast(el) { if (!el.parentNode) return; el.classList.add("out"); setTimeout(() => el.remove(), 300); }
 
-function updateLiveStats() {
-  $("live-stats").innerHTML = `<b>${live.revealed.toLocaleString()}</b> / ${live.edges.length.toLocaleString()} transactions · ` +
-    `<b>${live.ringsDone.size}</b> rings detected · <b>${eur(live.vol)}</b> screened`;
+function liveStats(s, clock) {
+  $("live-stats").innerHTML =
+    `<b>${(s.transactions || 0).toLocaleString()}</b> transactions · <b>${s.rings_detected}</b> rings · ` +
+    `<b>${s.flagged_accounts}</b> flagged${clock ? ` · ${fmtDate(clock)}` : ""}`;
 }
-function fireRingAlert(ringId) {
-  const r = ALL_RINGS.find((x) => x.ring_id === ringId);
+function fireRingAlert(ring) {
+  const id = ring.ring_id;
   toast(`<span class="t-ico">🚨</span><div class="t-body"><b>Laundering ring detected</b>` +
-    `<small>${esc(ringId)} · ${r ? r.account_ids.length : "?"} accounts · ${r ? esc(r.patterns.join(", ")) : ""}</small></div>`,
-    () => showRing(ringId));
-  const card = document.querySelector(`.ring[data-ring="${ringId}"]`);
-  if (card) { card.classList.add("flash"); setTimeout(() => card.classList.remove("flash"), 1500); }
+    `<small>${esc(id)} · ${ring.n_accounts ?? (ring.account_ids || []).length} accounts · ${esc((ring.patterns || []).join(", "))}</small></div>`,
+    () => showRing(id));
+  const card = document.querySelector(`.ring[data-ring="${id}"]`);
+  if (card) { card.classList.add("flash"); card.scrollIntoView({ block: "nearest" }); setTimeout(() => card.classList.remove("flash"), 1500); }
 }
 
-function startLive() {
+function haltLive() {   // stop local polling only (no server call / refresh)
+  live.on = false;
+  if (live.timer) clearTimeout(live.timer);
+  live.timer = null;
+  $("live-btn").textContent = "▶ Live feed";
+  $("live-bar").classList.add("hidden");
+}
+
+async function startLive() {
   if (live.on) return;
   if (curView !== "graph") setView("graph");
   clearSelection();
-  live.edges = viewEdges.filter((e) => e.timestamp).slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  if (live.edges.length < 5) { toast(`<span class="t-ico">ℹ️</span><div class="t-body">Not enough timed transactions to replay here.</div>`); return; }
-  live.on = true; live.i = 0; live.revealed = 0; live.vol = 0;
-  live.ringTotal = {}; live.ringProg = {}; live.ringsDone = new Set();
-  viewEdges.forEach((e) => { if (e.ring) live.ringTotal[e.ring] = (live.ringTotal[e.ring] || 0) + 1; });
-  edgesDS.update(viewEdges.map((e) => ({ id: e.id, hidden: true })));
-  nodesDS.update(viewNodes.map((n) => ({ id: n.id, opacity: 0.1 })));
+  $("live-btn").disabled = true;
+  let res;
+  try { res = await fetch("/api/stream/start", { method: "POST" }).then((r) => r.json()); }
+  catch (e) { toast(`<span class="t-ico">⚠️</span><div class="t-body">Could not start the live stream.</div>`); $("live-btn").disabled = false; return; }
+  showAll = true; $("showall").checked = true;   // show the whole (small) live network
+  await refresh();
+  live.on = true; live.speed = 1;
+  document.querySelectorAll(".spd").forEach((b) => b.classList.toggle("active", b.dataset.spd === "1"));
   $("live-bar").classList.remove("hidden");
-  $("live-btn").textContent = "■ Stop feed";
-  const batch = Math.max(2, Math.ceil(live.edges.length / 70));
-  updateLiveStats();
-  live.timer = setInterval(() => liveTick(batch), 130);
+  $("live-btn").textContent = "■ Stop feed"; $("live-btn").disabled = false;
+  liveStats(res.summary, null);
+  scheduleLive();
 }
-function liveTick(batch) {
-  const lit = new Set();
-  const eUp = [], end = Math.min(live.i + batch, live.edges.length);
-  for (; live.i < end; live.i++) {
-    const e = live.edges[live.i];
-    eUp.push({ id: e.id, hidden: false });
-    lit.add(e.source); lit.add(e.target);
-    live.revealed++; live.vol += e.amount || 0;
-    if (e.ring) {
-      live.ringProg[e.ring] = (live.ringProg[e.ring] || 0) + 1;
-      if (!live.ringsDone.has(e.ring) && live.ringProg[e.ring] >= Math.ceil(0.6 * (live.ringTotal[e.ring] || 1))) {
-        live.ringsDone.add(e.ring);
-        fireRingAlert(e.ring);
-      }
-    }
-  }
-  edgesDS.update(eUp);
-  nodesDS.update([...lit].map((id) => ({ id, opacity: 1 })));
-  updateLiveStats();
-  if (live.i >= live.edges.length) finishLive();
-}
-function finishLive() {
-  if (live.timer) clearInterval(live.timer);
-  live.timer = null; live.on = false;
-  $("live-btn").textContent = "▶ Live feed";
-  $("live-stats").innerHTML += " · <b>monitoring complete</b>";
-  setTimeout(() => { $("live-bar").classList.add("hidden"); applyGraphFilters(); }, 2600);
-}
-function stopLive() {
+
+function scheduleLive() {
   if (!live.on) return;
-  if (live.timer) clearInterval(live.timer);
-  live.timer = null; live.on = false;
-  $("live-btn").textContent = "▶ Live feed";
-  $("live-bar").classList.add("hidden");
-  applyGraphFilters();
+  const delay = Math.round((2200 + Math.random() * 900) / live.speed);   // ~1–3s at 1×
+  live.timer = setTimeout(pollLive, delay);
 }
+
+async function pollLive() {
+  if (!live.on) return;
+  let b;
+  try { b = await fetch("/api/stream/next").then((r) => r.json()); }
+  catch (e) { scheduleLive(); return; }
+  if (!live.on || b.detail) { return; }
+  if (b.summary) { liveStats(b.summary, b.clock); setKpis(b.summary); }
+  if (b.ring) {
+    await loadRings();                              // rebuild queue + RING_COLOR with the new ring
+    const col = ringColor(b.ring.ring_id);
+    nodesDS.update((b.ring.account_ids || []).filter((id) => nodesDS.get(id))
+      .map((id) => ({ id, color: { background: col, border: "#1e293b" }, borderWidth: 2, opacity: 1 })));
+    fireRingAlert(b.ring);
+  }
+  const fresh = (b.new_edges || []).filter((e) => nodesDS.get(e.source) && nodesDS.get(e.target));
+  if (fresh.length) {
+    edgesDS.add(fresh.map((e) => { const s = edgeStyle(e); return { ...s, width: 3, color: { color: "#4f46e5", opacity: 1 } }; }));
+    viewEdges.push(...fresh);
+    setTimeout(() => { if (edgesDS) edgesDS.update(fresh.map(edgeStyle)); }, 700);   // settle to normal
+  }
+  scheduleLive();
+}
+
+async function stopLive() {
+  const was = live.on;
+  haltLive();
+  showAll = false; $("showall").checked = false;
+  if (was) {
+    try { await fetch("/api/stream/stop", { method: "POST" }); } catch (e) {}
+    await refresh();   // restore the committed fixture
+  }
+}
+
 $("live-btn").onclick = () => { if (live.on) stopLive(); else startLive(); };
 $("live-stop").onclick = stopLive;
+document.querySelectorAll(".spd").forEach((b) => b.onclick = () => {
+  live.speed = +b.dataset.spd;
+  document.querySelectorAll(".spd").forEach((x) => x.classList.toggle("active", x === b));
+});
 
 // ── boot ────────────────────────────────────────────────────────────────────
 async function refresh() {
@@ -1115,7 +1134,8 @@ $("gen").onclick = async () => {
   const btn = $("gen");
   btn.disabled = true;
   btn.textContent = "Generating…";
-  stopLive();
+  haltLive();
+  showAll = false; $("showall").checked = false;
   try {
     await fetch("/api/dataset/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ seed: Math.floor(Math.random() * 1000000) }) });
     activeRing = null; activeMembers = null; destroyFlow(); hidePlayback();
