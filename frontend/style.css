@@ -539,25 +539,17 @@ div.vis-tooltip {
 ::-webkit-scrollbar-track { background: transparent; }
 
 /* ── compliance: freeze-by-threshold + manual review — center view (§6) ────── */
-#compliance-view { display: flex; flex-direction: column; background: var(--surface); }
-.cv-controls { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 9px;
-  background: var(--surface-2); }
-.cv-control-head { font-weight: 700; font-size: 13.5px; }
-.cv-thr-label { font-size: 12.5px; color: var(--text-2); }
-.cv-thr-label b { color: var(--accent); font-size: 14px; }
-.cv-controls input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
-.cv-hint { margin: 2px 0 0; font-size: 11.5px; color: var(--muted); }
-.fz-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.cv-qhead { padding: 11px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 8px; }
-.cv-qhead b { font-size: 13px; }
-.cv-queue { flex: 1; overflow: auto; }
-.fz-item { display: flex; align-items: center; justify-content: space-between; gap: 8px 10px; flex-wrap: wrap;
-  padding: 11px 18px; border-bottom: 1px solid var(--surface-3); }
-.fz-item:hover { background: var(--surface-2); }
-.fz-meta { display: flex; flex-direction: column; gap: 3px; min-width: 120px; flex: 1 1 auto; cursor: pointer; }
-.fz-id { font-family: ui-monospace, Consolas, monospace; color: var(--accent); }
-.fz-meta:hover .fz-id { text-decoration: underline; }
-.fz-actions { display: flex; gap: 5px; flex: none; }
+/* accounts toolbar: auto-freeze slider + under-review filter */
+.acct-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.acct-tools { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.af-ctl { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-2); white-space: nowrap; }
+.af-ctl b { color: var(--accent); }
+.af-ctl input[type=range] { width: 110px; accent-color: var(--accent); cursor: pointer; }
+.af-count { font-variant-numeric: tabular-nums; }
+
+/* per-account enforcement action buttons (table + inspector + modal) */
+.acct-actions { white-space: nowrap; }
+.acct-actions .fz-act { margin-right: 4px; }
 .fz-act { font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 7px;
   border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-2); }
 .fz-act:hover { background: var(--surface-2); }
