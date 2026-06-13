@@ -51,7 +51,9 @@ def detect_structuring(graph, accounts, transactions) -> list[dict]:
 
 
 CIRC_WINDOW_H = 72        # whole loop must close within this many hours
-CIRC_MIN_RETENTION = 0.8  # money returning to origin / money that left it (§9 #2)
+# money returning to origin / money that left it. Real laundering skims a few % per hop,
+# so a 4-hop loop lands around 0.78 end-to-end — 0.7 catches those without admitting noise.
+CIRC_MIN_RETENTION = 0.7
 CIRC_MAX_RETENTION = 1.25  # laundering skims value; it doesn't grow. Above this = coincidence.
 
 

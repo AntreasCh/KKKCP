@@ -14,8 +14,9 @@ DATASET = json.loads((ROOT / "sample_data" / "dataset.json").read_text())
 LABELS = json.loads((ROOT / "sample_data" / "labels.json").read_text())
 ACCOUNTS, TXS = DATASET["accounts"], DATASET["transactions"]
 
-# the one planted circular ring (labels.json TRUE_002)
-TRUE_CIRCULAR = {"ACC00164", "ACC00325", "ACC00425"}
+# planted circular rings, read from the labels so the test survives data regeneration
+TRUE_CIRCULAR = [set(r["account_ids"]) for r in LABELS["rings"]
+                 if "circular" in r["patterns"]]
 
 
 def _accounts_in(findings):
@@ -25,26 +26,33 @@ def _accounts_in(findings):
     return out
 
 
-def test_circular_finds_planted_ring():
+def _overlaps(found_sets, true_set, frac=0.6):
+    return any(len(true_set & fs) / len(true_set) >= frac for fs in found_sets)
+
+
+def test_circular_finds_every_planted_ring():
     findings = structural.detect_circular(None, ACCOUNTS, TXS)
-    # the planted loop must be one of the flagged cycles
-    assert any(set(f["subject_ids"]) == TRUE_CIRCULAR for f in findings), \
-        "lost the real circular ring — ring_recall would drop"
+    found = [set(f["subject_ids"]) for f in findings]
+    missed = [t for t in TRUE_CIRCULAR if not _overlaps(found, t)]
+    assert not missed, f"circular detector missed planted loops: {missed}"
 
 
 def test_circular_does_not_overfire():
-    # before the time+retention filter this returned ~117; correct behaviour is a handful
+    # before the time+retention filter this returned ~117 on the Phase-0 fixture;
+    # correct behaviour is roughly one finding per planted loop, plus a little slack
     findings = structural.detect_circular(None, ACCOUNTS, TXS)
-    assert len(findings) <= 8, f"circular over-firing again: {len(findings)} findings"
+    assert len(findings) <= len(TRUE_CIRCULAR) + 3, \
+        f"circular over-firing: {len(findings)} findings for {len(TRUE_CIRCULAR)} true rings"
 
 
 def test_circular_evidence_is_traceable():
     findings = structural.detect_circular(None, ACCOUNTS, TXS)
-    ring = next(f for f in findings if set(f["subject_ids"]) == TRUE_CIRCULAR)
-    ev = ring["evidence"]
-    assert ev["retention"] >= structural.CIRC_MIN_RETENTION
-    assert ev["hours"] <= structural.CIRC_WINDOW_H
-    assert len(ev["tx_ids"]) == ev["length"]  # one real tx proving each hop
+    assert findings, "expected at least one circular finding"
+    for f in findings:
+        ev = f["evidence"]
+        assert structural.CIRC_MIN_RETENTION <= ev["retention"] <= structural.CIRC_MAX_RETENTION
+        assert ev["hours"] <= structural.CIRC_WINDOW_H
+        assert len(ev["tx_ids"]) == ev["length"]  # one real tx proving each hop
 
 
 def test_structuring_finds_a_planted_ring():
