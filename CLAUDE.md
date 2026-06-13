@@ -5,6 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 It is **also our team's live sync document** for iFX Hack 2026. Read the workflow rules
 below — following them is how we avoid git conflicts.
 
+**How we work:** all **5 of us** run **Claude Code individually** on our own machines, one
+feature per person. There's **no shared server** — everything runs **locally** (see below).
+
 ---
 
 ## 🎯 Project
@@ -71,12 +74,17 @@ Stuck? Ping the team before forcing anything. **Never** `git push --force` to `m
 
 ## 🧱 Tech stack & commands
 
-> ⛔ Not decided yet — **fill this in the moment we scaffold the project** so the next person
-> (or Claude) knows how to run it. Replace the placeholders below.
+> 🖥️ **Runs locally only — we have no server to host on.** The whole app (and the demo)
+> must run on each person's own machine via `localhost`. **Don't** add hosting, deploys, or
+> anything that needs a live remote server to demo. Calling cloud **APIs** (e.g. AWS Bedrock)
+> from the local app is fine — that's a remote call, not a server we run.
+
+> ⛔ Stack not decided yet — **fill this in the moment we scaffold the project** so the next
+> person (or Claude) knows how to run it. Replace the placeholders below.
 
 - **Language / framework:** _TBD_
 - **Install deps:** `_TBD_`
-- **Run dev server:** `_TBD_`
+- **Run locally (localhost):** `_TBD_`
 - **Run tests:** `_TBD_`
 - **AWS services in use:** _TBD_
 
@@ -85,7 +93,8 @@ Stuck? Ping the team before forcing anything. **Never** `git push --force` to `m
 ## 👥 Team Sync
 
 > Edit **only your own block.** Update "Working on" and "Status" as you go. This is how we
-> see who's touching what and avoid stepping on each other.
+> see who's touching what and avoid stepping on each other. **5 people, 5 blocks** — claim
+> a feature/area so two of us never run Claude Code on the same files.
 
 ### Andreas Christodoulou (@AntreasCh)
 - **Working on:** _________________
@@ -111,8 +120,15 @@ Stuck? Ping the team before forcing anything. **Never** `git push --force` to `m
 - **Status:** _________________
 - **Blockers:** _________________
 
+### (open slot — add your name + block here)
+- **Working on:** _________________
+- **Files/area owned:** _________________
+- **Status:** _________________
+- **Blockers:** _________________
+
 ---
 
 ## 📋 Decision Log (newest at top — append only)
 
+- _2026-06-13 — Decided: app runs **locally only** (no server to host on); demo runs on localhost. Team of **5**, each running Claude Code individually — one feature/area per person._
 - _2026-06-13 — Repo set up; idea options drafted in `IDEAS.md`; awaiting team vote on track idea._
