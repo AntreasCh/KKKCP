@@ -9,6 +9,11 @@ Design goals (Phase 1):
 - **2–3 instances per laundering pattern** so detectors are tested on variety, not one example.
 - **Realistic legit noise** — salaries, merchant card spend, recurring bills, P2P — including
   *legit high-degree hubs* (employers, merchants) that detectors must learn NOT to flag.
+- **Hard-negative decoys** — legit structures that *superficially* look like laundering (payday
+  payroll bursts, merchant flash-sale fan-in, sub-threshold B2B invoices, inter-company
+  settlement loops). They are NOT in the labels, so any detector that flags one is a true
+  false-positive. They carry a fair legit signature (business + low-KYC + aged account) so a
+  robust detector can still separate them — this is what makes precision genuinely *earned*.
 - **AMLSim-aligned typologies.** We mirror the IBM AMLSim benchmark's laundering shapes
   (fan-in, fan-out, cycle, stack/layering, structuring/smurfing) for credibility, while keeping
   our frozen `schemas.py` contract. `evidence`-style typology names live in the docstrings below.
@@ -54,11 +59,13 @@ def _iso(dt: datetime) -> str:
 
 
 def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
-                     n_rings: int = 15, seed: int = 42, window_days: int = 30):
+                     n_rings: int = 15, seed: int = 42, window_days: int = 30,
+                     n_decoys: int = 8):
     """Return (dataset, labels) dicts conforming to schemas.py §7.
 
     Deterministic for a given ``seed``. ``n_rings`` is distributed round-robin across the five
-    typologies, so e.g. 15 → 3 of each, 6 → 2 structuring + 1 of the rest.
+    typologies, so e.g. 15 → 3 of each, 6 → 2 structuring + 1 of the rest. ``n_decoys`` plants
+    legit hard-negative structures (round-robin over 4 kinds) that are *not* labelled.
     """
     rng = random.Random(seed)
     win_min = window_days * 24 * 60
@@ -269,6 +276,67 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
         a["opened_at"] = _iso(BASE - timedelta(days=rng.randint(8, 130)))[:10]
         a["country"] = rng.choice(HIGH_RISK_CC)
 
+    # ── hard-negative decoys (NOT labelled) ─────────────────────────────────────
+    # Legit structures that *look* like laundering to a naive detector. A robust detector
+    # should separate them using their legit signature (business + low-KYC + aged + a CY/GR/GB
+    # jurisdiction), which we stamp on the decoy "actor" accounts below. Any flag here is a
+    # genuine false-positive — that's the point: it makes precision earned, not given.
+    ring_participants = mules | {a for r in labels_rings for a in r["account_ids"]}
+    decoy_actors: set[str] = set()
+    DECOYS = ["payroll_burst", "merchant_burst", "b2b_subthreshold", "settlement_loop"]
+
+    def pick_biz(n: int, exclude: set[str]) -> list[str]:
+        cands = [b for b in biz_ids if b not in exclude] or [a for a in acc_ids if a not in exclude]
+        return rng.sample(cands, min(n, len(cands)))
+
+    for k in range(max(0, n_decoys)):
+        kind = DECOYS[k % len(DECOYS)]
+        t0 = BASE + timedelta(days=rng.randint(1, max(2, window_days - 3)), hours=rng.randint(0, 18))
+
+        if kind == "payroll_burst":
+            # Real payday: an employer pays its whole roster inside ~24h → looks like fan-out.
+            emp = pick_biz(1, ring_participants | decoy_actors)[0]
+            roster = rng.sample(personal_ids or acc_ids, min(rng.randint(25, 35), len(personal_ids or acc_ids)))
+            for j, w in enumerate(roster):
+                new_tx(emp, w, rng.uniform(1_400, 3_600), jitter(t0, rng.uniform(0, 24)), "sepa")
+            decoy_actors.add(emp)
+
+        elif kind == "merchant_burst":
+            # Flash sale / event day: many customers pay one merchant in ~36h → looks like fan-in.
+            mer = pick_biz(1, ring_participants | decoy_actors)[0]
+            custs = rng.sample(personal_ids or acc_ids, min(rng.randint(20, 30), len(personal_ids or acc_ids)))
+            for c in custs:
+                new_tx(c, mer, rng.uniform(20, 300), jitter(t0, rng.uniform(0, 36)), "card")
+            decoy_actors.add(mer)
+
+        elif kind == "b2b_subthreshold":
+            # Legit wholesaler paid by several clients in just-under-€10k invoices within 72h →
+            # looks like structuring (receiver gathers multiple sub-threshold credits).
+            recv = pick_biz(1, ring_participants | decoy_actors)[0]
+            payers = pick_biz(rng.randint(3, 5), ring_participants | decoy_actors | {recv})
+            for j, p in enumerate(payers):
+                new_tx(p, recv, rng.uniform(7_000, 9_500), jitter(t0, j * 14 + rng.uniform(0, 8)), "sepa")
+            decoy_actors.update([recv] + payers)
+
+        elif kind == "settlement_loop":
+            # Inter-company treasury settlement: 3 group companies net off in a loop within 72h,
+            # value largely retained → looks like a circular-flow ring (the hardest negative).
+            grp = pick_biz(3, ring_participants | decoy_actors)
+            if len(grp) == 3:
+                amt = rng.uniform(20_000, 60_000)
+                for j in range(3):
+                    new_tx(grp[j], grp[(j + 1) % 3], amt * (0.97 ** j),
+                           jitter(t0, j * 16 + rng.uniform(0, 6)), "wire")
+                decoy_actors.update(grp)
+
+    # Stamp the decoy actors with a clean, established profile (the fair separating signal).
+    for did in decoy_actors:
+        a = acc_by_id[did]
+        a["account_type"] = "business"
+        a["kyc_risk"] = "low"
+        a["opened_at"] = _iso(BASE - timedelta(days=rng.randint(500, 1500)))[:10]
+        a["country"] = rng.choice(["CY", "CY", "GR", "GB", "DE"])
+
     rng.shuffle(txs)  # so planted txns aren't clustered at the end of the stream
     dataset = {"accounts": accounts, "transactions": txs}
     labels = {"mule_accounts": sorted(mules), "rings": labels_rings}
@@ -282,10 +350,11 @@ def main():
     p.add_argument("--rings", type=int, default=15)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--window-days", type=int, default=30)
+    p.add_argument("--decoys", type=int, default=8, help="legit hard-negative structures (unlabelled)")
     p.add_argument("--out", default=str(Path(__file__).resolve().parents[2] / "sample_data"))
     a = p.parse_args()
 
-    dataset, labels = generate_dataset(a.accounts, a.legit_tx, a.rings, a.seed, a.window_days)
+    dataset, labels = generate_dataset(a.accounts, a.legit_tx, a.rings, a.seed, a.window_days, a.decoys)
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "dataset.json").write_text(json.dumps(dataset, indent=2))
@@ -294,7 +363,8 @@ def main():
     from collections import Counter
     by_pat = Counter(p for r in labels["rings"] for p in r["patterns"])
     print(f"Wrote {len(dataset['accounts'])} accounts, {len(dataset['transactions'])} txns, "
-          f"{len(labels['rings'])} rings ({len(labels['mule_accounts'])} mules) -> {out}")
+          f"{len(labels['rings'])} rings ({len(labels['mule_accounts'])} mules), "
+          f"{a.decoys} decoys -> {out}")
     print("  rings by pattern:", dict(by_pat))
 
 

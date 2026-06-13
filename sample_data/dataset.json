@@ -100,9 +100,9 @@
       "account_id": "ACC00013",
       "owner_name": "Ioanna A.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-05-13",
-      "kyc_risk": "medium"
+      "country": "BG",
+      "opened_at": "2026-01-26",
+      "kyc_risk": "high"
     },
     {
       "account_id": "ACC00014",
@@ -181,7 +181,7 @@
       "owner_name": "Helios Energy",
       "account_type": "business",
       "country": "GR",
-      "opened_at": "2023-08-14",
+      "opened_at": "2024-07-28",
       "kyc_risk": "low"
     },
     {
@@ -332,9 +332,9 @@
       "account_id": "ACC00042",
       "owner_name": "Lefteris H.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-02-19",
-      "kyc_risk": "medium"
+      "country": "CY",
+      "opened_at": "2026-02-15",
+      "kyc_risk": "high"
     },
     {
       "account_id": "ACC00043",
@@ -348,8 +348,8 @@
       "account_id": "ACC00044",
       "owner_name": "Natasa L.",
       "account_type": "personal",
-      "country": "CY",
-      "opened_at": "2026-03-18",
+      "country": "AE",
+      "opened_at": "2026-04-13",
       "kyc_risk": "medium"
     },
     {
@@ -476,9 +476,9 @@
       "account_id": "ACC00060",
       "owner_name": "Antonis S.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-03-19",
-      "kyc_risk": "high"
+      "country": "RU",
+      "opened_at": "2026-05-18",
+      "kyc_risk": "medium"
     },
     {
       "account_id": "ACC00061",
@@ -524,9 +524,9 @@
       "account_id": "ACC00066",
       "owner_name": "Natasa S.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-05-14",
-      "kyc_risk": "medium"
+      "country": "CY",
+      "opened_at": "2026-04-13",
+      "kyc_risk": "high"
     },
     {
       "account_id": "ACC00067",
@@ -636,9 +636,9 @@
       "account_id": "ACC00080",
       "owner_name": "Natasa P.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-05-05",
-      "kyc_risk": "high"
+      "country": "CY",
+      "opened_at": "2026-05-07",
+      "kyc_risk": "medium"
     },
     {
       "account_id": "ACC00081",
@@ -652,8 +652,8 @@
       "account_id": "ACC00082",
       "owner_name": "Maria G.",
       "account_type": "personal",
-      "country": "RU",
-      "opened_at": "2026-03-27",
+      "country": "AE",
+      "opened_at": "2026-04-13",
       "kyc_risk": "medium"
     },
     {
@@ -780,8 +780,8 @@
       "account_id": "ACC00098",
       "owner_name": "Vasilis L.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-05-05",
+      "country": "AE",
+      "opened_at": "2026-05-02",
       "kyc_risk": "high"
     },
     {
@@ -957,8 +957,8 @@
       "owner_name": "Antonis C.",
       "account_type": "personal",
       "country": "AE",
-      "opened_at": "2026-04-13",
-      "kyc_risk": "medium"
+      "opened_at": "2026-02-15",
+      "kyc_risk": "high"
     },
     {
       "account_id": "ACC00121",
@@ -1141,8 +1141,8 @@
       "owner_name": "Petros M.",
       "account_type": "personal",
       "country": "AE",
-      "opened_at": "2026-03-05",
-      "kyc_risk": "high"
+      "opened_at": "2026-01-29",
+      "kyc_risk": "medium"
     },
     {
       "account_id": "ACC00144",
@@ -1156,8 +1156,8 @@
       "account_id": "ACC00145",
       "owner_name": "Despina I.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-01-23",
+      "country": "RU",
+      "opened_at": "2026-05-20",
       "kyc_risk": "medium"
     },
     {
@@ -1228,8 +1228,8 @@
       "account_id": "ACC00154",
       "owner_name": "Dimitris M.",
       "account_type": "personal",
-      "country": "RU",
-      "opened_at": "2026-05-21",
+      "country": "BG",
+      "opened_at": "2026-04-18",
       "kyc_risk": "high"
     },
     {
@@ -1437,7 +1437,7 @@
       "owner_name": "Chloe A.",
       "account_type": "personal",
       "country": "RU",
-      "opened_at": "2026-02-23",
+      "opened_at": "2026-04-12",
       "kyc_risk": "high"
     },
     {
@@ -1532,8 +1532,8 @@
       "account_id": "ACC00192",
       "owner_name": "Sofia S.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-05-13",
+      "country": "CY",
+      "opened_at": "2026-03-18",
       "kyc_risk": "medium"
     },
     {
@@ -1661,7 +1661,7 @@
       "owner_name": "Cyprus Telecom",
       "account_type": "business",
       "country": "BG",
-      "opened_at": "2023-04-29",
+      "opened_at": "2023-02-27",
       "kyc_risk": "low"
     },
     {
@@ -1989,8 +1989,8 @@
       "owner_name": "Eleni S.",
       "account_type": "personal",
       "country": "CY",
-      "opened_at": "2026-01-29",
-      "kyc_risk": "medium"
+      "opened_at": "2026-04-18",
+      "kyc_risk": "high"
     },
     {
       "account_id": "ACC00250",
@@ -2061,7 +2061,7 @@
       "owner_name": "Nikos S.",
       "account_type": "personal",
       "country": "BG",
-      "opened_at": "2026-03-30",
+      "opened_at": "2026-03-20",
       "kyc_risk": "high"
     },
     {
@@ -2165,8 +2165,8 @@
       "owner_name": "Pavlos M.",
       "account_type": "personal",
       "country": "CY",
-      "opened_at": "2026-02-15",
-      "kyc_risk": "high"
+      "opened_at": "2026-01-29",
+      "kyc_risk": "medium"
     },
     {
       "account_id": "ACC00272",
@@ -2213,7 +2213,7 @@
       "owner_name": "EAC Power",
       "account_type": "business",
       "country": "CY",
-      "opened_at": "2023-02-02",
+      "opened_at": "2023-08-08",
       "kyc_risk": "low"
     },
     {
@@ -2300,8 +2300,8 @@
       "account_id": "ACC00288",
       "owner_name": "Panayiotis H.",
       "account_type": "personal",
-      "country": "CY",
-      "opened_at": "2026-02-15",
+      "country": "BG",
+      "opened_at": "2026-05-16",
       "kyc_risk": "high"
     },
     {
@@ -2396,9 +2396,9 @@
       "account_id": "ACC00300",
       "owner_name": "Stelios I.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-02-26",
-      "kyc_risk": "high"
+      "country": "RU",
+      "opened_at": "2026-03-27",
+      "kyc_risk": "medium"
     },
     {
       "account_id": "ACC00301",
@@ -2876,9 +2876,9 @@
       "account_id": "ACC00360",
       "owner_name": "WaterBoard CY",
       "account_type": "business",
-      "country": "BG",
-      "opened_at": "2026-03-31",
-      "kyc_risk": "medium"
+      "country": "CY",
+      "opened_at": "2026-02-15",
+      "kyc_risk": "high"
     },
     {
       "account_id": "ACC00361",
@@ -3253,7 +3253,7 @@
       "owner_name": "Eleni I.",
       "account_type": "personal",
       "country": "BG",
-      "opened_at": "2026-01-26",
+      "opened_at": "2026-03-30",
       "kyc_risk": "high"
     },
     {
@@ -3420,8 +3420,8 @@
       "account_id": "ACC00428",
       "owner_name": "Chloe C.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-04-18",
+      "country": "AE",
+      "opened_at": "2026-03-19",
       "kyc_risk": "high"
     },
     {
@@ -3684,9 +3684,9 @@
       "account_id": "ACC00461",
       "owner_name": "Anna S.",
       "account_type": "personal",
-      "country": "CY",
-      "opened_at": "2026-04-18",
-      "kyc_risk": "high"
+      "country": "BG",
+      "opened_at": "2026-02-19",
+      "kyc_risk": "medium"
     },
     {
       "account_id": "ACC00462",
@@ -3780,9 +3780,9 @@
       "account_id": "ACC00473",
       "owner_name": "WaterBoard CY",
       "account_type": "business",
-      "country": "AE",
-      "opened_at": "2026-04-13",
-      "kyc_risk": "medium"
+      "country": "RU",
+      "opened_at": "2026-02-21",
+      "kyc_risk": "high"
     },
     {
       "account_id": "ACC00474",
@@ -3852,8 +3852,8 @@
       "account_id": "ACC00482",
       "owner_name": "Anna S.",
       "account_type": "personal",
-      "country": "RU",
-      "opened_at": "2026-05-20",
+      "country": "AE",
+      "opened_at": "2026-05-13",
       "kyc_risk": "medium"
     },
     {
@@ -3925,8 +3925,8 @@
       "owner_name": "Panayiotis H.",
       "account_type": "personal",
       "country": "AE",
-      "opened_at": "2026-05-02",
-      "kyc_risk": "high"
+      "opened_at": "2026-05-13",
+      "kyc_risk": "medium"
     },
     {
       "account_id": "ACC00492",
@@ -4077,7 +4077,7 @@
       "owner_name": "BlueWave Trading",
       "account_type": "business",
       "country": "CY",
-      "opened_at": "2024-05-25",
+      "opened_at": "2024-12-12",
       "kyc_risk": "low"
     },
     {
@@ -4300,8 +4300,8 @@
       "account_id": "ACC00538",
       "owner_name": "Vasilis C.",
       "account_type": "personal",
-      "country": "RU",
-      "opened_at": "2026-02-21",
+      "country": "BG",
+      "opened_at": "2026-04-30",
       "kyc_risk": "high"
     },
     {
@@ -4372,8 +4372,8 @@
       "account_id": "ACC00547",
       "owner_name": "Cyprus Telecom",
       "account_type": "business",
-      "country": "BG",
-      "opened_at": "2026-04-30",
+      "country": "AE",
+      "opened_at": "2026-05-05",
       "kyc_risk": "high"
     },
     {
@@ -4548,16 +4548,16 @@
       "account_id": "ACC00569",
       "owner_name": "Katerina A.",
       "account_type": "personal",
-      "country": "RU",
-      "opened_at": "2026-04-12",
+      "country": "CY",
+      "opened_at": "2026-02-12",
       "kyc_risk": "high"
     },
     {
       "account_id": "ACC00570",
       "owner_name": "Christina L.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-01-29",
+      "country": "BG",
+      "opened_at": "2026-03-31",
       "kyc_risk": "medium"
     },
     {
@@ -4725,7 +4725,7 @@
       "owner_name": "EAC Power",
       "account_type": "business",
       "country": "CY",
-      "opened_at": "2023-08-08",
+      "opened_at": "2023-02-02",
       "kyc_risk": "low"
     },
     {
@@ -4740,8 +4740,8 @@
       "account_id": "ACC00593",
       "owner_name": "Savvas P.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-02-18",
+      "country": "RU",
+      "opened_at": "2026-02-23",
       "kyc_risk": "high"
     },
     {
@@ -4901,7 +4901,7 @@
       "owner_name": "Cyprus Telecom",
       "account_type": "business",
       "country": "BG",
-      "opened_at": "2024-01-15",
+      "opened_at": "2024-05-25",
       "kyc_risk": "low"
     },
     {
@@ -4925,7 +4925,7 @@
       "owner_name": "Giorgos G.",
       "account_type": "personal",
       "country": "BG",
-      "opened_at": "2026-05-16",
+      "opened_at": "2026-05-05",
       "kyc_risk": "high"
     },
     {
@@ -4972,9 +4972,9 @@
       "account_id": "ACC00622",
       "owner_name": "Helios Energy",
       "account_type": "business",
-      "country": "CY",
-      "opened_at": "2026-05-07",
-      "kyc_risk": "medium"
+      "country": "RU",
+      "opened_at": "2026-05-21",
+      "kyc_risk": "high"
     },
     {
       "account_id": "ACC00623",
@@ -5325,8 +5325,8 @@
       "owner_name": "Katerina I.",
       "account_type": "personal",
       "country": "AE",
-      "opened_at": "2026-02-15",
-      "kyc_risk": "high"
+      "opened_at": "2026-01-23",
+      "kyc_risk": "medium"
     },
     {
       "account_id": "ACC00667",
@@ -5460,8 +5460,8 @@
       "account_id": "ACC00683",
       "owner_name": "Katerina E.",
       "account_type": "personal",
-      "country": "CY",
-      "opened_at": "2026-02-22",
+      "country": "AE",
+      "opened_at": "2026-02-18",
       "kyc_risk": "high"
     },
     {
@@ -5717,7 +5717,7 @@
       "owner_name": "Aegean Construction",
       "account_type": "business",
       "country": "BG",
-      "opened_at": "2024-07-28",
+      "opened_at": "2023-08-14",
       "kyc_risk": "low"
     },
     {
@@ -5876,9 +5876,9 @@
       "account_id": "ACC00735",
       "owner_name": "Andreas C.",
       "account_type": "personal",
-      "country": "CY",
-      "opened_at": "2026-04-13",
-      "kyc_risk": "high"
+      "country": "AE",
+      "opened_at": "2026-05-14",
+      "kyc_risk": "medium"
     },
     {
       "account_id": "ACC00736",
@@ -5909,7 +5909,7 @@
       "owner_name": "Olympus Cafe",
       "account_type": "business",
       "country": "CY",
-      "opened_at": "2023-02-27",
+      "opened_at": "2023-04-29",
       "kyc_risk": "low"
     },
     {
@@ -5989,7 +5989,7 @@
       "owner_name": "Limassol Retail Co",
       "account_type": "business",
       "country": "CY",
-      "opened_at": "2024-12-12",
+      "opened_at": "2024-01-15",
       "kyc_risk": "low"
     },
     {
@@ -6093,7 +6093,7 @@
       "owner_name": "Natasa P.",
       "account_type": "personal",
       "country": "BG",
-      "opened_at": "2026-03-20",
+      "opened_at": "2026-02-26",
       "kyc_risk": "high"
     },
     {
@@ -6260,9 +6260,9 @@
       "account_id": "ACC00783",
       "owner_name": "Andreas L.",
       "account_type": "personal",
-      "country": "RU",
-      "opened_at": "2026-05-18",
-      "kyc_risk": "medium"
+      "country": "CY",
+      "opened_at": "2026-02-22",
+      "kyc_risk": "high"
     },
     {
       "account_id": "ACC00784",
@@ -6340,8 +6340,8 @@
       "account_id": "ACC00793",
       "owner_name": "Kostas L.",
       "account_type": "personal",
-      "country": "CY",
-      "opened_at": "2026-02-12",
+      "country": "AE",
+      "opened_at": "2026-03-05",
       "kyc_risk": "high"
     },
     {
