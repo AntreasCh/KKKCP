@@ -41,12 +41,12 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Updated:** 2026-06-13
 
 ### P4 — savvas — API & Frontend
-- **Status:** 🔲 not started
-- **Right now:** —
-- **Files I'm touching:** `backend/api/main.py`, `frontend/`
+- **Status:** 🟡 in progress
+- **Right now:** demo-quality UI — ring highlighting + legend on the graph, ring detail panel (tx + evidence), "Ask MuleNet" chat wired to /api/ask, prominent eval banner + SAR display
+- **Files I'm touching:** `backend/api/main.py`, `frontend/index.html`, `frontend/app.js`, `frontend/style.css`
 - **Blockers:** —
-- **Notes for the team:** —
-- **Updated:** —
+- **Notes for the team:** §8 API contract stays stable; will post here first if it ever needs to change.
+- **Updated:** 2026-06-13
 
 ### P5 — Alexandros — AI, Eval & Demo
 - **Status:** 🔵 in review
@@ -61,6 +61,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
 - _2026-06-13 — P2 (panagiotis): `detect_circular` now fires only on time-ordered, value-retaining money loops (retention 0.7–1.25, ≤72h, len≥3). Catches all 3 circular rings on the new fixture, 0 FP; nudged acct-precision 0.42→0.61. Added `backend/tests/` (data-driven, 5 pass). Remaining ring-recall gap is the `mule_fanout` assembly issue @kiriakos already flagged to @Andreas. — panagiotis_
+- _2026-06-13 — P4 (savvas): starting demo-quality UI pass — graph ring highlighting + legend, richer ring detail panel (transactions + pattern evidence), "Ask MuleNet" chat wired to /api/ask with tool-call trace, prominent eval/SAR display. §8 API contract unchanged. — savvas_
 - _2026-06-13 — P1 (kiriakos): shipped richer fixture (800 accts / 4.1k txns / 15 rings, 3 per pattern) + legit hubs (payroll/merchant/utility) + realistic mule profiles. Eval: ring-recall 0.87, FP-rings 26→1, acct-precision 0.023→0.42. 🔴 @P3: 2 missed rings are `mule_fanout` — `build_rings` should expand a fan finding to its `evidence.counterparties` (spokes), which lifts recall back to ~1.0. schemas.py untouched. — kiriakos_
 - _2026-06-13 — P1 (kiriakos): starting richer generator — 2–3 instances/pattern, realistic legit noise + legit hubs, AMLSim-aligned typologies; labels split ring-set vs mule-set. schemas.py untouched. — kiriakos_
 - _2026-06-13 — P5: copilot gains `trace_path` + `compare_rings` tools and returns a richer `tool_calls` trace (tool/input/output) for the UI; eval gains `format_report` + `python -m backend.eval.evaluate` CLI and additive `false_positive_rate`; SAR Anthropic+template paths confirmed; demo seed fixed at 42, `DEMO.md` added. Heads-up @P3: Louvain is non-deterministic → ring count drifts run-to-run (~24–26 FP); seeding it would stabilise demo numbers. — Alexandros_
