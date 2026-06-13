@@ -42,8 +42,29 @@ def _max_window_counterparties(events, window_hours: int):
     return best
 
 
+def _legit_hub_factor(acc_rec: dict | None) -> float:
+    """Legit high-degree accounts (payroll / merchants / utilities) are ESTABLISHED BUSINESS
+    accounts with LOW KYC risk; mule hubs are fresh PERSONAL accounts with elevated KYC. Return
+    a multiplier <= 1 that suppresses the fan score for the legit-hub profile, so a payroll
+    fan-out stops masquerading as a mule ring. Unknown account → no change (1.0)."""
+    if not acc_rec:
+        return 1.0
+    f = 1.0
+    if acc_rec.get("account_type") == "business":
+        f *= 0.35          # a business legitimately pays/collects from many counterparties
+    kyc = acc_rec.get("kyc_risk")
+    if kyc == "low":
+        f *= 0.5
+    elif kyc == "high":
+        f *= 1.1           # elevated KYC risk → lean in
+    return min(1.0, f)
+
+
 def detect_fan(graph, accounts, transactions, fan: int = 5, window_hours: int = 48) -> list[dict]:
-    """#4: a hub with >= `fan` distinct counterparties within a `window_hours` burst."""
+    """#4: a hub with >= `fan` distinct counterparties within a `window_hours` burst. The score
+    is down-weighted for legit-hub account profiles (see _legit_hub_factor) so established
+    businesses (payroll/merchants) stop flagging while fresh personal mule hubs still do."""
+    acc_by_id = {a["account_id"]: a for a in (accounts or [])}
     incoming, outgoing = defaultdict(list), defaultdict(list)
     for t in transactions:
         ts = _ts(t["timestamp"])
@@ -54,17 +75,21 @@ def detect_fan(graph, accounts, transactions, fan: int = 5, window_hours: int = 
     for acc, events in incoming.items():
         cps = _max_window_counterparties(events, window_hours)
         if len(cps) >= fan:
+            factor = _legit_hub_factor(acc_by_id.get(acc))
             findings.append({"detector": "fan_in", "subject_type": "account",
-                             "subject_ids": [acc], "score": round(min(1.0, 0.4 + 0.05 * len(cps)), 2),
+                             "subject_ids": [acc], "score": round(min(1.0, 0.4 + 0.05 * len(cps)) * factor, 2),
                              "evidence": {"hub": acc, "in_degree_window": len(cps),
-                                          "window_hours": window_hours, "counterparties": sorted(cps)}})
+                                          "window_hours": window_hours, "legit_hub_factor": round(factor, 2),
+                                          "counterparties": sorted(cps)}})
     for acc, events in outgoing.items():
         cps = _max_window_counterparties(events, window_hours)
         if len(cps) >= fan:
+            factor = _legit_hub_factor(acc_by_id.get(acc))
             findings.append({"detector": "fan_out", "subject_type": "account",
-                             "subject_ids": [acc], "score": round(min(1.0, 0.4 + 0.05 * len(cps)), 2),
+                             "subject_ids": [acc], "score": round(min(1.0, 0.4 + 0.05 * len(cps)) * factor, 2),
                              "evidence": {"hub": acc, "out_degree_window": len(cps),
-                                          "window_hours": window_hours, "counterparties": sorted(cps)}})
+                                          "window_hours": window_hours, "legit_hub_factor": round(factor, 2),
+                                          "counterparties": sorted(cps)}})
     return findings
 
 
@@ -85,7 +110,7 @@ def detect_communities(graph, accounts, transactions) -> list[dict]:
         ug.add_edge(a, b, weight=amt)
     if ug.number_of_nodes() == 0:
         return findings
-    part = community_louvain.best_partition(ug)
+    part = community_louvain.best_partition(ug, random_state=42)  # deterministic for the demo
     comms = defaultdict(list)
     for node, c in part.items():
         comms[c].append(node)

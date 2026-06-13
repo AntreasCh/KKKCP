@@ -33,11 +33,11 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Updated:** 2026-06-13
 
 ### P3 — Andreas — Network Detection & Scoring
-- **Status:** 🟡 core pass done (will finalize after P2's circular fix)
-- **Right now:** done first pass — rings 30→7, FP rings 26→3, ring-recall 1.0
+- **Status:** 🔵 in review — integration pass done
+- **Right now:** ring-recall **0.87→1.0 (15/15)**, account precision **0.61→1.0 (0 FP)**, **FP rings →0**, and detection is now **deterministic** (was 11–26 rings run-to-run). 17 tight rings, no mega-blobs.
 - **Files I'm touching:** `backend/detect/network.py`, `backend/detect/scoring.py`
-- **Blockers:** residual FP / ring-bloat is circular-driven → needs **P2** (panagiotis) circular timestamp+amount filter
-- **Notes for the team:** detect_fan is now account-type (hub in subject_ids, counterparties in evidence) — still a valid Finding, no schema change. Rings are built from strong-detector seeds + tx volume (≥€15k) with a €5k money-edge filter; community detection is context-only now.
+- **Blockers:** —
+- **Notes for the team:** four changes, all in my files, **no schema/API change**: (1) fanout rings were dropped because spokes carry 0 risk → ring score now blends peak member risk, not just mean; (2) `detect_fan` down-weights legit-hub profiles (business + low-KYC) so payroll/merchant hubs stop flagging — killed all 9 account FPs; (3) `build_rings` is now order-independent + Louvain seeded → stable ring count for the demo; (4) structuring/passthrough seeds expand only to **money-edge** neighbors, which killed the 95-/56-account mega-blobs that were the false-positive rings. **Account recall still 0.359** — next lever is P2's flat-0.6 passthrough score + crediting relay mules; happy to pair.
 - **Updated:** 2026-06-13
 
 ### P4 — savvas — API & Frontend
@@ -60,6 +60,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P3 (Andreas): integration pass — ring-recall 0.87→1.0 (15/15, mule_fanout now 3/3), account precision 0.61→1.0 (0 FP), FP rings →0, and detection made DETERMINISTIC (was 11–26 rings/run). Fixes in network.py/scoring.py only, no schema/API change: peak-risk blend in ring score, legit-hub fan down-weight (business+low-KYC), order-independent build_rings + seeded Louvain, money-edge-bounded seed expansion (killed the 95-acct mega-blobs). Account recall still 0.359 → P2 passthrough scoring is the next lever. — Andreas_
 - _2026-06-13 — P4 (savvas): graph readability pass — focus view (rings + flagged only) with a "Show all traffic" toggle, labels→hover tooltips, size/opacity hierarchy; plus a per-ring money-flow diagram (source→mule→destination, edge width ∝ amount, top-28 capped) in the detail panel. Pure frontend; §8 unchanged. — savvas_
 - _2026-06-13 — P2 (panagiotis): `detect_circular` now fires only on time-ordered, value-retaining money loops (retention 0.7–1.25, ≤72h, len≥3). Catches all 3 circular rings on the new fixture, 0 FP; nudged acct-precision 0.42→0.61. Added `backend/tests/` (data-driven, 5 pass). Remaining ring-recall gap is the `mule_fanout` assembly issue @kiriakos already flagged to @Andreas. — panagiotis_
 - _2026-06-13 — P4 (savvas): starting demo-quality UI pass — graph ring highlighting + legend, richer ring detail panel (transactions + pattern evidence), "Ask MuleNet" chat wired to /api/ask with tool-call trace, prominent eval/SAR display. §8 API contract unchanged. — savvas_

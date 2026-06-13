@@ -24,6 +24,7 @@ MIN_RING_VOLUME = 15_000  # EUR of transactions among members — laundering mov
 MIN_RING_SCORE = 0.45
 MIN_RING_SIZE = 3
 MONEY_EDGE = 5_000        # a seed must contain at least one transfer this large (kills legit-cycle noise)
+SEED_SCORE_FLOOR = 0.3    # a down-weighted account finding (e.g. legit hub) must not seed a ring
 
 
 def _has_money_edge(members: set[str], pair_amt: dict) -> bool:
@@ -68,45 +69,66 @@ def build_rings(findings: list[dict], account_risk: list[dict], transactions: li
     for f in findings:
         if f["detector"] not in STRONG:
             continue
+        # Account findings that were down-weighted (e.g. a legit business hub) must not
+        # seed a ring. Subgraph findings (circular) always seed — they're proof-carrying.
+        if f["subject_type"] == "account" and f["score"] < SEED_SCORE_FLOOR:
+            continue
         if f["subject_type"] == "subgraph":
             accts = set(f["subject_ids"])
         else:  # account finding — expand the hub to its counterparties
             hub = f["subject_ids"][0]
             cps = f["evidence"].get("counterparties")
-            accts = {hub} | (set(cps) if cps else (in_n[hub] | out_n[hub]))
+            if cps:
+                accts = {hub} | set(cps)
+            else:
+                # No explicit counterparty list (structuring / passthrough): expand ONLY to
+                # neighbors connected by a significant transfer. Expanding to every neighbor
+                # glued unrelated seeds into 90-account mega-blobs (imprecise + false-positive).
+                accts = {hub} | {n for n in (in_n[hub] | out_n[hub])
+                                 if pair_amt.get((hub, n), 0.0) >= MONEY_EDGE
+                                 or pair_amt.get((n, hub), 0.0) >= MONEY_EDGE}
         if len(accts) >= 2 and _has_money_edge(accts, pair_amt):
             seeds.append({"accts": accts, "patterns": {f["detector"]}, "max": f["score"]})
 
-    # 2) merge seeds that overlap (share >= 2 accounts)
+    # 2) merge seeds that overlap (share >= 2 accounts). DETERMINISTIC order: highest score
+    #    first, ties broken by the member set itself — so ring assembly never depends on
+    #    detector emit order or Python's per-process hash seed (otherwise the ring count
+    #    drifts run-to-run, which wrecks a live demo).
     merged: list[dict] = []
-    for s in sorted(seeds, key=lambda s: -s["max"]):
+    for s in sorted(seeds, key=lambda s: (-s["max"], tuple(sorted(s["accts"])))):
         hit = next((m for m in merged if len(s["accts"] & m["accts"]) >= 2), None)
         if hit:
             hit["accts"] |= s["accts"]
             hit["patterns"] |= s["patterns"]
+            hit["max"] = max(hit["max"], s["max"])
         else:
             merged.append(s)
 
-    # 3) score + threshold
-    rings, rid = [], 0
+    # 3) score + threshold (iterate members sorted so the volume sum is bit-for-bit stable)
+    rings = []
     for m in merged:
-        members = m["accts"]
+        members = sorted(m["accts"])
         if len(members) < MIN_RING_SIZE:
             continue
         vol = sum(pair_amt[(a, b)] for a in members for b in members if (a, b) in pair_amt)
         txids = [tx for a in members for b in members for tx in pair_tx.get((a, b), [])]
         mrisk = [risk_map.get(a, 0.0) for a in members]
         avg_risk = sum(mrisk) / len(mrisk) if mrisk else 0.0
+        max_risk = max(mrisk) if mrisk else 0.0
+        # A real ring is ONE strong hub + many low-risk spokes (classic mule fan-out).
+        # Pure mean risk dilutes the hub to ~0, so blend in the peak member risk.
+        risk_term = 0.6 * max_risk + 0.4 * avg_risk
         diversity = min(1.0, 0.25 * len(m["patterns"]))
         vol_factor = min(1.0, vol / 50_000)
-        score = round(0.5 * avg_risk + 0.2 * diversity + 0.3 * vol_factor, 3)
+        score = round(0.5 * risk_term + 0.2 * diversity + 0.3 * vol_factor, 3)
         if score < MIN_RING_SCORE or vol < MIN_RING_VOLUME:
             continue
-        rid += 1
-        rings.append({"ring_id": f"DET_{rid:03d}", "account_ids": sorted(members),
-                      "tx_ids": txids, "patterns": sorted(m["patterns"]),
-                      "key_accounts": sorted(members, key=lambda a: -risk_map.get(a, 0.0))[:3],
+        rings.append({"account_ids": members, "tx_ids": txids, "patterns": sorted(m["patterns"]),
+                      "key_accounts": sorted(members, key=lambda a: (-risk_map.get(a, 0.0), a))[:3],
                       "score": score, "narrative": None})
 
-    rings.sort(key=lambda r: -r["score"])
+    # stable ordering + ids: score desc, then first account id; assign DET_xxx after sorting
+    rings.sort(key=lambda r: (-r["score"], r["account_ids"][0]))
+    for i, r in enumerate(rings, 1):
+        r["ring_id"] = f"DET_{i:03d}"
     return rings
