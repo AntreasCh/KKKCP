@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MuleNet — Money-Laundering Network Detector</title>
+  <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>🕸️ MuleNet</h1>
+      <span class="tag">Money-Laundering Network Detector · team KKKCP</span>
+    </div>
+    <div class="controls">
+      <button id="gen">↻ Generate dataset</button>
+      <span id="summary" class="summary">loading…</span>
+    </div>
+  </header>
+
+  <main>
+    <section id="graph"></section>
+    <aside id="side">
+      <div id="eval" class="card metric">eval…</div>
+      <h2>Detected rings</h2>
+      <div id="rings" class="rings"></div>
+      <div id="detail" class="card hidden"></div>
+    </aside>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

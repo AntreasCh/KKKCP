@@ -1,0 +1,159 @@
+{
+  "mule_accounts": [
+    "ACC00060",
+    "ACC00164",
+    "ACC00200",
+    "ACC00325",
+    "ACC00368",
+    "ACC00425",
+    "ACC00512",
+    "ACC00551",
+    "ACC00570",
+    "ACC00584"
+  ],
+  "rings": [
+    {
+      "ring_id": "TRUE_001",
+      "account_ids": [
+        "ACC00512",
+        "ACC00596",
+        "ACC00339",
+        "ACC00013",
+        "ACC00278",
+        "ACC00476",
+        "ACC00022"
+      ],
+      "tx_ids": [
+        "TX002501",
+        "TX002502",
+        "TX002503",
+        "TX002504",
+        "TX002505",
+        "TX002506",
+        "TX002507"
+      ],
+      "patterns": [
+        "structuring"
+      ]
+    },
+    {
+      "ring_id": "TRUE_002",
+      "account_ids": [
+        "ACC00164",
+        "ACC00325",
+        "ACC00425"
+      ],
+      "tx_ids": [
+        "TX002508",
+        "TX002509",
+        "TX002510"
+      ],
+      "patterns": [
+        "circular"
+      ]
+    },
+    {
+      "ring_id": "TRUE_003",
+      "account_ids": [
+        "ACC00368",
+        "ACC00158",
+        "ACC00018",
+        "ACC00430",
+        "ACC00083",
+        "ACC00410",
+        "ACC00358",
+        "ACC00557",
+        "ACC00086",
+        "ACC00146",
+        "ACC00138",
+        "ACC00029"
+      ],
+      "tx_ids": [
+        "TX002511",
+        "TX002512",
+        "TX002513",
+        "TX002514",
+        "TX002515",
+        "TX002516",
+        "TX002517",
+        "TX002518",
+        "TX002519",
+        "TX002520",
+        "TX002521"
+      ],
+      "patterns": [
+        "mule_fanin"
+      ]
+    },
+    {
+      "ring_id": "TRUE_004",
+      "account_ids": [
+        "ACC00200",
+        "ACC00110",
+        "ACC00230",
+        "ACC00553",
+        "ACC00042",
+        "ACC00045",
+        "ACC00281",
+        "ACC00589",
+        "ACC00549"
+      ],
+      "tx_ids": [
+        "TX002522",
+        "TX002523",
+        "TX002524",
+        "TX002525",
+        "TX002526",
+        "TX002527",
+        "TX002528",
+        "TX002529"
+      ],
+      "patterns": [
+        "mule_fanout"
+      ]
+    },
+    {
+      "ring_id": "TRUE_005",
+      "account_ids": [
+        "ACC00269",
+        "ACC00570",
+        "ACC00551",
+        "ACC00060",
+        "ACC00399"
+      ],
+      "tx_ids": [
+        "TX002530",
+        "TX002531",
+        "TX002532",
+        "TX002533"
+      ],
+      "patterns": [
+        "layering"
+      ]
+    },
+    {
+      "ring_id": "TRUE_006",
+      "account_ids": [
+        "ACC00584",
+        "ACC00510",
+        "ACC00453",
+        "ACC00538",
+        "ACC00492",
+        "ACC00251",
+        "ACC00322"
+      ],
+      "tx_ids": [
+        "TX002534",
+        "TX002535",
+        "TX002536",
+        "TX002537",
+        "TX002538",
+        "TX002539",
+        "TX002540"
+      ],
+      "patterns": [
+        "structuring"
+      ]
+    }
+  ]
+}

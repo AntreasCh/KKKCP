@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+networkx
+python-louvain
+numpy
+pandas
+pydantic>=2
+boto3
+anthropic
+pytest
