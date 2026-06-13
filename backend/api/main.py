@@ -27,7 +27,10 @@ SAMPLE = ROOT / "sample_data"
 FRONTEND = ROOT / "frontend"
 
 app = FastAPI(title="MuleNet API")
-STATE: dict = {"dataset": None, "labels": None, "result": None, "live": None}
+# freeze_threshold: accounts at/above this risk are auto-frozen. manual: account ids whose status
+# was set by a human reviewer (block/ban/clear) — these are sticky and ignore the auto-freeze.
+STATE: dict = {"dataset": None, "labels": None, "result": None, "live": None,
+               "freeze_threshold": 0.9, "manual": set()}
 
 # ── watchlist screening (synthetic, deterministic per account) ──────────────
 # Mirrors a real AML stack screening every customer against sanctions / PEP /
@@ -61,6 +64,7 @@ def _screening(acc: dict, risk: float) -> list[dict]:
 
 def _recompute():
     STATE["result"] = pipeline.run(STATE["dataset"])
+    _apply_freeze()  # auto-freeze ≥ threshold every time risk is recomputed
 
 
 def _load_committed():
@@ -100,6 +104,7 @@ class GenReq(BaseModel):
 @app.post("/api/dataset/generate")
 def gen(req: GenReq):
     STATE["live"] = None
+    STATE["manual"] = set()  # fresh dataset → forget prior manual decisions
     STATE["dataset"], STATE["labels"] = generate_dataset(req.n_accounts, req.n_legit_tx, req.n_rings, req.seed)
     _recompute()
     return {"dataset_id": f"seed{req.seed}", "summary": _summary()}
@@ -273,10 +278,40 @@ def analyze(acc_id: str):
 
 
 # ── enforcement: risk-threshold freezing + manual review (§6) ────────────────
-# Mutates Account.status (active → frozen → blocked/banned/cleared) on the in-memory
-# dataset, so the table/inspector reflect it. Resets to "active" on regenerate/restart.
+# Mutates Account.status on the in-memory dataset. Auto-freeze tracks freeze_threshold;
+# accounts a human reviewed (block/ban/clear) are sticky and ignore the auto-freeze.
 _RISK = lambda: {a["account_id"]: a["risk"] for a in STATE["result"]["account_risk"]}
 _DECISIONS = {"block": "blocked", "ban": "banned", "clear": "active", "freeze": "frozen"}
+
+
+def _apply_freeze():
+    """(Re)apply the auto-freeze: status='frozen' when risk ≥ threshold, else 'active' — except
+    accounts in STATE['manual'] (a human already decided those), which are left untouched."""
+    if not STATE.get("result"):
+        return
+    risk = _RISK()
+    thr = STATE.get("freeze_threshold", 0.9)
+    manual = STATE.setdefault("manual", set())
+    for a in STATE["dataset"]["accounts"]:
+        if a["account_id"] in manual:
+            continue
+        a["status"] = "frozen" if risk.get(a["account_id"], 0) >= thr else "active"
+
+
+def _freeze_reason(acc_id: str, risk: float) -> dict:
+    """Why this account is under enforcement: threshold + the detector findings that drove the risk."""
+    thr = STATE.get("freeze_threshold", 0.9)
+    fs = [f for f in STATE["result"]["findings"] if acc_id in f["subject_ids"]]
+    patterns = sorted({f["detector"] for f in fs})
+    manual = acc_id in STATE.get("manual", set())
+    return {
+        "threshold": thr,
+        "auto": not manual,
+        "summary": (f"Risk {risk*100:.0f}% ≥ freeze threshold {thr*100:.0f}%"
+                    if risk >= thr else f"Risk {risk*100:.0f}% (manually actioned)"),
+        "patterns": patterns,
+        "findings": fs[:10],
+    }
 
 
 class FreezeReq(BaseModel):
@@ -287,38 +322,52 @@ class DecisionReq(BaseModel):
     action: str  # block | ban | clear | freeze
 
 
+@app.get("/api/freeze")
+def freeze_config():
+    """Current auto-freeze threshold + how many accounts are frozen/under review."""
+    n = sum(1 for a in STATE["dataset"]["accounts"] if a.get("status", "active") != "active")
+    return {"threshold": STATE.get("freeze_threshold", 0.9), "under_review": n}
+
+
 @app.post("/api/freeze")
 def freeze(req: FreezeReq):
-    """Freeze every still-active account whose risk ≥ threshold; returns the frozen list."""
+    """Set the auto-freeze threshold and re-apply it. Manual decisions are preserved."""
+    STATE["freeze_threshold"] = max(0.0, min(1.0, req.threshold))
+    _apply_freeze()
     risk = _RISK()
-    frozen = []
-    for a in STATE["dataset"]["accounts"]:
-        if a.get("status", "active") == "active" and risk.get(a["account_id"], 0) >= req.threshold:
-            a["status"] = "frozen"
-            frozen.append(a["account_id"])
-    return {"threshold": req.threshold, "frozen": frozen, "count": len(frozen)}
+    frozen = [a["account_id"] for a in STATE["dataset"]["accounts"] if a.get("status") == "frozen"]
+    return {"threshold": STATE["freeze_threshold"], "frozen": frozen, "count": len(frozen)}
 
 
 @app.get("/api/frozen")
 def frozen():
-    """The review queue: accounts under enforcement (frozen/blocked/banned), highest risk first."""
+    """The review queue: accounts under enforcement (frozen/blocked/banned), highest risk first.
+    Each carries a `reason` (threshold + the patterns/findings that drove the risk)."""
     risk = _RISK()
-    out = [{"account_id": a["account_id"], "owner_name": a.get("owner_name"),
-            "status": a.get("status", "active"), "risk": round(risk.get(a["account_id"], 0), 3)}
-           for a in STATE["dataset"]["accounts"] if a.get("status", "active") != "active"]
+    out = []
+    for a in STATE["dataset"]["accounts"]:
+        st = a.get("status", "active")
+        if st == "active":
+            continue
+        r = round(risk.get(a["account_id"], 0), 3)
+        out.append({"account_id": a["account_id"], "owner_name": a.get("owner_name"),
+                    "account_type": a.get("account_type"), "kyc_risk": a.get("kyc_risk"),
+                    "status": st, "risk": r, "reason": _freeze_reason(a["account_id"], r)})
     out.sort(key=lambda x: -x["risk"])
     return out
 
 
 @app.post("/api/accounts/{acc_id}/decision")
 def decision(acc_id: str, req: DecisionReq):
-    """Record a reviewer's decision on an account: block / ban / clear (unfreeze) / freeze."""
+    """Record a reviewer's decision on an account: block / ban / clear (unfreeze) / freeze.
+    The decision is sticky — it overrides the auto-freeze until the dataset is regenerated."""
     amap = {a["account_id"]: a for a in STATE["dataset"]["accounts"]}
     if acc_id not in amap:
         raise HTTPException(404, "account not found")
     if req.action not in _DECISIONS:
         raise HTTPException(400, f"invalid action (expected one of {list(_DECISIONS)})")
     amap[acc_id]["status"] = _DECISIONS[req.action]
+    STATE.setdefault("manual", set()).add(acc_id)  # sticky: ignore auto-freeze from now on
     return {"account_id": acc_id, "status": amap[acc_id]["status"]}
 
 

@@ -1269,60 +1269,111 @@ $("gen").onclick = async () => {
 
 refresh();
 
-// ── compliance: freeze-by-threshold + manual review (§6) ────────────────────
-// Admin sets a risk % threshold → freeze matching accounts → review queue → per
-// account block / ban / clear. Mutates Account.status server-side (in-memory).
+// ── compliance: auto-freeze-by-threshold + manual review (§6) ───────────────
+// Accounts ≥ the threshold are auto-frozen (default 90%); moving the slider re-applies
+// it live. Each frozen account opens a review modal (info + why frozen) → block/ban/clear.
 var INSPECTED_ACCT = null;   // var (hoisted) so showAccount can set it safely
+let FZ_QUEUE = {};           // account_id -> queue item (incl. reason) for the review modal
 
 function fzPreview() {
   const t = +$("fz-threshold").value;
   $("fz-val").textContent = t;
-  const n = ALL_ACCOUNTS.filter((a) => (a.risk * 100) >= t && (a.status || "active") === "active").length;
-  $("fz-preview").textContent = `will freeze ${n} account${n === 1 ? "" : "s"} ≥ ${t}%`;
+  const n = ALL_ACCOUNTS.filter((a) => (a.risk * 100) >= t).length;
+  $("fz-preview").textContent = `${n} account${n === 1 ? "" : "s"} at risk ≥ ${t}%`;
 }
 
 async function fzRenderQueue() {
   const q = await fetch("/api/frozen").then((r) => r.json());
+  FZ_QUEUE = {};
+  q.forEach((a) => { FZ_QUEUE[a.account_id] = a; });
   $("fz-count").textContent = q.length ? `${q.length} under review` : "none";
   $("fz-queue").innerHTML = q.length
     ? q.map((a) =>
-        `<div class="fz-item"><div class="fz-meta">` +
-          `<b class="fz-id" onclick="showAccount('${esc(a.account_id)}')">${esc(a.account_id)}</b>` +
+        `<div class="fz-item"><div class="fz-meta" onclick="openReview('${esc(a.account_id)}')">` +
+          `<b class="fz-id">${esc(a.account_id)}</b>` +
           `<span class="fz-status st-${esc(a.status)}">${esc(a.status)}</span>` +
           `<span class="subtle">${esc(a.owner_name || "")} · risk ${(a.risk * 100).toFixed(0)}%</span>` +
         `</div><div class="fz-actions">` +
+          `<button class="fz-act review" onclick="openReview('${esc(a.account_id)}')">Review</button>` +
           `<button class="fz-act block" onclick="acctDecision('${esc(a.account_id)}','block')">Block</button>` +
-          `<button class="fz-act ban" onclick="acctDecision('${esc(a.account_id)}','ban')">Ban</button>` +
           `<button class="fz-act clear" onclick="acctDecision('${esc(a.account_id)}','clear')">Clear</button>` +
         `</div></div>`).join("")
-    : `<div class="np-empty"><span class="ico">🔒</span>No accounts under review.<br/>Set a threshold and click Freeze.</div>`;
+    : `<div class="np-empty"><span class="ico">🔒</span>No accounts under review at this threshold.</div>`;
 }
 
-async function doFreeze() {
-  const pct = +$("fz-threshold").value;
+async function applyThreshold(pct, notify) {
   const r = await fetch("/api/freeze", { method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ threshold: pct / 100 }) }).then((x) => x.json());
   await loadAccounts();   // refresh cached statuses (table chips + preview)
   fzPreview();
   await fzRenderQueue();
-  toast(`<span class="t-ico">🔒</span><div class="t-body"><b>Froze ${r.count} account${r.count === 1 ? "" : "s"}</b>` +
+  if (notify) toast(`<span class="t-ico">🔒</span><div class="t-body"><b>Auto-froze ${r.count} account${r.count === 1 ? "" : "s"}</b>` +
     `<small>risk ≥ ${pct}% — pending review</small></div>`);
 }
 
 async function acctDecision(id, action) {
-  await fetch(`/api/accounts/${id}/decision`, { method: "POST", headers: { "Content-Type": "application/json" },
+  const res = await fetch(`/api/accounts/${id}/decision`, { method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action }) }).then((x) => x.json());
   await loadAccounts();
   if (!$("freeze-panel").classList.contains("hidden")) await fzRenderQueue();
-  if (INSPECTED_ACCT === id) showAccount(id);   // refresh the open inspector
+  if (INSPECTED_ACCT === id) showAccount(id);                  // refresh the open inspector
+  if (!$("review-modal").classList.contains("hidden") && $("rv-title").textContent === id) {
+    const st = $("rv-status"); st.textContent = res.status; st.className = `fz-status st-${res.status}`;
+  }
+  return res;
 }
 window.acctDecision = acctDecision;
 
-function toggleFreeze() {
+// review modal: account info + the reason it's under review + the decision actions
+function openReview(id) {
+  const a = FZ_QUEUE[id];
+  if (!a) return;
+  const m = a.reason || {};
+  $("rv-title").textContent = id;
+  const st = $("rv-status"); st.textContent = a.status; st.className = `fz-status st-${a.status}`;
+  $("rv-body").innerHTML =
+    `<div class="rv-grid">` +
+      `<div><span class="rv-k">Owner</span><span class="rv-v">${esc(a.owner_name || "—")}</span></div>` +
+      `<div><span class="rv-k">Type</span><span class="rv-v">${esc(a.account_type || "—")}</span></div>` +
+      `<div><span class="rv-k">KYC</span><span class="rv-v"><span class="kyc-pill kyc-${esc(a.kyc_risk || "low")}">${esc(a.kyc_risk || "—")}</span></span></div>` +
+      `<div><span class="rv-k">Risk</span><span class="rv-v"><span class="risk-chip ${riskTier(a.risk)}">${(a.risk * 100).toFixed(0)}</span></span></div>` +
+    `</div>` +
+    `<div class="rv-reason"><div class="rv-reason-head">🔒 Why this account is under review</div>` +
+      `<p>${esc(m.summary || "Frozen for manual review.")}</p>` +
+      ((m.patterns && m.patterns.length)
+        ? `<div class="rv-pats">${m.patterns.map((p) => `<span class="pill">${esc(p)}</span>`).join("")}</div>` : "") +
+    `</div>` +
+    ((m.findings && m.findings.length)
+      ? `<div class="section-label">Detector triggers (${m.findings.length})</div>` +
+        `<div class="evidence">${m.findings.map((f) =>
+          `<div class="ev"><div class="ev-head"><span class="ev-tag">${esc(f.detector)}</span>` +
+          `<span class="ev-score">score ${(f.score * 100).toFixed(0)}</span></div>` +
+          `<div class="ev-body">${evidenceText(f)}</div></div>`).join("")}</div>`
+      : `<p class="subtle">No detector findings — frozen on the aggregate risk score alone.</p>`) +
+    `<div class="rv-actions">` +
+      `<button class="fz-act block" onclick="acctDecision('${esc(id)}','block')">Block</button>` +
+      `<button class="fz-act ban" onclick="acctDecision('${esc(id)}','ban')">Ban</button>` +
+      `<button class="fz-act clear" onclick="acctDecision('${esc(id)}','clear')">Clear (unfreeze)</button>` +
+      `<button class="btn-ghost" onclick="$('review-modal').classList.add('hidden');showAccount('${esc(id)}')">Open full inspector →</button>` +
+    `</div>`;
+  $("review-modal").classList.remove("hidden");
+}
+window.openReview = openReview;
+
+async function toggleFreeze() {
   const opened = $("freeze-panel").classList.toggle("hidden") === false;
-  if (opened) { fzPreview(); fzRenderQueue(); }
+  if (!opened) return;
+  try {   // sync the slider to the server's current threshold, then show the live queue
+    const cfg = await fetch("/api/freeze").then((r) => r.json());
+    $("fz-threshold").value = Math.round((cfg.threshold ?? 0.9) * 100);
+  } catch (e) {}
+  fzPreview();
+  fzRenderQueue();
 }
 $("freeze-btn").onclick = (e) => { e.stopPropagation(); toggleFreeze(); };
 $("freeze-close").onclick = () => $("freeze-panel").classList.add("hidden");
-$("fz-threshold").oninput = fzPreview;
-$("fz-freeze").onclick = doFreeze;
+$("fz-threshold").oninput = fzPreview;                                       // live label while dragging
+$("fz-threshold").onchange = (e) => applyThreshold(+e.target.value, true);   // re-freeze on release
+$("fz-freeze").onclick = () => applyThreshold(+$("fz-threshold").value, true);
+$("rv-close").onclick = () => $("review-modal").classList.add("hidden");
+$("review-modal").addEventListener("click", (e) => { if (e.target.id === "review-modal") $("review-modal").classList.add("hidden"); });
