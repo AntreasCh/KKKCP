@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MuleNet — Operator / Admin Access (local prototype)</title>
+<!--
+  LOCAL ROLE-ACCESS PROTOTYPE — proves operator-vs-admin gating of the §6 auto-freeze.
+  Self-contained: a NEW file (touches none of P4's active files); served at /login.html by the
+  existing static mount. It gates the REAL control (GET/POST /api/freeze).
+
+  ⚠️ This is a CONCEPT PROOF for local checking, not production security: the role gate is
+  CLIENT-SIDE only — the backend POST /api/freeze isn't yet protected, so a determined user could
+  still curl it. Real enforcement = a backend role check in api/main.py (P4's lane). See note below.
+-->
+<style>
+  :root{--bg:#0e1116;--panel:#161b22;--line:#272e3a;--ink:#e6edf3;--mut:#8b97a7;
+        --accent:#58a6ff;--admin:#d29922;--op:#3fb950;--bad:#f85149;--chip:#0c1017}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,Segoe UI,Roboto,Arial,sans-serif;
+       min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .wrap{width:min(440px,92vw)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 26px 22px}
+  h1{margin:0 0 2px;font-size:20px} .tag{color:var(--mut);font-size:12.5px;margin-bottom:20px}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:14px 0 5px}
+  input[type=text],input[type=password]{width:100%;background:var(--chip);border:1px solid var(--line);border-radius:8px;
+       padding:10px 12px;color:var(--ink);font-size:14px}
+  input:focus{outline:none;border-color:var(--accent)}
+  button{cursor:pointer;border:none;border-radius:8px;font-size:14px;font-weight:600;padding:11px 16px}
+  .primary{background:var(--accent);color:#04101f;width:100%;margin-top:20px}
+  .ghost{background:var(--chip);border:1px solid var(--line);color:var(--ink)}
+  .err{color:var(--bad);font-size:13px;margin-top:12px;min-height:18px}
+  .hint{font-size:11.5px;color:var(--mut);margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+  .hint code{background:var(--chip);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--accent)}
+  /* console */
+  .who{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .badge{font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em}
+  .badge.admin{background:#3a2c08;color:var(--admin);border:1px solid var(--admin)}
+  .badge.operator{background:#10301b;color:var(--op);border:1px solid var(--op)}
+  .metric{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+  .metric b{font-variant-numeric:tabular-nums}
+  .ctl{margin-top:18px;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .ctl.locked{opacity:.65}
+  .row{display:flex;align-items:center;gap:12px}
+  input[type=range]{flex:1}
+  .lock{color:var(--admin);font-size:12.5px;margin-top:10px}
+  .ok{color:var(--op);font-size:12.5px;margin-top:10px;min-height:16px}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <div class="card" id="login">
+    <h1>🔒 MuleNet Access</h1>
+    <div class="tag">Sign in — your role decides what you can change.</div>
+    <label>Username</label>
+    <input id="u" type="text" autocomplete="username" placeholder="operator or admin" />
+    <label>Password</label>
+    <input id="p" type="password" autocomplete="current-password" placeholder="••••••••" />
+    <button class="primary" id="signin">Sign in</button>
+    <div class="err" id="err"></div>
+    <div class="hint">Local prototype accounts —
+      <code>admin / admin123</code> (can change auto-freeze) ·
+      <code>operator / operator123</code> (view only).</div>
+  </div>
+
+  <!-- CONSOLE (after login) -->
+  <div class="card" id="console" style="display:none">
+    <div class="who">
+      <div><h1 style="font-size:17px;margin:0">Auto-Freeze Policy</h1>
+        <div class="tag" style="margin:0" id="hello"></div></div>
+      <span class="badge" id="role"></span>
+    </div>
+    <div class="metric"><span>Current freeze threshold</span><b id="thr">—</b></div>
+    <div class="metric"><span>Accounts auto-frozen now</span><b id="frz">—</b></div>
+    <div class="metric"><span>Under review</span><b id="rev">—</b></div>
+
+    <div class="ctl" id="ctl">
+      <label style="margin-top:0">Freeze accounts at risk ≥ <span id="lab">90</span>%</label>
+      <div class="row">
+        <input id="slider" type="range" min="50" max="100" step="1" value="90" />
+        <button class="ghost" id="apply">Apply</button>
+      </div>
+      <div class="lock" id="lockmsg" style="display:none">🔒 Admin only — ask an admin to change the auto-freeze policy.</div>
+      <div class="ok" id="okmsg"></div>
+    </div>
+
+    <button class="ghost" id="logout" style="margin-top:18px;width:100%">Sign out</button>
+    <div class="hint">Prototype gate is client-side (to check operability). Real enforcement = a role check on
+      <code>POST /api/freeze</code> in <code>api/main.py</code> — P4's lane. &nbsp;·&nbsp; <a href="/">← app</a></div>
+  </div>
+
+</div>
+<script>
+// Local-only demo credentials. NOT production auth — a concept proof to check operability.
+const USERS = { admin:{pw:"admin123",role:"admin"}, operator:{pw:"operator123",role:"operator"} };
+const $ = id => document.getElementById(id);
+
+function showError(m){ $("err").textContent = m; }
+
+async function refresh(){
+  try{
+    const f = await fetch("/api/freeze").then(r=>r.json());
+    const frozen = await fetch("/api/frozen").then(r=>r.json());
+    $("thr").textContent = Math.round(f.threshold*100) + "%";
+    $("frz").textContent = Array.isArray(frozen) ? frozen.length : (frozen.count ?? "—");
+    $("rev").textContent = f.under_review ?? "—";
+    $("slider").value = Math.round(f.threshold*100);
+    $("lab").textContent = Math.round(f.threshold*100);
+  }catch(e){ $("okmsg").textContent = ""; $("thr").textContent = "API down?"; }
+}
+
+function enterConsole(role, name){
+  $("login").style.display = "none";
+  $("console").style.display = "block";
+  $("role").textContent = role;
+  $("role").className = "badge " + role;
+  $("hello").textContent = "Signed in as " + name;
+  const isAdmin = role === "admin";
+  $("slider").disabled = !isAdmin;
+  $("apply").style.display = isAdmin ? "" : "none";
+  $("ctl").classList.toggle("locked", !isAdmin);
+  $("lockmsg").style.display = isAdmin ? "none" : "block";
+  refresh();
+}
+
+$("signin").onclick = ()=>{
+  const u = $("u").value.trim().toLowerCase(), p = $("p").value;
+  const rec = USERS[u];
+  if(!rec || rec.pw !== p){ showError("Invalid username or password."); return; }
+  sessionStorage.setItem("mulenet_role", rec.role);
+  sessionStorage.setItem("mulenet_user", u);
+  enterConsole(rec.role, u);
+};
+$("p").addEventListener("keydown", e=>{ if(e.key==="Enter") $("signin").click(); });
+
+$("slider").oninput = ()=>{ $("lab").textContent = $("slider").value; };
+
+$("apply").onclick = async ()=>{
+  if(sessionStorage.getItem("mulenet_role") !== "admin"){ return; }  // gate
+  const thr = Number($("slider").value)/100;
+  try{
+    await fetch("/api/freeze", {method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({threshold: thr})});
+    $("okmsg").textContent = "✓ Auto-freeze threshold set to " + $("slider").value + "% — accounts re-evaluated.";
+    refresh();
+  }catch(e){ $("okmsg").textContent = "Failed to apply."; }
+};
+
+$("logout").onclick = ()=>{
+  sessionStorage.removeItem("mulenet_role"); sessionStorage.removeItem("mulenet_user");
+  $("console").style.display="none"; $("login").style.display="block";
+  $("u").value=""; $("p").value=""; showError("");
+};
+
+// resume a session if already signed in this tab
+const r = sessionStorage.getItem("mulenet_role"), n = sessionStorage.getItem("mulenet_user");
+if(r && n) enterConsole(r, n);
+</script>
+</body>
+</html>
