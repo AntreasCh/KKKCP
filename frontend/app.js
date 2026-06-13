@@ -558,3 +558,121 @@ if ($("f-under-review"))
   $("f-under-review").onchange = (e) => { FILTERS.underReview = e.target.checked; renderAccountsTable(); };
 if ($("rv-close")) $("rv-close").onclick = () => $("review-modal").classList.add("hidden");
 if ($("review-modal")) $("review-modal").addEventListener("click", (e) => { if (e.target.id === "review-modal") $("review-modal").classList.add("hidden"); });
+
+// ── "Ask MuleNet" copilot — floating chat widget (P5) ───────────────────────────
+// A tool-using agent: the backend gives the model tools to inspect rings/accounts/trace
+// money, runs an agentic loop, and returns {answer, tool_calls, source}. We render the
+// conversation as chat bubbles + a collapsible "investigation" trace for transparency.
+const CHAT = { open: false, busy: false, history: [] };
+
+function chatOpen() {
+  CHAT.open = true;
+  $("chat-panel").classList.remove("hidden");
+  $("chat-fab").classList.add("hidden");
+  if (!CHAT.history.length) chatRenderEmpty();
+  setTimeout(() => $("chat-input").focus(), 80);
+}
+function chatClose() {
+  CHAT.open = false;
+  $("chat-panel").classList.add("hidden");
+  $("chat-fab").classList.remove("hidden");
+}
+function chatRenderEmpty() {
+  $("chat-log").innerHTML =
+    `<div class="chat-empty"><div class="ce-ico">🕸️</div>` +
+    `<p><b>Ask MuleNet anything</b> about the detected network.<br/>` +
+    `I investigate the rings, accounts and money trails with tools, then answer — try a suggestion below.</p></div>`;
+}
+function chatStatus(source) {
+  const dot = $("chat-status-dot"), label = $("chat-status");
+  dot.className = "ch-dot";
+  if (source === "error" || source === "disabled") { dot.classList.add("err"); label.textContent = source === "disabled" ? "AI offline" : "error"; }
+  else if (source) { dot.classList.add("ok"); label.textContent = "via " + source; }
+  else { label.textContent = "AI analyst"; }
+}
+
+// very small, safe markdown-ish: **bold**, `code`, and line breaks (input already escaped)
+function chatFormat(text) {
+  return esc(text)
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+    .replace(/`([^`]+?)`/g, "<code>$1</code>");
+}
+
+function chatAddUser(text) {
+  if ($("chat-log").querySelector(".chat-empty")) $("chat-log").innerHTML = "";
+  const el = document.createElement("div");
+  el.className = "msg user";
+  el.innerHTML = `<div class="bubble">${esc(text)}</div>`;
+  $("chat-log").appendChild(el);
+  chatScroll();
+}
+
+function chatTrace(calls) {
+  if (!calls || !calls.length) return "";
+  const steps = calls.map((c) => {
+    const args = c.input && Object.keys(c.input).length ? JSON.stringify(c.input) : "{}";
+    const out = typeof c.output === "string" ? c.output : JSON.stringify(c.output, null, 2);
+    return `<div class="tstep"><div class="tstep-h"><span class="ts-tool">${esc(c.tool)}</span>` +
+      `<span class="ts-args">${esc(args)}</span></div><pre class="tstep-out">${esc(out)}</pre></div>`;
+  }).join("");
+  return `<details class="trace"><summary>🔍 Investigation · ${calls.length} step${calls.length === 1 ? "" : "s"}</summary>` +
+    `<div class="trace-steps">${steps}</div></details>`;
+}
+
+function chatAddBot(answer, calls, source) {
+  const el = document.createElement("div");
+  el.className = "msg bot";
+  el.innerHTML = `<div class="bubble">${chatFormat(answer)}</div>${chatTrace(calls)}` +
+    (source && source !== "error" && source !== "disabled" ? `<div class="msg-meta">via ${esc(source)}</div>` : "");
+  $("chat-log").appendChild(el);
+  chatScroll();
+}
+
+function chatTyping(on) {
+  let t = $("chat-typing");
+  if (on) {
+    if (t) return;
+    t = document.createElement("div");
+    t.id = "chat-typing"; t.className = "msg bot";
+    t.innerHTML = `<div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+    $("chat-log").appendChild(t);
+    chatScroll();
+  } else if (t) { t.remove(); }
+}
+function chatScroll() { const l = $("chat-log"); l.scrollTop = l.scrollHeight; }
+
+async function chatSend(text) {
+  text = (text || "").trim();
+  if (!text || CHAT.busy) return;
+  CHAT.busy = true;
+  $("chat-input").value = "";
+  $("chat-send").disabled = true;
+  $("chat-suggest").classList.add("hidden");
+  chatAddUser(text);
+  chatTyping(true);
+  let r;
+  try {
+    r = await fetch("/api/ask", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: text }),
+    }).then((x) => x.json());
+  } catch (e) {
+    r = { answer: "⚠️ Couldn't reach the analyst service. Is the server running?", tool_calls: [], source: "error" };
+  }
+  chatTyping(false);
+  chatAddBot(r.answer || "(no answer)", r.tool_calls, r.source);
+  chatStatus(r.source);
+  CHAT.busy = false;
+  if (CHAT.open) $("chat-input").focus();
+}
+
+// wiring
+if ($("chat-fab")) {
+  $("chat-fab").onclick = chatOpen;
+  $("chat-close").onclick = chatClose;
+  $("chat-clear").onclick = () => { CHAT.history = []; chatRenderEmpty(); $("chat-suggest").classList.remove("hidden"); chatStatus(null); };
+  $("chat-form").addEventListener("submit", (e) => { e.preventDefault(); chatSend($("chat-input").value); });
+  $("chat-input").addEventListener("input", (e) => { $("chat-send").disabled = !e.target.value.trim() || CHAT.busy; });
+  document.querySelectorAll(".cs-chip").forEach((b) => b.onclick = () => chatSend(b.dataset.q));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && CHAT.open) chatClose(); });
+}

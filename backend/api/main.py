@@ -307,6 +307,19 @@ def api_eval():
     return evaluate(STATE["result"], STATE["labels"])
 
 
+# ── "Ask MuleNet" copilot — a tool-using agent over the detection results (P5) ──
+class AskReq(BaseModel):
+    question: str
+
+
+@app.post("/api/ask")
+def ask(req: AskReq):
+    """'Ask MuleNet' analyst copilot — gives the LLM tools to query the detected rings, accounts
+    and findings, runs a bounded tool-use loop, then answers. Returns {answer, tool_calls, source}."""
+    from backend.ai.copilot import ask as copilot_ask
+    return copilot_ask(req.question, STATE["result"], STATE["dataset"], STATE["labels"])
+
+
 # Mount the static frontend LAST so /api/* routes win.
 if FRONTEND.exists():
     app.mount("/", StaticFiles(directory=str(FRONTEND), html=True), name="frontend")

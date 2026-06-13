@@ -113,6 +113,41 @@
   <!-- transient notification toasts -->
   <div id="toasts" class="toasts"></div>
 
+  <!-- ── "Ask MuleNet" copilot — floating chat widget (P5) ───────────────────── -->
+  <button id="chat-fab" class="chat-fab" title="Ask MuleNet — AI analyst">
+    <span class="cf-ico">💬</span><span class="cf-label">Ask MuleNet</span>
+  </button>
+
+  <div id="chat-panel" class="chat-panel hidden" role="dialog" aria-label="Ask MuleNet">
+    <div class="chat-head">
+      <div class="ch-title">
+        <span class="ch-avatar">🕸️</span>
+        <div class="ch-meta">
+          <b>Ask MuleNet</b>
+          <span class="ch-sub"><span id="chat-status-dot" class="ch-dot"></span><span id="chat-status">AI analyst</span></span>
+        </div>
+      </div>
+      <div class="ch-actions">
+        <button id="chat-clear" class="ch-btn" title="Clear conversation">🗑</button>
+        <button id="chat-close" class="ch-btn" title="Close">✕</button>
+      </div>
+    </div>
+
+    <div id="chat-log" class="chat-log"></div>
+
+    <div id="chat-suggest" class="chat-suggest">
+      <button class="cs-chip" data-q="What's the riskiest ring and why?">What's the riskiest ring and why?</button>
+      <button class="cs-chip" data-q="Summarise the laundering network in plain English.">Summarise the network</button>
+      <button class="cs-chip" data-q="Compare the top two detected rings.">Compare the top two rings</button>
+      <button class="cs-chip" data-q="Which accounts should I freeze first?">Who should I freeze first?</button>
+    </div>
+
+    <form id="chat-form" class="chat-form" autocomplete="off">
+      <input id="chat-input" type="text" placeholder="Ask about rings, accounts, money trails…" autocomplete="off" />
+      <button id="chat-send" type="submit" class="chat-send" title="Send" disabled>➤</button>
+    </form>
+  </div>
+
   <script src="/app.js"></script>
 </body>
 </html>
