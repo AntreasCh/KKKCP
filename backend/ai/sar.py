@@ -5,7 +5,7 @@ Order of preference: **OpenRouter** (any/free model) -> **Anthropic API** -> AWS
 deterministic template. The template means the demo NEVER depends on the network — AI is additive.
 
 Provider selection (by env var):
-  - OPENROUTER_API_KEY  -> OpenRouter (OpenAI-compatible); model from MULENET_MODEL
+  - OPENROUTER_API_KEY  -> OpenRouter (OpenAI-compatible); model from OPENROUTER_MODEL (or MULENET_MODEL)
   - ANTHROPIC_API_KEY   -> Anthropic; model from MULENET_MODEL (default claude-haiku-4-5)
 """
 from __future__ import annotations
@@ -16,9 +16,14 @@ import os
 # Configurable; tokens here are tiny/cheap. Shared with copilot.py.
 MODEL = os.getenv("MULENET_MODEL", "claude-haiku-4-5")
 
-# OpenRouter (OpenAI-compatible) — set OPENROUTER_API_KEY + MULENET_MODEL to use a free/any model.
+# OpenRouter (OpenAI-compatible) — set OPENROUTER_API_KEY + OPENROUTER_MODEL to use a free/any model.
 OPENROUTER_BASE = "https://openrouter.ai/api/v1"
-OPENROUTER_MODEL = os.getenv("MULENET_MODEL") or "nvidia/nemotron-3-ultra-550b-a55b:free"
+DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
+
+
+def _openrouter_model() -> str:
+    """The exact OpenRouter model slug to send. OPENROUTER_MODEL wins, then MULENET_MODEL."""
+    return os.getenv("OPENROUTER_MODEL") or os.getenv("MULENET_MODEL") or DEFAULT_OPENROUTER_MODEL
 
 
 def _openrouter_text(messages: list[dict], max_tokens: int = 800) -> str:
@@ -28,7 +33,7 @@ def _openrouter_text(messages: list[dict], max_tokens: int = 800) -> str:
     r = httpx.post(
         f"{OPENROUTER_BASE}/chat/completions",
         headers={"Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}"},
-        json={"model": OPENROUTER_MODEL, "messages": messages, "max_tokens": max_tokens},
+        json={"model": _openrouter_model(), "messages": messages, "max_tokens": max_tokens},
         timeout=120,
     )
     r.raise_for_status()

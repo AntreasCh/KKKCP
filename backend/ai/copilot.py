@@ -23,9 +23,16 @@ from collections import deque
 # Configurable; bump to a stronger model for deeper reasoning. Tokens here are tiny/cheap.
 MODEL = os.getenv("MULENET_MODEL", "claude-haiku-4-5")
 
-# OpenRouter (OpenAI-compatible) — set OPENROUTER_API_KEY + MULENET_MODEL to use a free/any model.
+# OpenRouter (OpenAI-compatible) — set OPENROUTER_API_KEY + OPENROUTER_MODEL to use a free/any model.
 OPENROUTER_BASE = "https://openrouter.ai/api/v1"
-OPENROUTER_MODEL = os.getenv("MULENET_MODEL") or "nvidia/nemotron-3-ultra-550b-a55b:free"
+DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
+
+
+def _openrouter_model() -> str:
+    """The exact OpenRouter model slug to send in the request (e.g. 'nvidia/nemotron-...:free').
+    Resolved at call-time so .env / env changes take effect. OPENROUTER_MODEL wins, then MULENET_MODEL.
+    """
+    return os.getenv("OPENROUTER_MODEL") or os.getenv("MULENET_MODEL") or DEFAULT_OPENROUTER_MODEL
 
 SYSTEM = (
     "You are MuleNet's AML analyst copilot. Use the provided tools to investigate the detected "
@@ -162,7 +169,7 @@ def _ask_openrouter(question: str, result: dict, dataset: dict) -> dict:
     try:
         for _ in range(8):  # bounded agentic loop
             r = httpx.post(f"{OPENROUTER_BASE}/chat/completions", headers=headers, timeout=120,
-                           json={"model": OPENROUTER_MODEL, "messages": messages,
+                           json={"model": _openrouter_model(), "messages": messages,
                                  "tools": oa_tools, "max_tokens": 1024})
             r.raise_for_status()
             msg = r.json()["choices"][0]["message"]
