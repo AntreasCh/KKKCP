@@ -6,7 +6,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-12-31",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00002",
@@ -14,15 +15,17 @@
       "account_type": "business",
       "country": "BG",
       "opened_at": "2025-10-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00003",
       "owner_name": "Limassol Retail Co",
       "account_type": "business",
-      "country": "GR",
-      "opened_at": "2024-08-10",
-      "kyc_risk": "low"
+      "country": "GB",
+      "opened_at": "2024-12-15",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00004",
@@ -30,7 +33,8 @@
       "account_type": "business",
       "country": "BG",
       "opened_at": "2023-11-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00005",
@@ -38,7 +42,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-11-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00006",
@@ -46,7 +51,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-09-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00007",
@@ -54,7 +60,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-09-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00008",
@@ -62,7 +69,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-08-10",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00009",
@@ -70,15 +78,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00010",
       "owner_name": "Marios C.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-05-13",
-      "kyc_risk": "medium"
+      "country": "RU",
+      "opened_at": "2026-03-27",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00011",
@@ -86,7 +96,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-03-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00012",
@@ -94,7 +105,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-04-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00013",
@@ -102,7 +114,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-01-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00014",
@@ -110,7 +123,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-27",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00015",
@@ -118,7 +132,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-01-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00016",
@@ -126,7 +141,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-10-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00017",
@@ -134,7 +150,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-01-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00018",
@@ -142,7 +159,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-09-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00019",
@@ -150,7 +168,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-11-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00020",
@@ -158,7 +177,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-02-24",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00021",
@@ -166,7 +186,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-03-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00022",
@@ -174,15 +195,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-10-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00023",
       "owner_name": "Helios Energy",
       "account_type": "business",
       "country": "GR",
-      "opened_at": "2024-12-12",
-      "kyc_risk": "low"
+      "opened_at": "2024-05-25",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00024",
@@ -190,7 +213,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-02-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00025",
@@ -198,7 +222,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-06-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00026",
@@ -206,7 +231,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2024-11-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00027",
@@ -214,7 +240,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-11-12",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00028",
@@ -222,7 +249,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-03-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00029",
@@ -230,7 +258,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-03-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00030",
@@ -238,7 +267,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-02-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00031",
@@ -246,7 +276,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00032",
@@ -254,7 +285,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-03-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00033",
@@ -262,7 +294,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-05-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00034",
@@ -270,7 +303,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-03-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00035",
@@ -278,7 +312,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-11-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00036",
@@ -286,7 +321,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-11-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00037",
@@ -294,7 +330,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00038",
@@ -302,7 +339,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-03-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00039",
@@ -310,7 +348,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-08-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00040",
@@ -318,7 +357,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-12-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00041",
@@ -326,7 +366,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-04-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00042",
@@ -334,7 +375,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-04-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00043",
@@ -342,7 +384,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-11-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00044",
@@ -350,7 +393,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-05-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00045",
@@ -358,7 +402,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-11-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00046",
@@ -366,23 +411,26 @@
       "account_type": "business",
       "country": "DE",
       "opened_at": "2023-06-08",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00047",
       "owner_name": "Andreas S.",
       "account_type": "personal",
-      "country": "RU",
-      "opened_at": "2026-04-12",
-      "kyc_risk": "high"
+      "country": "BG",
+      "opened_at": "2026-04-15",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00048",
       "owner_name": "Paphos Logistics",
       "account_type": "business",
-      "country": "GB",
-      "opened_at": "2024-07-12",
-      "kyc_risk": "low"
+      "country": "DE",
+      "opened_at": "2022-06-25",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00049",
@@ -390,7 +438,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-11-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00050",
@@ -398,7 +447,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-06-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00051",
@@ -406,7 +456,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-06-24",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00052",
@@ -414,7 +465,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00053",
@@ -422,7 +474,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-11-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00054",
@@ -430,7 +483,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-04-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00055",
@@ -438,7 +492,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-10-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00056",
@@ -446,7 +501,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-09-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00057",
@@ -454,7 +510,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-06-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00058",
@@ -462,7 +519,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-11-17",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00059",
@@ -470,7 +528,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-10-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00060",
@@ -478,7 +537,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2026-03-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00061",
@@ -486,7 +546,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2026-01-19",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00062",
@@ -494,7 +555,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00063",
@@ -502,7 +564,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-01-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00064",
@@ -510,7 +573,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-05-21",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00065",
@@ -518,7 +582,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2026-02-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00066",
@@ -526,7 +591,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-10-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00067",
@@ -534,7 +600,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-01-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00068",
@@ -542,7 +609,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-01-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00069",
@@ -550,7 +618,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-09-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00070",
@@ -558,7 +627,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2026-02-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00071",
@@ -566,7 +636,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2026-01-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00072",
@@ -574,7 +645,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-05-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00073",
@@ -582,7 +654,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-10-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00074",
@@ -590,7 +663,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-11-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00075",
@@ -598,7 +672,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00076",
@@ -606,7 +681,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-02-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00077",
@@ -614,7 +690,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-12-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00078",
@@ -622,7 +699,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-11-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00079",
@@ -630,7 +708,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-10-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00080",
@@ -638,7 +717,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-08-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00081",
@@ -646,7 +726,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00082",
@@ -654,7 +735,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-08-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00083",
@@ -662,7 +744,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-02-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00084",
@@ -670,7 +753,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-11-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00085",
@@ -678,7 +762,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-12-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00086",
@@ -686,7 +771,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-08-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00087",
@@ -694,7 +780,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-06-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00088",
@@ -702,7 +789,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-09-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00089",
@@ -710,7 +798,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2023-07-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00090",
@@ -718,15 +807,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-09-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00091",
       "owner_name": "Elena K.",
       "account_type": "personal",
-      "country": "RU",
-      "opened_at": "2026-04-14",
-      "kyc_risk": "medium"
+      "country": "BG",
+      "opened_at": "2026-05-08",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00092",
@@ -734,7 +825,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-12-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00093",
@@ -742,7 +834,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-01-26",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00094",
@@ -750,7 +843,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-07-31",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00095",
@@ -758,7 +852,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-03-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00096",
@@ -766,7 +861,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-01-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00097",
@@ -774,7 +870,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-04-29",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00098",
@@ -782,7 +879,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00099",
@@ -790,7 +888,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-08-31",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00100",
@@ -798,7 +897,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-06-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00101",
@@ -806,7 +906,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-10-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00102",
@@ -814,7 +915,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00103",
@@ -822,7 +924,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-02-18",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00104",
@@ -830,7 +933,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-08-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00105",
@@ -838,15 +942,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-04-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00106",
       "owner_name": "Antonis I.",
       "account_type": "personal",
       "country": "RU",
-      "opened_at": "2026-05-20",
-      "kyc_risk": "medium"
+      "opened_at": "2026-04-14",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00107",
@@ -854,7 +960,8 @@
       "account_type": "business",
       "country": "GB",
       "opened_at": "2024-01-11",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00108",
@@ -862,7 +969,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-24",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00109",
@@ -870,7 +978,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-04-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00110",
@@ -878,7 +987,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2026-03-08",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00111",
@@ -886,7 +996,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-09-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00112",
@@ -894,7 +1005,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-03-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00113",
@@ -902,7 +1014,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-06-11",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00114",
@@ -910,7 +1023,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-11-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00115",
@@ -918,15 +1032,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2026-02-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00116",
       "owner_name": "Dimitris N.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-02-18",
-      "kyc_risk": "high"
+      "country": "CY",
+      "opened_at": "2026-02-04",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00117",
@@ -934,7 +1050,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2026-03-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00118",
@@ -942,7 +1059,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-02-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00119",
@@ -950,7 +1068,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2026-02-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00120",
@@ -958,7 +1077,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-03-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00121",
@@ -966,7 +1086,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-04-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00122",
@@ -974,7 +1095,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-03-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00123",
@@ -982,7 +1104,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-01-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00124",
@@ -990,7 +1113,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-09-09",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00125",
@@ -998,7 +1122,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2026-03-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00126",
@@ -1006,7 +1131,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-02-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00127",
@@ -1014,7 +1140,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-03-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00128",
@@ -1022,7 +1149,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-12-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00129",
@@ -1030,7 +1158,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-06-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00130",
@@ -1038,7 +1167,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00131",
@@ -1046,7 +1176,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-04-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00132",
@@ -1054,7 +1185,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-07-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00133",
@@ -1062,7 +1194,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2025-02-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00134",
@@ -1070,7 +1203,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-04-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00135",
@@ -1078,7 +1212,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-08-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00136",
@@ -1086,7 +1221,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-12-10",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00137",
@@ -1094,7 +1230,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-11-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00138",
@@ -1102,7 +1239,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00139",
@@ -1110,7 +1248,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-10-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00140",
@@ -1118,7 +1257,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-06-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00141",
@@ -1126,7 +1266,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-06-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00142",
@@ -1134,7 +1275,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-09-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00143",
@@ -1142,7 +1284,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2023-10-10",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00144",
@@ -1150,7 +1293,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-09-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00145",
@@ -1158,7 +1302,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-05-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00146",
@@ -1166,7 +1311,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2026-01-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00147",
@@ -1174,7 +1320,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-05-15",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00148",
@@ -1182,7 +1329,8 @@
       "account_type": "business",
       "country": "DE",
       "opened_at": "2023-12-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00149",
@@ -1190,7 +1338,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-12-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00150",
@@ -1198,7 +1347,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-07-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00151",
@@ -1206,7 +1356,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00152",
@@ -1214,7 +1365,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-08-31",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00153",
@@ -1222,7 +1374,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-05-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00154",
@@ -1230,7 +1383,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-09-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00155",
@@ -1238,7 +1392,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00156",
@@ -1246,7 +1401,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-10-02",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00157",
@@ -1254,7 +1410,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-06-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00158",
@@ -1262,7 +1419,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-02-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00159",
@@ -1270,7 +1428,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-12-10",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00160",
@@ -1278,7 +1437,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-02-02",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00161",
@@ -1286,7 +1446,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2026-01-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00162",
@@ -1294,7 +1455,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-09-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00163",
@@ -1302,7 +1464,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-05-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00164",
@@ -1310,7 +1473,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-10-20",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00165",
@@ -1318,7 +1482,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-06-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00166",
@@ -1326,7 +1491,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00167",
@@ -1334,7 +1500,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-10-27",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00168",
@@ -1342,7 +1509,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-04-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00169",
@@ -1350,7 +1518,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-08-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00170",
@@ -1358,7 +1527,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-03-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00171",
@@ -1366,7 +1536,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-06-18",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00172",
@@ -1374,7 +1545,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2023-09-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00173",
@@ -1382,7 +1554,8 @@
       "account_type": "business",
       "country": "DE",
       "opened_at": "2024-08-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00174",
@@ -1390,7 +1563,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-11-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00175",
@@ -1398,7 +1572,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-07-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00176",
@@ -1406,7 +1581,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-08-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00177",
@@ -1414,7 +1590,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-12-23",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00178",
@@ -1422,7 +1599,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-04-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00179",
@@ -1430,7 +1608,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00180",
@@ -1438,7 +1617,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-09-30",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00181",
@@ -1446,7 +1626,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-07-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00182",
@@ -1454,7 +1635,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-09-21",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00183",
@@ -1462,7 +1644,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-05-09",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00184",
@@ -1470,7 +1653,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-10",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00185",
@@ -1478,7 +1662,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2026-03-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00186",
@@ -1486,7 +1671,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2024-02-12",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00187",
@@ -1494,15 +1680,17 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2026-02-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00188",
       "owner_name": "Despina C.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-05-24",
-      "kyc_risk": "high"
+      "country": "RU",
+      "opened_at": "2026-04-12",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00189",
@@ -1510,7 +1698,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-12-31",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00190",
@@ -1518,15 +1707,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-12-08",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00191",
       "owner_name": "MedNet Clinics",
       "account_type": "business",
-      "country": "GB",
-      "opened_at": "2024-04-07",
-      "kyc_risk": "low"
+      "country": "DE",
+      "opened_at": "2023-04-28",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00192",
@@ -1534,7 +1725,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-07-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00193",
@@ -1542,7 +1734,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-01-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00194",
@@ -1550,7 +1743,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-03-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00195",
@@ -1558,7 +1752,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-09-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00196",
@@ -1566,7 +1761,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2025-01-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00197",
@@ -1574,7 +1770,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-11-20",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00198",
@@ -1582,7 +1779,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-02-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00199",
@@ -1590,7 +1788,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-03-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00200",
@@ -1598,7 +1797,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-04-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00201",
@@ -1606,7 +1806,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-12-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00202",
@@ -1614,7 +1815,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2025-07-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00203",
@@ -1622,7 +1824,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-09-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00204",
@@ -1630,15 +1833,17 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-01-04",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00205",
       "owner_name": "BlueWave Trading",
       "account_type": "business",
-      "country": "GR",
-      "opened_at": "2024-07-14",
-      "kyc_risk": "low"
+      "country": "DE",
+      "opened_at": "2024-03-25",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00206",
@@ -1646,7 +1851,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-11-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00207",
@@ -1654,15 +1860,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-06-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00208",
       "owner_name": "Cyprus Telecom",
       "account_type": "business",
-      "country": "CY",
-      "opened_at": "2022-05-30",
-      "kyc_risk": "low"
+      "country": "GR",
+      "opened_at": "2024-08-10",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00209",
@@ -1670,7 +1878,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2023-11-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00210",
@@ -1678,7 +1887,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-11-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00211",
@@ -1686,7 +1896,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-12-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00212",
@@ -1694,15 +1905,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-05-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00213",
       "owner_name": "Elena C.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-04-15",
-      "kyc_risk": "high"
+      "country": "AE",
+      "opened_at": "2026-01-29",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00214",
@@ -1710,7 +1923,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-12-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00215",
@@ -1718,7 +1932,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-04-08",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00216",
@@ -1726,7 +1941,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-07-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00217",
@@ -1734,7 +1950,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-12-29",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00218",
@@ -1742,7 +1959,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-09-09",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00219",
@@ -1750,7 +1968,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2026-02-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00220",
@@ -1758,7 +1977,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-03-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00221",
@@ -1766,7 +1986,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-03-27",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00222",
@@ -1774,7 +1995,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00223",
@@ -1782,7 +2004,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-05-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00224",
@@ -1790,7 +2013,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-12-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00225",
@@ -1798,7 +2022,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-10-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00226",
@@ -1806,15 +2031,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-01-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00227",
       "owner_name": "WaterBoard CY",
       "account_type": "business",
-      "country": "GR",
-      "opened_at": "2022-06-24",
-      "kyc_risk": "low"
+      "country": "DE",
+      "opened_at": "2025-01-12",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00228",
@@ -1822,7 +2049,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-01-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00229",
@@ -1830,7 +2058,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-01-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00230",
@@ -1838,7 +2067,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-03-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00231",
@@ -1846,7 +2076,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-12-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00232",
@@ -1854,15 +2085,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-10",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00233",
       "owner_name": "Aphrodite Foods Ltd",
       "account_type": "business",
-      "country": "CY",
-      "opened_at": "2024-06-28",
-      "kyc_risk": "low"
+      "country": "GR",
+      "opened_at": "2024-07-14",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00234",
@@ -1870,7 +2103,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-08-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00235",
@@ -1878,7 +2112,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-09-03",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00236",
@@ -1886,7 +2121,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-11-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00237",
@@ -1894,7 +2130,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-05-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00238",
@@ -1902,7 +2139,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-04-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00239",
@@ -1910,7 +2148,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-12-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00240",
@@ -1918,7 +2157,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-04-05",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00241",
@@ -1926,7 +2166,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-06-10",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00242",
@@ -1934,7 +2175,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-08-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00243",
@@ -1942,7 +2184,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-04-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00244",
@@ -1950,15 +2193,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-03-08",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00245",
       "owner_name": "Limassol Retail Co",
       "account_type": "business",
-      "country": "AE",
+      "country": "CY",
       "opened_at": "2026-01-29",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00246",
@@ -1966,7 +2211,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-03-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00247",
@@ -1974,7 +2220,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-09-03",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00248",
@@ -1982,7 +2229,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-04-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00249",
@@ -1990,7 +2238,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-05-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00250",
@@ -1998,7 +2247,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-12-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00251",
@@ -2006,7 +2256,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-02-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00252",
@@ -2014,7 +2265,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-10-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00253",
@@ -2022,7 +2274,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2024-01-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00254",
@@ -2030,7 +2283,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-02-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00255",
@@ -2038,7 +2292,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-11-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00256",
@@ -2046,7 +2301,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2025-01-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00257",
@@ -2054,7 +2310,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-05-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00258",
@@ -2062,7 +2319,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2023-04-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00259",
@@ -2070,7 +2328,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-05-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00260",
@@ -2078,7 +2337,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2026-01-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00261",
@@ -2086,7 +2346,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-09-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00262",
@@ -2094,7 +2355,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-03-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00263",
@@ -2102,7 +2364,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-02-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00264",
@@ -2110,7 +2373,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-11-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00265",
@@ -2118,7 +2382,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-05-12",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00266",
@@ -2126,15 +2391,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-09-25",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00267",
       "owner_name": "WaterBoard CY",
       "account_type": "business",
       "country": "CY",
-      "opened_at": "2023-11-01",
-      "kyc_risk": "low"
+      "opened_at": "2022-10-15",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00268",
@@ -2142,15 +2409,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00269",
       "owner_name": "Elena A.",
       "account_type": "personal",
-      "country": "RU",
-      "opened_at": "2026-02-21",
-      "kyc_risk": "medium"
+      "country": "BG",
+      "opened_at": "2026-02-19",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00270",
@@ -2158,7 +2427,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2025-06-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00271",
@@ -2166,7 +2436,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-08-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00272",
@@ -2174,7 +2445,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-10-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00273",
@@ -2182,7 +2454,8 @@
       "account_type": "business",
       "country": "BG",
       "opened_at": "2023-11-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00274",
@@ -2190,7 +2463,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-11-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00275",
@@ -2198,7 +2472,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-06-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00276",
@@ -2206,15 +2481,17 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2025-06-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00277",
       "owner_name": "EAC Power",
       "account_type": "business",
       "country": "CY",
-      "opened_at": "2023-08-14",
-      "kyc_risk": "low"
+      "opened_at": "2023-02-27",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00278",
@@ -2222,7 +2499,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-04-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00279",
@@ -2230,15 +2508,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-24",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00280",
       "owner_name": "WaterBoard CY",
       "account_type": "business",
-      "country": "GB",
-      "opened_at": "2024-12-15",
-      "kyc_risk": "low"
+      "country": "CY",
+      "opened_at": "2023-12-05",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00281",
@@ -2246,7 +2526,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-09-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00282",
@@ -2254,7 +2535,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-04-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00283",
@@ -2262,7 +2544,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-03-25",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00284",
@@ -2270,7 +2553,8 @@
       "account_type": "business",
       "country": "DE",
       "opened_at": "2026-01-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00285",
@@ -2278,7 +2562,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-06-25",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00286",
@@ -2286,7 +2571,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-10-31",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00287",
@@ -2294,7 +2580,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-05-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00288",
@@ -2302,7 +2589,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-02-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00289",
@@ -2310,7 +2598,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-05-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00290",
@@ -2318,7 +2607,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-11-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00291",
@@ -2326,7 +2616,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-09-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00292",
@@ -2334,7 +2625,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-04-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00293",
@@ -2342,7 +2634,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-09-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00294",
@@ -2350,7 +2643,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-03-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00295",
@@ -2358,15 +2652,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-10-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00296",
       "owner_name": "BlueWave Trading",
       "account_type": "business",
       "country": "CY",
-      "opened_at": "2023-02-16",
-      "kyc_risk": "low"
+      "opened_at": "2022-07-24",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00297",
@@ -2374,7 +2670,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-03-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00298",
@@ -2382,7 +2679,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-03-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00299",
@@ -2390,7 +2688,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-03-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00300",
@@ -2398,7 +2697,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-10-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00301",
@@ -2406,15 +2706,17 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-02-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00302",
       "owner_name": "Eleni P.",
       "account_type": "personal",
-      "country": "CY",
-      "opened_at": "2026-02-15",
-      "kyc_risk": "high"
+      "country": "AE",
+      "opened_at": "2026-04-15",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00303",
@@ -2422,7 +2724,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-03-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00304",
@@ -2430,7 +2733,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-03-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00305",
@@ -2438,15 +2742,17 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-12-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00306",
       "owner_name": "Olympus Cafe",
       "account_type": "business",
-      "country": "GB",
-      "opened_at": "2022-09-15",
-      "kyc_risk": "low"
+      "country": "GR",
+      "opened_at": "2022-12-05",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00307",
@@ -2454,7 +2760,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00308",
@@ -2462,7 +2769,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-12-16",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00309",
@@ -2470,7 +2778,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-09-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00310",
@@ -2478,7 +2787,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-07-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00311",
@@ -2486,7 +2796,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-05-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00312",
@@ -2494,7 +2805,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-05-06",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00313",
@@ -2502,7 +2814,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-09-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00314",
@@ -2510,7 +2823,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-04-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00315",
@@ -2518,7 +2832,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-02-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00316",
@@ -2526,7 +2841,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-01-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00317",
@@ -2534,7 +2850,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-03-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00318",
@@ -2542,15 +2859,17 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-08-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00319",
       "owner_name": "Petros T.",
       "account_type": "personal",
-      "country": "RU",
-      "opened_at": "2026-03-27",
-      "kyc_risk": "medium"
+      "country": "AE",
+      "opened_at": "2026-02-15",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00320",
@@ -2558,7 +2877,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-04-25",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00321",
@@ -2566,7 +2886,8 @@
       "account_type": "business",
       "country": "BG",
       "opened_at": "2025-08-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00322",
@@ -2574,7 +2895,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-06-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00323",
@@ -2582,7 +2904,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-05-10",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00324",
@@ -2590,7 +2913,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-05-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00325",
@@ -2598,7 +2922,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2026-02-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00326",
@@ -2606,7 +2931,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-04-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00327",
@@ -2614,15 +2940,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-03-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00328",
       "owner_name": "Nicosia Tech AE",
       "account_type": "business",
-      "country": "DE",
-      "opened_at": "2024-06-04",
-      "kyc_risk": "low"
+      "country": "CY",
+      "opened_at": "2023-11-01",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00329",
@@ -2630,7 +2958,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-02-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00330",
@@ -2638,7 +2967,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-03-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00331",
@@ -2646,7 +2976,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-09-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00332",
@@ -2654,7 +2985,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-06-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00333",
@@ -2662,7 +2994,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00334",
@@ -2670,7 +3003,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-06-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00335",
@@ -2678,7 +3012,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-19",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00336",
@@ -2686,7 +3021,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-05-30",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00337",
@@ -2694,7 +3030,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-08-04",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00338",
@@ -2702,7 +3039,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-07-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00339",
@@ -2710,7 +3048,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-10-06",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00340",
@@ -2718,7 +3057,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-12-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00341",
@@ -2726,15 +3066,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-11-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00342",
       "owner_name": "Nikos N.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-04-18",
-      "kyc_risk": "high"
+      "country": "RU",
+      "opened_at": "2026-05-20",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00343",
@@ -2742,7 +3084,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-06-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00344",
@@ -2750,7 +3093,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-05-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00345",
@@ -2758,7 +3102,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-02-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00346",
@@ -2766,7 +3111,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-04-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00347",
@@ -2774,7 +3120,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-03-05",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00348",
@@ -2782,7 +3129,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-08-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00349",
@@ -2790,7 +3138,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-04-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00350",
@@ -2798,7 +3147,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-07-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00351",
@@ -2806,7 +3156,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-06-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00352",
@@ -2814,7 +3165,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-10-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00353",
@@ -2822,7 +3174,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-09-24",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00354",
@@ -2830,7 +3183,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-11-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00355",
@@ -2838,7 +3192,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-09-09",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00356",
@@ -2846,7 +3201,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-03-02",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00357",
@@ -2854,15 +3210,17 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-02-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00358",
       "owner_name": "Marios G.",
       "account_type": "personal",
       "country": "AE",
-      "opened_at": "2026-05-13",
-      "kyc_risk": "medium"
+      "opened_at": "2026-04-13",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00359",
@@ -2870,7 +3228,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-04-07",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00360",
@@ -2878,7 +3237,8 @@
       "account_type": "business",
       "country": "DE",
       "opened_at": "2025-03-17",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00361",
@@ -2886,7 +3246,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00362",
@@ -2894,15 +3255,17 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2023-09-15",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00363",
       "owner_name": "Dimitris K.",
       "account_type": "personal",
-      "country": "RU",
-      "opened_at": "2026-05-21",
-      "kyc_risk": "high"
+      "country": "AE",
+      "opened_at": "2026-04-02",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00364",
@@ -2910,15 +3273,17 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-10-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00365",
       "owner_name": "EAC Power",
       "account_type": "business",
-      "country": "DE",
-      "opened_at": "2024-03-25",
-      "kyc_risk": "low"
+      "country": "CY",
+      "opened_at": "2023-10-19",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00366",
@@ -2926,7 +3291,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-05-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00367",
@@ -2934,7 +3300,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-07-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00368",
@@ -2942,15 +3309,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-10-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00369",
       "owner_name": "Marios E.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-03-05",
-      "kyc_risk": "high"
+      "country": "BG",
+      "opened_at": "2026-04-18",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00370",
@@ -2958,7 +3327,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-07-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00371",
@@ -2966,7 +3336,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-08-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00372",
@@ -2974,7 +3345,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-09-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00373",
@@ -2982,7 +3354,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-03-29",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00374",
@@ -2990,7 +3363,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-04-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00375",
@@ -2998,7 +3372,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-27",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00376",
@@ -3006,15 +3381,17 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-05-31",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00377",
       "owner_name": "Eleni I.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-02-26",
-      "kyc_risk": "high"
+      "country": "AE",
+      "opened_at": "2026-05-13",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00378",
@@ -3022,7 +3399,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-07-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00379",
@@ -3030,7 +3408,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-07-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00380",
@@ -3038,7 +3417,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00381",
@@ -3046,7 +3426,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-12",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00382",
@@ -3054,7 +3435,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-06-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00383",
@@ -3062,7 +3444,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-02-09",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00384",
@@ -3070,7 +3453,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-03-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00385",
@@ -3078,7 +3462,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-01-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00386",
@@ -3086,7 +3471,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00387",
@@ -3094,7 +3480,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-12-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00388",
@@ -3102,7 +3489,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-27",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00389",
@@ -3110,7 +3498,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-02-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00390",
@@ -3118,7 +3507,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00391",
@@ -3126,15 +3516,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-06-06",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00392",
       "owner_name": "Theodora E.",
       "account_type": "personal",
       "country": "AE",
-      "opened_at": "2026-04-09",
-      "kyc_risk": "high"
+      "opened_at": "2026-03-22",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00393",
@@ -3142,7 +3534,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-12-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00394",
@@ -3150,7 +3543,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-11-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00395",
@@ -3158,7 +3552,8 @@
       "account_type": "business",
       "country": "GB",
       "opened_at": "2023-04-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00396",
@@ -3166,7 +3561,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-03-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00397",
@@ -3174,15 +3570,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-06-11",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00398",
       "owner_name": "Stelios S.",
       "account_type": "personal",
-      "country": "CY",
-      "opened_at": "2026-02-22",
-      "kyc_risk": "high"
+      "country": "BG",
+      "opened_at": "2026-05-01",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00399",
@@ -3190,15 +3588,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-09-24",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00400",
       "owner_name": "Helios Energy",
       "account_type": "business",
-      "country": "DE",
-      "opened_at": "2024-08-07",
-      "kyc_risk": "low"
+      "country": "CY",
+      "opened_at": "2023-02-16",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00401",
@@ -3206,7 +3606,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-03-13",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00402",
@@ -3214,7 +3615,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-07-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00403",
@@ -3222,7 +3624,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-03-09",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00404",
@@ -3230,7 +3633,8 @@
       "account_type": "business",
       "country": "DE",
       "opened_at": "2024-11-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00405",
@@ -3238,7 +3642,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-06-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00406",
@@ -3246,7 +3651,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-10-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00407",
@@ -3254,7 +3660,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-06-16",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00408",
@@ -3262,7 +3669,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-06-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00409",
@@ -3270,7 +3678,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-08-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00410",
@@ -3278,7 +3687,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-06-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00411",
@@ -3286,15 +3696,17 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-07-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00412",
       "owner_name": "Kostas P.",
       "account_type": "personal",
       "country": "AE",
-      "opened_at": "2026-02-15",
-      "kyc_risk": "high"
+      "opened_at": "2026-05-13",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00413",
@@ -3302,15 +3714,17 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2026-01-23",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00414",
       "owner_name": "Aegean Construction",
       "account_type": "business",
-      "country": "CY",
-      "opened_at": "2022-07-24",
-      "kyc_risk": "low"
+      "country": "GR",
+      "opened_at": "2022-06-24",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00415",
@@ -3318,7 +3732,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-03-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00416",
@@ -3326,7 +3741,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2026-03-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00417",
@@ -3334,7 +3750,8 @@
       "account_type": "personal",
       "country": "AE",
       "opened_at": "2026-04-21",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00418",
@@ -3342,15 +3759,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-08-26",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00419",
       "owner_name": "Giorgos N.",
       "account_type": "personal",
       "country": "RU",
-      "opened_at": "2026-05-21",
-      "kyc_risk": "medium"
+      "opened_at": "2026-04-01",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00420",
@@ -3358,7 +3777,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-12-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00421",
@@ -3366,7 +3786,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-10-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00422",
@@ -3374,7 +3795,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-12-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00423",
@@ -3382,7 +3804,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-10-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00424",
@@ -3390,7 +3813,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-04-17",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00425",
@@ -3398,7 +3822,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-09-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00426",
@@ -3406,7 +3831,8 @@
       "account_type": "business",
       "country": "BG",
       "opened_at": "2026-01-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00427",
@@ -3414,7 +3840,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-08",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00428",
@@ -3422,7 +3849,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-03-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00429",
@@ -3430,7 +3858,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-04-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00430",
@@ -3438,15 +3867,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-01-11",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00431",
       "owner_name": "Savvas A.",
       "account_type": "personal",
       "country": "AE",
-      "opened_at": "2026-03-22",
-      "kyc_risk": "medium"
+      "opened_at": "2026-02-18",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00432",
@@ -3454,7 +3885,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-02-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00433",
@@ -3462,7 +3894,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-10-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00434",
@@ -3470,23 +3903,26 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-06-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00435",
       "owner_name": "Cyprus Telecom",
       "account_type": "business",
-      "country": "GR",
-      "opened_at": "2022-12-05",
-      "kyc_risk": "low"
+      "country": "GB",
+      "opened_at": "2022-09-15",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00436",
       "owner_name": "Limassol Retail Co",
       "account_type": "business",
-      "country": "CY",
-      "opened_at": "2024-06-02",
-      "kyc_risk": "low"
+      "country": "GB",
+      "opened_at": "2022-08-18",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00437",
@@ -3494,7 +3930,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-10-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00438",
@@ -3502,7 +3939,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2024-02-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00439",
@@ -3510,15 +3948,17 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-11-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00440",
       "owner_name": "Ioanna P.",
       "account_type": "personal",
-      "country": "CY",
-      "opened_at": "2026-04-13",
-      "kyc_risk": "high"
+      "country": "BG",
+      "opened_at": "2026-01-26",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00441",
@@ -3526,7 +3966,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-09-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00442",
@@ -3534,7 +3975,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-11-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00443",
@@ -3542,7 +3984,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-08-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00444",
@@ -3550,7 +3993,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2024-02-14",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00445",
@@ -3558,7 +4002,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00446",
@@ -3566,7 +4011,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-04-04",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00447",
@@ -3574,7 +4020,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-06-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00448",
@@ -3582,7 +4029,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-02-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00449",
@@ -3590,7 +4038,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-08-31",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00450",
@@ -3598,7 +4047,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-12-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00451",
@@ -3606,7 +4056,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-11-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00452",
@@ -3614,7 +4065,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-09-26",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00453",
@@ -3622,7 +4074,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2023-11-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00454",
@@ -3630,7 +4083,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-08-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00455",
@@ -3638,7 +4092,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-05",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00456",
@@ -3646,7 +4101,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-03-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00457",
@@ -3654,7 +4110,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-01-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00458",
@@ -3662,7 +4119,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-05-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00459",
@@ -3670,7 +4128,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2023-12-03",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00460",
@@ -3678,7 +4137,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-04-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00461",
@@ -3686,7 +4146,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-04-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00462",
@@ -3694,7 +4155,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-11-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00463",
@@ -3702,7 +4164,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-08-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00464",
@@ -3710,7 +4173,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-04-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00465",
@@ -3718,7 +4182,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-12-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00466",
@@ -3726,7 +4191,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2026-02-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00467",
@@ -3734,7 +4200,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-01-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00468",
@@ -3742,7 +4209,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-03-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00469",
@@ -3750,7 +4218,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-07-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00470",
@@ -3758,7 +4227,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-08-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00471",
@@ -3766,7 +4236,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-10-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00472",
@@ -3774,7 +4245,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-03-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00473",
@@ -3782,7 +4254,8 @@
       "account_type": "business",
       "country": "GB",
       "opened_at": "2025-06-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00474",
@@ -3790,7 +4263,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-02-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00475",
@@ -3798,7 +4272,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-12-14",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00476",
@@ -3806,7 +4281,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-02-06",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00477",
@@ -3814,7 +4290,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-12-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00478",
@@ -3822,7 +4299,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-01-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00479",
@@ -3830,7 +4308,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-09-09",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00480",
@@ -3838,7 +4317,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-08-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00481",
@@ -3846,7 +4326,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2026-01-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00482",
@@ -3854,7 +4335,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-11-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00483",
@@ -3862,7 +4344,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-10-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00484",
@@ -3870,7 +4353,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-04-14",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00485",
@@ -3878,7 +4362,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-02-03",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00486",
@@ -3886,7 +4371,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-09-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00487",
@@ -3894,7 +4380,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-10-02",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00488",
@@ -3902,7 +4389,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-12-12",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00489",
@@ -3910,7 +4398,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-11-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00490",
@@ -3918,7 +4407,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-06-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00491",
@@ -3926,7 +4416,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-10-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00492",
@@ -3934,15 +4425,17 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-09-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00493",
       "owner_name": "Eleni M.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-05-01",
-      "kyc_risk": "high"
+      "country": "CY",
+      "opened_at": "2026-04-13",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00494",
@@ -3950,7 +4443,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-11-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00495",
@@ -3958,7 +4452,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-09-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00496",
@@ -3966,7 +4461,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-07-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00497",
@@ -3974,7 +4470,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-09-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00498",
@@ -3982,7 +4479,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-10-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00499",
@@ -3990,7 +4488,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00500",
@@ -3998,7 +4497,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-11-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00501",
@@ -4006,7 +4506,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00502",
@@ -4014,7 +4515,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-09-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00503",
@@ -4022,7 +4524,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2025-07-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00504",
@@ -4030,7 +4533,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-04-29",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00505",
@@ -4038,15 +4542,17 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-11-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00506",
       "owner_name": "BlueWave Trading",
       "account_type": "business",
-      "country": "DE",
-      "opened_at": "2023-04-28",
-      "kyc_risk": "low"
+      "country": "CY",
+      "opened_at": "2024-06-28",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00507",
@@ -4054,7 +4560,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-06-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00508",
@@ -4062,7 +4569,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-04-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00509",
@@ -4070,7 +4578,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-01-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00510",
@@ -4078,7 +4587,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-07-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00511",
@@ -4086,7 +4596,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-09-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00512",
@@ -4094,15 +4605,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00513",
       "owner_name": "Anna H.",
       "account_type": "personal",
       "country": "AE",
-      "opened_at": "2026-05-04",
-      "kyc_risk": "medium"
+      "opened_at": "2026-05-14",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00514",
@@ -4110,7 +4623,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-08-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00515",
@@ -4118,15 +4632,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-03-24",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00516",
       "owner_name": "Larnaca Imports",
       "account_type": "business",
-      "country": "CY",
-      "opened_at": "2024-04-26",
-      "kyc_risk": "low"
+      "country": "GB",
+      "opened_at": "2024-04-07",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00517",
@@ -4134,7 +4650,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00518",
@@ -4142,7 +4659,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-08-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00519",
@@ -4150,7 +4668,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-10-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00520",
@@ -4158,7 +4677,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00521",
@@ -4166,7 +4686,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-06-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00522",
@@ -4174,7 +4695,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-10-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00523",
@@ -4182,7 +4704,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-10-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00524",
@@ -4190,7 +4713,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-08-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00525",
@@ -4198,7 +4722,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-06-21",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00526",
@@ -4206,7 +4731,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-03-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00527",
@@ -4214,7 +4740,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-05-16",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00528",
@@ -4222,7 +4749,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-06-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00529",
@@ -4230,7 +4758,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-03-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00530",
@@ -4238,7 +4767,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-12-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00531",
@@ -4246,7 +4776,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2025-12-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00532",
@@ -4254,7 +4785,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-02-25",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00533",
@@ -4262,7 +4794,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-06-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00534",
@@ -4270,7 +4803,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-02-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00535",
@@ -4278,15 +4812,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-05-12",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00536",
       "owner_name": "Elena T.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-04-12",
-      "kyc_risk": "high"
+      "country": "CY",
+      "opened_at": "2026-02-15",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00537",
@@ -4294,7 +4830,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-08-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00538",
@@ -4302,7 +4839,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-03-09",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00539",
@@ -4310,15 +4848,17 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-11-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00540",
       "owner_name": "Maria C.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-05-02",
-      "kyc_risk": "high"
+      "country": "BG",
+      "opened_at": "2026-05-24",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00541",
@@ -4326,7 +4866,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-02-22",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00542",
@@ -4334,7 +4875,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-12-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00543",
@@ -4342,7 +4884,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-03",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00544",
@@ -4350,7 +4893,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-09-07",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00545",
@@ -4358,15 +4902,17 @@
       "account_type": "business",
       "country": "BG",
       "opened_at": "2025-07-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00546",
       "owner_name": "Chloe E.",
       "account_type": "personal",
       "country": "AE",
-      "opened_at": "2026-03-19",
-      "kyc_risk": "high"
+      "opened_at": "2026-03-05",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00547",
@@ -4374,7 +4920,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2024-06-26",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00548",
@@ -4382,15 +4929,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-09-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00549",
       "owner_name": "Paphos Logistics",
       "account_type": "business",
-      "country": "GB",
-      "opened_at": "2022-08-18",
-      "kyc_risk": "low"
+      "country": "CY",
+      "opened_at": "2022-05-30",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00550",
@@ -4398,7 +4947,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-07-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00551",
@@ -4406,7 +4956,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-08-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00552",
@@ -4414,7 +4965,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2026-01-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00553",
@@ -4422,15 +4974,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-04-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00554",
       "owner_name": "Cyprus Telecom",
       "account_type": "business",
       "country": "CY",
-      "opened_at": "2023-10-19",
-      "kyc_risk": "low"
+      "opened_at": "2024-04-26",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00555",
@@ -4438,15 +4992,17 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-11-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00556",
       "owner_name": "BlueWave Trading",
       "account_type": "business",
       "country": "DE",
-      "opened_at": "2022-06-25",
-      "kyc_risk": "low"
+      "opened_at": "2024-06-04",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00557",
@@ -4454,7 +5010,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00558",
@@ -4462,15 +5019,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-10-31",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00559",
       "owner_name": "Aegean Construction",
       "account_type": "business",
-      "country": "DE",
-      "opened_at": "2022-10-03",
-      "kyc_risk": "low"
+      "country": "CY",
+      "opened_at": "2022-06-19",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00560",
@@ -4478,7 +5037,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-05",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00561",
@@ -4486,7 +5046,8 @@
       "account_type": "business",
       "country": "GB",
       "opened_at": "2024-01-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00562",
@@ -4494,7 +5055,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-01-18",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00563",
@@ -4502,7 +5064,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-11-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00564",
@@ -4510,7 +5073,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-11-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00565",
@@ -4518,15 +5082,17 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-11-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00566",
       "owner_name": "Natasa K.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-03-31",
-      "kyc_risk": "medium"
+      "country": "AE",
+      "opened_at": "2026-03-19",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00567",
@@ -4534,7 +5100,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-06-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00568",
@@ -4542,7 +5109,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-09-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00569",
@@ -4550,7 +5118,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-05-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00570",
@@ -4558,7 +5127,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-01-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00571",
@@ -4566,15 +5136,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-04-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00572",
       "owner_name": "Theodora A.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-04-15",
-      "kyc_risk": "high"
+      "country": "BG",
+      "opened_at": "2026-03-29",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00573",
@@ -4582,7 +5154,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-03-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00574",
@@ -4590,7 +5163,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-01-09",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00575",
@@ -4598,7 +5172,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-05-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00576",
@@ -4606,7 +5181,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-02-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00577",
@@ -4614,7 +5190,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-03-16",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00578",
@@ -4622,7 +5199,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-05-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00579",
@@ -4630,7 +5208,8 @@
       "account_type": "business",
       "country": "GB",
       "opened_at": "2023-07-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00580",
@@ -4638,7 +5217,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-04-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00581",
@@ -4646,7 +5226,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-03-30",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00582",
@@ -4654,7 +5235,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-03-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00583",
@@ -4662,7 +5244,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-06-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00584",
@@ -4670,7 +5253,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-04-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00585",
@@ -4678,7 +5262,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2026-03-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00586",
@@ -4686,7 +5271,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-08-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00587",
@@ -4694,7 +5280,8 @@
       "account_type": "business",
       "country": "GB",
       "opened_at": "2025-04-27",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00588",
@@ -4702,7 +5289,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-02-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00589",
@@ -4710,7 +5298,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-05-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00590",
@@ -4718,15 +5307,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-06-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00591",
       "owner_name": "EAC Power",
       "account_type": "business",
-      "country": "CY",
-      "opened_at": "2022-06-19",
-      "kyc_risk": "low"
+      "country": "GB",
+      "opened_at": "2024-07-12",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00592",
@@ -4734,7 +5325,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2023-07-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00593",
@@ -4742,7 +5334,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-05-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00594",
@@ -4750,7 +5343,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2023-03-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00595",
@@ -4758,7 +5352,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00596",
@@ -4766,7 +5361,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2026-03-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00597",
@@ -4774,7 +5370,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-09-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00598",
@@ -4782,7 +5379,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-08-09",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00599",
@@ -4790,7 +5388,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-03-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00600",
@@ -4798,7 +5397,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-10-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00601",
@@ -4806,7 +5406,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-11-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00602",
@@ -4814,7 +5415,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-03-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00603",
@@ -4822,7 +5424,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-31",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00604",
@@ -4830,7 +5433,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-08-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00605",
@@ -4838,7 +5442,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2023-05-10",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00606",
@@ -4846,7 +5451,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-09-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00607",
@@ -4854,7 +5460,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00608",
@@ -4862,7 +5469,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-10-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00609",
@@ -4870,7 +5478,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00610",
@@ -4878,7 +5487,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2023-09-07",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00611",
@@ -4886,31 +5496,35 @@
       "account_type": "business",
       "country": "BG",
       "opened_at": "2023-11-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00612",
       "owner_name": "Larnaca Imports",
       "account_type": "business",
-      "country": "DE",
-      "opened_at": "2025-01-12",
-      "kyc_risk": "low"
+      "country": "CY",
+      "opened_at": "2024-02-20",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00613",
       "owner_name": "Cyprus Telecom",
       "account_type": "business",
       "country": "BG",
-      "opened_at": "2024-01-15",
-      "kyc_risk": "low"
+      "opened_at": "2024-12-12",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00614",
       "owner_name": "Savvas M.",
       "account_type": "personal",
-      "country": "CY",
-      "opened_at": "2026-01-29",
-      "kyc_risk": "medium"
+      "country": "AE",
+      "opened_at": "2026-04-09",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00615",
@@ -4918,15 +5532,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-01-13",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00616",
       "owner_name": "Giorgos G.",
       "account_type": "personal",
       "country": "CY",
-      "opened_at": "2026-02-04",
-      "kyc_risk": "high"
+      "opened_at": "2026-02-22",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00617",
@@ -4934,7 +5550,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2024-07-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00618",
@@ -4942,7 +5559,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-07-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00619",
@@ -4950,7 +5568,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-12-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00620",
@@ -4958,7 +5577,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-12-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00621",
@@ -4966,7 +5586,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-05-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00622",
@@ -4974,7 +5595,8 @@
       "account_type": "business",
       "country": "BG",
       "opened_at": "2023-12-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00623",
@@ -4982,7 +5604,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-04-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00624",
@@ -4990,7 +5613,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00625",
@@ -4998,7 +5622,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-03-09",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00626",
@@ -5006,7 +5631,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-11-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00627",
@@ -5014,7 +5640,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-04-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00628",
@@ -5022,7 +5649,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2026-02-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00629",
@@ -5030,15 +5658,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-12-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00630",
       "owner_name": "Panayiotis S.",
       "account_type": "personal",
-      "country": "AE",
-      "opened_at": "2026-05-14",
-      "kyc_risk": "medium"
+      "country": "BG",
+      "opened_at": "2026-02-26",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00631",
@@ -5046,7 +5676,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-12-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00632",
@@ -5054,7 +5685,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-02-21",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00633",
@@ -5062,7 +5694,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-05-02",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00634",
@@ -5070,7 +5703,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-02-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00635",
@@ -5078,7 +5712,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-07-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00636",
@@ -5086,15 +5721,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-10-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00637",
       "owner_name": "Savvas D.",
       "account_type": "personal",
       "country": "RU",
-      "opened_at": "2026-04-01",
-      "kyc_risk": "medium"
+      "opened_at": "2026-05-21",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00638",
@@ -5102,7 +5739,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-06-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00639",
@@ -5110,15 +5748,17 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-12-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00640",
       "owner_name": "Helios Energy",
       "account_type": "business",
-      "country": "AE",
-      "opened_at": "2026-04-13",
-      "kyc_risk": "medium"
+      "country": "RU",
+      "opened_at": "2026-02-21",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00641",
@@ -5126,7 +5766,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-05-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00642",
@@ -5134,7 +5775,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-08-09",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00643",
@@ -5142,7 +5784,8 @@
       "account_type": "business",
       "country": "BG",
       "opened_at": "2025-03-24",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00644",
@@ -5150,7 +5793,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-04-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00645",
@@ -5158,7 +5802,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-10-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00646",
@@ -5166,7 +5811,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00647",
@@ -5174,7 +5820,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-07-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00648",
@@ -5182,7 +5829,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-05-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00649",
@@ -5190,15 +5838,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-03-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00650",
       "owner_name": "Savvas P.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-05-08",
-      "kyc_risk": "high"
+      "country": "AE",
+      "opened_at": "2026-05-02",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00651",
@@ -5206,7 +5856,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-07-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00652",
@@ -5214,7 +5865,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-12-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00653",
@@ -5222,7 +5874,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-02-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00654",
@@ -5230,7 +5883,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-03-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00655",
@@ -5238,7 +5892,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-12-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00656",
@@ -5246,7 +5901,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-06-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00657",
@@ -5254,7 +5910,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-08-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00658",
@@ -5262,7 +5919,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-07-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00659",
@@ -5270,15 +5928,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-12-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00660",
       "owner_name": "Sofia N.",
       "account_type": "personal",
       "country": "AE",
-      "opened_at": "2026-04-02",
-      "kyc_risk": "high"
+      "opened_at": "2026-05-04",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00661",
@@ -5286,7 +5946,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-10-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00662",
@@ -5294,15 +5955,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-02-21",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00663",
       "owner_name": "MedNet Clinics",
       "account_type": "business",
       "country": "CY",
-      "opened_at": "2024-02-20",
-      "kyc_risk": "low"
+      "opened_at": "2024-06-02",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00664",
@@ -5310,7 +5973,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00665",
@@ -5318,7 +5982,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2025-06-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00666",
@@ -5326,7 +5991,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-08-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00667",
@@ -5334,7 +6000,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-04-27",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00668",
@@ -5342,7 +6009,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00669",
@@ -5350,7 +6018,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-12-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00670",
@@ -5358,7 +6027,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-06-01",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00671",
@@ -5366,7 +6036,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-12-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00672",
@@ -5374,7 +6045,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-09-10",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00673",
@@ -5382,7 +6054,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-07-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00674",
@@ -5390,7 +6063,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2026-03-14",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00675",
@@ -5398,7 +6072,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-10-19",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00676",
@@ -5406,7 +6081,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-05-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00677",
@@ -5414,7 +6090,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-07-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00678",
@@ -5422,7 +6099,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-07-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00679",
@@ -5430,7 +6108,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-12-02",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00680",
@@ -5438,7 +6117,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-02-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00681",
@@ -5446,7 +6126,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-07-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00682",
@@ -5454,7 +6135,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-06-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00683",
@@ -5462,7 +6144,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-05-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00684",
@@ -5470,7 +6153,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-11-09",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00685",
@@ -5478,7 +6162,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-12-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00686",
@@ -5486,7 +6171,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-04-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00687",
@@ -5494,7 +6180,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-12-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00688",
@@ -5502,7 +6189,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-10-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00689",
@@ -5510,7 +6198,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-09-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00690",
@@ -5518,7 +6207,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-12-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00691",
@@ -5526,7 +6216,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-05-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00692",
@@ -5534,7 +6225,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-12-12",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00693",
@@ -5542,7 +6234,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-03-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00694",
@@ -5550,7 +6243,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2026-03-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00695",
@@ -5558,7 +6252,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2023-04-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00696",
@@ -5566,7 +6261,8 @@
       "account_type": "business",
       "country": "DE",
       "opened_at": "2025-06-19",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00697",
@@ -5574,7 +6270,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-02-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00698",
@@ -5582,7 +6279,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-03-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00699",
@@ -5590,7 +6288,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2025-07-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00700",
@@ -5598,15 +6297,17 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-07-01",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00701",
       "owner_name": "Helios Energy",
       "account_type": "business",
-      "country": "CY",
-      "opened_at": "2022-10-15",
-      "kyc_risk": "low"
+      "country": "DE",
+      "opened_at": "2022-10-03",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00702",
@@ -5614,7 +6315,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-04-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00703",
@@ -5622,7 +6324,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2023-06-05",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00704",
@@ -5630,7 +6333,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-01-09",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00705",
@@ -5638,7 +6342,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-12-09",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00706",
@@ -5646,7 +6351,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-06-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00707",
@@ -5654,7 +6360,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-01-28",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00708",
@@ -5662,7 +6369,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-06-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00709",
@@ -5670,7 +6378,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-07-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00710",
@@ -5678,7 +6387,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-08-25",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00711",
@@ -5686,7 +6396,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-02-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00712",
@@ -5694,7 +6405,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-10-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00713",
@@ -5702,7 +6414,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-11-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00714",
@@ -5710,15 +6423,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-03-29",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00715",
       "owner_name": "Aegean Construction",
       "account_type": "business",
-      "country": "DE",
-      "opened_at": "2023-12-29",
-      "kyc_risk": "low"
+      "country": "GR",
+      "opened_at": "2022-07-23",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00716",
@@ -5726,7 +6441,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-12-27",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00717",
@@ -5734,7 +6450,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-12-13",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00718",
@@ -5742,7 +6459,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-03-10",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00719",
@@ -5750,7 +6468,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-08-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00720",
@@ -5758,23 +6477,26 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-05-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00721",
       "owner_name": "Cyprus Telecom",
       "account_type": "business",
-      "country": "GR",
-      "opened_at": "2022-07-23",
-      "kyc_risk": "low"
+      "country": "DE",
+      "opened_at": "2023-12-29",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00722",
       "owner_name": "Christina K.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-03-29",
-      "kyc_risk": "high"
+      "country": "AE",
+      "opened_at": "2026-04-12",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00723",
@@ -5782,7 +6504,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-07-25",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00724",
@@ -5790,7 +6513,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-04-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00725",
@@ -5798,7 +6522,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-12-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00726",
@@ -5806,7 +6531,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-05-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00727",
@@ -5814,15 +6540,17 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2026-03-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00728",
       "owner_name": "Giorgos C.",
       "account_type": "personal",
-      "country": "BG",
-      "opened_at": "2026-01-26",
-      "kyc_risk": "high"
+      "country": "RU",
+      "opened_at": "2026-05-21",
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00729",
@@ -5830,7 +6558,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2023-03-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00730",
@@ -5838,7 +6567,8 @@
       "account_type": "business",
       "country": "GR",
       "opened_at": "2023-05-15",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00731",
@@ -5846,7 +6576,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-06-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00732",
@@ -5854,7 +6585,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2026-03-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00733",
@@ -5862,7 +6594,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-09-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00734",
@@ -5870,7 +6603,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-05-23",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00735",
@@ -5878,7 +6612,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-12-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00736",
@@ -5886,7 +6621,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-10-20",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00737",
@@ -5894,7 +6630,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2026-02-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00738",
@@ -5902,15 +6639,17 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2025-12-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00739",
       "owner_name": "Olympus Cafe",
       "account_type": "business",
       "country": "CY",
-      "opened_at": "2023-02-27",
-      "kyc_risk": "low"
+      "opened_at": "2024-01-15",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00740",
@@ -5918,7 +6657,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-02-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00741",
@@ -5926,7 +6666,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-01-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00742",
@@ -5934,7 +6675,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-06-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00743",
@@ -5942,7 +6684,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-02-24",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00744",
@@ -5950,7 +6693,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2024-01-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00745",
@@ -5958,7 +6702,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-01-24",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00746",
@@ -5966,7 +6711,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-03-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00747",
@@ -5974,7 +6720,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-12-12",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00748",
@@ -5982,7 +6729,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-11-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00749",
@@ -5990,7 +6738,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-04-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00750",
@@ -5998,7 +6747,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-08-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00751",
@@ -6006,7 +6756,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-05-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00752",
@@ -6014,7 +6765,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-06-24",
-      "kyc_risk": "high"
+      "kyc_risk": "high",
+      "status": "active"
     },
     {
       "account_id": "ACC00753",
@@ -6022,7 +6774,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-10-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00754",
@@ -6030,7 +6783,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-08-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00755",
@@ -6038,7 +6792,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-04-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00756",
@@ -6046,7 +6801,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-03-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00757",
@@ -6054,7 +6810,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-02-23",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00758",
@@ -6062,7 +6819,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2025-01-22",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00759",
@@ -6070,7 +6828,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-06-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00760",
@@ -6078,7 +6837,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-07-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00761",
@@ -6086,7 +6846,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2026-03-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00762",
@@ -6094,7 +6855,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-06-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00763",
@@ -6102,7 +6864,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2024-03-29",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00764",
@@ -6110,15 +6873,17 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-03-07",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00765",
       "owner_name": "Katerina A.",
       "account_type": "personal",
       "country": "BG",
-      "opened_at": "2026-02-19",
-      "kyc_risk": "medium"
+      "opened_at": "2026-03-31",
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00766",
@@ -6126,7 +6891,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-05-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00767",
@@ -6134,7 +6900,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-04-11",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00768",
@@ -6142,7 +6909,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2024-11-03",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00769",
@@ -6150,7 +6918,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2024-04-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00770",
@@ -6158,7 +6927,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-06-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00771",
@@ -6166,7 +6936,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-05-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00772",
@@ -6174,7 +6945,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-12-05",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00773",
@@ -6182,7 +6954,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2025-01-26",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00774",
@@ -6190,7 +6963,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-01-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00775",
@@ -6198,7 +6972,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-06-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00776",
@@ -6206,7 +6981,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2026-02-23",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00777",
@@ -6214,7 +6990,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-01-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00778",
@@ -6222,7 +6999,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-01-08",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00779",
@@ -6230,7 +7008,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-05-22",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00780",
@@ -6238,7 +7017,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-12-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00781",
@@ -6246,7 +7026,8 @@
       "account_type": "business",
       "country": "CY",
       "opened_at": "2023-04-28",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00782",
@@ -6254,7 +7035,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-04-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00783",
@@ -6262,7 +7044,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2025-08-05",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00784",
@@ -6270,7 +7053,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-11-01",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00785",
@@ -6278,7 +7062,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-12-19",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00786",
@@ -6286,7 +7071,8 @@
       "account_type": "personal",
       "country": "GR",
       "opened_at": "2025-09-14",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00787",
@@ -6294,7 +7080,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-08-30",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00788",
@@ -6302,7 +7089,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2026-03-19",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00789",
@@ -6310,7 +7098,8 @@
       "account_type": "business",
       "country": "GB",
       "opened_at": "2025-02-06",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00790",
@@ -6318,7 +7107,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-11-12",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00791",
@@ -6326,7 +7116,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2024-03-15",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00792",
@@ -6334,7 +7125,8 @@
       "account_type": "personal",
       "country": "GB",
       "opened_at": "2023-02-27",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00793",
@@ -6342,7 +7134,8 @@
       "account_type": "personal",
       "country": "BG",
       "opened_at": "2023-07-17",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00794",
@@ -6350,7 +7143,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-08-02",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00795",
@@ -6358,7 +7152,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-01-18",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00796",
@@ -6366,7 +7161,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2025-05-08",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00797",
@@ -6374,7 +7170,8 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2023-08-11",
-      "kyc_risk": "medium"
+      "kyc_risk": "medium",
+      "status": "active"
     },
     {
       "account_id": "ACC00798",
@@ -6382,15 +7179,17 @@
       "account_type": "personal",
       "country": "CY",
       "opened_at": "2024-03-04",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00799",
       "owner_name": "WaterBoard CY",
       "account_type": "business",
-      "country": "CY",
-      "opened_at": "2023-12-05",
-      "kyc_risk": "low"
+      "country": "DE",
+      "opened_at": "2024-08-07",
+      "kyc_risk": "low",
+      "status": "active"
     },
     {
       "account_id": "ACC00800",
@@ -6398,7 +7197,8 @@
       "account_type": "personal",
       "country": "DE",
       "opened_at": "2023-10-16",
-      "kyc_risk": "low"
+      "kyc_risk": "low",
+      "status": "active"
     }
   ],
   "transactions": [

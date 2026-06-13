@@ -16,6 +16,9 @@ CHANNELS = ("wire", "sepa", "card", "crypto", "cash_deposit")
 
 AccountType = Literal["personal", "business"]
 KYCRisk = Literal["low", "medium", "high"]
+# Enforcement lifecycle (REQUIREMENTS/TASKS §6). Baseline data is always "active"; freeze/review
+# transitions are runtime state set by the API. Optional + defaulted so existing data stays valid.
+AccountStatus = Literal["active", "frozen", "blocked", "banned"]
 Channel = Literal["wire", "sepa", "card", "crypto", "cash_deposit"]
 SubjectType = Literal["account", "edge", "subgraph"]
 PatternType = Literal["structuring", "layering", "mule_fanin", "mule_fanout", "circular"]
@@ -29,6 +32,7 @@ class Account(BaseModel):
     country: str
     opened_at: str  # YYYY-MM-DD
     kyc_risk: KYCRisk
+    status: AccountStatus = "active"  # enforcement state; defaulted so older data stays valid
 
 
 class Transaction(BaseModel):

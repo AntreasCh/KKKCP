@@ -84,6 +84,7 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
             "country": rng.choice(COUNTRIES),
             "opened_at": _iso(BASE - timedelta(days=rng.randint(60, 1200)))[:10],
             "kyc_risk": rng.choices(["low", "medium", "high"], weights=[0.8, 0.15, 0.05])[0],
+            "status": "active",  # baseline enforcement state; freeze/review is runtime (TASKS §6)
         })
     acc_ids = [a["account_id"] for a in accounts]
     acc_by_id = {a["account_id"]: a for a in accounts}
@@ -433,7 +434,8 @@ class LiveFeed:
                         "account_type": "personal",
                         "country": self.rng.choice(HIGH_RISK_CC),
                         "opened_at": _iso(BASE - timedelta(days=self.rng.randint(8, 130)))[:10],
-                        "kyc_risk": self.rng.choices(["medium", "high"], weights=[0.45, 0.55])[0]}
+                        "kyc_risk": self.rng.choices(["medium", "high"], weights=[0.45, 0.55])[0],
+                        "status": "active"}
             else:            # legit background pool
                 is_biz = self.rng.random() < 0.15
                 acct = {"account_id": f"ACC{i:05d}",
@@ -442,7 +444,8 @@ class LiveFeed:
                         "account_type": "business" if is_biz else "personal",
                         "country": self.rng.choice(COUNTRIES),
                         "opened_at": _iso(BASE - timedelta(days=self.rng.randint(60, 1200)))[:10],
-                        "kyc_risk": self.rng.choices(["low", "medium", "high"], weights=[0.8, 0.15, 0.05])[0]}
+                        "kyc_risk": self.rng.choices(["low", "medium", "high"], weights=[0.8, 0.15, 0.05])[0],
+                        "status": "active"}
             self.accounts.append(acct)
         self.acc_ids = [a["account_id"] for a in self.accounts]
         self._legit_ids = self.acc_ids[:legit_n]
