@@ -32,7 +32,7 @@ function riskColor(r) {
   return "#cbd5e1";
 }
 
-let network = null, nodesDS = null, edgesDS = null, lastGraph = null;
+let network = null, nodesDS = null, edgesDS = null, lastGraph = null, stabilizeTimer = null;
 let activeRing = null, activeMembers = null;
 let showAll = false;
 let viewNodes = [], viewEdges = [];
@@ -144,6 +144,7 @@ function renderGraph() {
   if (network) network.destroy();   // avoid leaking the previous network on re-render
   nodesDS = new vis.DataSet(viewNodes.map(nodeStyle));
   edgesDS = new vis.DataSet(viewEdges.map(edgeStyle));
+  showGraphLoading(true);   // hide the canvas while physics settles — no on-screen churn
   network = new vis.Network($("graph"), { nodes: nodesDS, edges: edgesDS }, {
     physics: { enabled: true, stabilization: { iterations: 220, fit: true },
                barnesHut: { gravitationalConstant: -14000, springLength: 150, springConstant: 0.04, avoidOverlap: 0.4 } },
@@ -151,8 +152,20 @@ function renderGraph() {
     nodes: { shape: "dot", scaling: { min: 6, max: 42 }, borderWidth: 1.5 },
     edges: { smooth: { type: "continuous" }, width: 1 },
   });
-  // Freeze the layout the moment it settles, so nothing keeps drifting.
-  network.once("stabilizationIterationsDone", () => network.setOptions({ physics: false }));
+  // Settle the layout behind the overlay, then freeze + reveal the finished graph,
+  // so the user only ever sees the static result — never the nodes flying around.
+  const settle = () => {
+    if (!network) return;
+    network.setOptions({ physics: false });   // freeze so nothing keeps drifting
+    showGraphLoading(false);
+    if (activeMembers) {                       // keep the focused ring framed after a re-render
+      const present = [...activeMembers].filter((id) => nodesDS.get(id));
+      if (present.length) network.fit({ nodes: present });
+    }
+  };
+  network.once("stabilizationIterationsDone", () => { clearTimeout(stabilizeTimer); settle(); });
+  clearTimeout(stabilizeTimer);
+  stabilizeTimer = setTimeout(settle, 4000);   // safety net: reveal even if the event never fires
   network.on("click", (p) => {
     if (p.nodes.length) showAccount(p.nodes[0]);
     else if (activeRing || activeMembers) clearSelection();   // click empty canvas to deselect
@@ -162,7 +175,13 @@ function renderGraph() {
     if (n && n.ring) showRing(n.ring);
   });
   updateViewCount();
-  if (activeMembers) highlightGraph([...activeMembers]);
+  if (activeMembers) highlightGraph([...activeMembers], false);   // style only; settle() does the fit
+}
+
+function showGraphLoading(on) {
+  const g = $("graph"), o = $("graph-loading");
+  if (g) g.classList.toggle("stabilizing", on);
+  if (o) o.classList.toggle("hidden", !on);
 }
 
 function updateViewCount() {
@@ -1287,11 +1306,13 @@ async function pollLive() {
       .map((id) => ({ id, color: { background: col, border: "#1e293b" }, borderWidth: 2, opacity: 1 })));
     fireRingAlert(b.ring);
   }
-  const fresh = (b.new_edges || []).filter((e) => nodesDS.get(e.source) && nodesDS.get(e.target));
+  const fresh = (b.new_edges || []).filter((e) =>
+    nodesDS.get(e.source) && nodesDS.get(e.target) && !edgesDS.get(e.id));   // skip ids already present
   if (fresh.length) {
-    edgesDS.add(fresh.map((e) => { const s = edgeStyle(e); return { ...s, width: 3, color: { color: "#4f46e5", opacity: 1 } }; }));
+    // Physics is frozen, so new transfers just appear in place between existing nodes —
+    // added in their final style (no bright pulse) so the feed stays calm and readable.
+    edgesDS.add(fresh.map(edgeStyle));
     viewEdges.push(...fresh);
-    setTimeout(() => { if (edgesDS) edgesDS.update(fresh.map(edgeStyle)); }, 700);   // settle to normal
   }
   scheduleLive();
 }

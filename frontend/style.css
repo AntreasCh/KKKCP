@@ -178,7 +178,16 @@ button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 .risk-chip.low { background: var(--surface-3); color: var(--muted); }
 
 /* ── graph pane ──────────────────────────────────────────────────────── */
-#graph { position: absolute; inset: 0; }
+#graph { position: absolute; inset: 0; transition: opacity .3s ease; }
+/* While the layout is settling we hide the canvas behind an overlay, then reveal
+   the finished, frozen graph — so the user never watches the physics churn. */
+#graph.stabilizing { opacity: 0; }
+.graph-loading { position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center;
+  gap: 11px; color: var(--muted); font-size: 13px; font-weight: 500; pointer-events: none;
+  background: radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0) 0 0 / 22px 22px, var(--surface-2); }
+.gl-spinner { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--border);
+  border-top-color: var(--accent); animation: glspin .8s linear infinite; }
+@keyframes glspin { to { transform: rotate(360deg); } }
 .graph-toolbar { position: absolute; top: 12px; right: 12px; z-index: 5; display: flex; gap: 8px; }
 .legend {
   position: absolute; left: 12px; bottom: 12px; z-index: 5; background: rgba(255,255,255,.95);
