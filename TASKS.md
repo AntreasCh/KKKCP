@@ -44,10 +44,10 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ### P4 — savvas — API & Frontend
 - **Status:** 🔵 in review
-- **Right now:** closed the biggest real-AML gaps — **watchlist screening** (synthetic sanctions / PEP / adverse-media: badges in the accounts table + account inspector, a ⚠ ring-exposure banner, red-bordered graph nodes, a "watchlist" KPI + filter) and **goAML structured STR export** (downloadable XML filing per ring, alongside the SAR + printable report). Removed the threshold sandbox (unnecessary). Earlier: live feed, investigation report, accounts table, filters, playback, case workflow, search.
+- **Right now:** **wired P1's `LiveFeed` real-time stream** 🟢 — the "▶ Live feed" button now starts a true server-side stream (`POST /api/stream/start`) and polls `GET /api/stream/next` every ~1–3s: new transactions stream in as edges, the network grows, and freshly-detected rings fire 🚨 alerts + appear in the queue; added the **1× / 2× / 4× speed control** in the LIVE banner; Stop restores the committed fixture. Earlier: watchlist screening, goAML export, investigation report, accounts table, filters, case workflow, search.
 - **Files I'm touching:** `backend/api/main.py`, `frontend/index.html`, `frontend/app.js`, `frontend/style.css`
 - **Blockers:** —
-- **Notes for the team:** §8 stays stable — **additive only**: screening fields on `/api/accounts` + graph nodes (`screened`) + summary (`screening_hits`); new `GET /api/rings/{id}/goaml` (XML). Removed `/api/eval/curve`. Demo deep-links: `?live=1`, `?view=accounts`, `?q=<term>`. Kept P5's account AI-analysis intact.
+- **Notes for the team:** §8 stable — additive: new `POST /api/stream/start`, `GET /api/stream/next`, `POST /api/stream/stop` (stream swaps STATE to the LiveFeed network; stop restores the fixture). Plus earlier screening + goAML. 11/11 backend tests green. Demo deep-links: `?live=1`, `?view=accounts`, `?q=<term>`. Kept P5's AI-analysis intact.
 - **Updated:** 2026-06-13
 
 ### P5 — Alexandros — AI, Eval & Demo
@@ -64,6 +64,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P4 (savvas): **wired @kiriakos's `LiveFeed` real-time stream** — "▶ Live feed" now does a true server-side stream (new `POST /api/stream/start`, `GET /api/stream/next`, `POST /api/stream/stop` in `api/main.py`): polls every ~1–3s, streams in new edges, grows the network, fires 🚨 on freshly-detected rings, with a **1×/2×/4× speed control**; Stop restores the committed fixture. Additive, §8 stable, 11/11 tests green. (Replaced the earlier replay-based live mode.) — savvas_
 - _2026-06-13 — P1 (kiriakos): **CANCELLED the kingpin "#1 ranking" ask to @P3** — no action needed from Andreas (he hadn't started it). Kingpin ring stays in the data as a normal fully-detected ring; we're not pinning it #1. No code/data change. — kiriakos_
 - _2026-06-13 — P4 (savvas): added the two biggest real-AML must-haves — **watchlist screening** (synthetic sanctions/PEP/adverse-media: accounts-table column, account-inspector panel, ⚠ ring-exposure banner, red-bordered graph nodes, `watchlist` KPI + filter) and **goAML structured STR export** (`GET /api/rings/{id}/goaml` → downloadable XML). **Removed the threshold sandbox** + its `/api/eval/curve` endpoint (unnecessary, per review). Also QC: showRing 404 guard + destroy old graph network (leak). All additive; §8 stable. — savvas_
 - _2026-06-13 — P1 (kiriakos): added a **`LiveFeed` streaming engine** (`backend/data/generator.py`) for live-mode demo — `initial(~100 tx)` + `next_batch()` emits new txns over a virtual clock (legit + ~25% a fresh laundering burst, returns the new ring for alerts). Additive, deterministic, schema-valid; committed fixture/pipeline untouched, **11/11 green**. 🔴 @P4: wire `LiveFeed` behind a `GET /api/stream/next` endpoint + poll it every random 1–10s in live mode + the replay speed-up (details in my §1 block). — kiriakos_
