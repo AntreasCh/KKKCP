@@ -43,10 +43,10 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ### P4 — savvas — API & Frontend
 - **Status:** 🔵 in review
-- **Right now:** advanced data filtering + human detail — new **Accounts table** view (toggle with the graph; owner/type/country/KYC/flags/rings/risk, sortable) and a shared **Filters drawer** (text, risk, type, KYC, country, channel, amount, date) that applies to BOTH the table and the graph; owner names now surface in tooltips, an optional "Names" graph toggle, and ring key-accounts/transactions. Builds on playback/case/search/breakdown.
+- **Right now:** three "wow" demo features — **Live transaction feed** (replays the network as a monitored stream: nodes light up, KPIs tick, rings fire 🚨 alert toasts), **one-click Investigation report** (printable / Save-as-PDF case dossier: evidence + flow + transactions + Claude SAR), and a **Threshold sandbox** (slide alert-τ, watch precision/recall trade off live on a PR curve). Plus earlier: accounts table, filters, playback, case workflow, search, breakdown.
 - **Files I'm touching:** `backend/api/main.py`, `frontend/index.html`, `frontend/app.js`, `frontend/style.css`
 - **Blockers:** —
-- **Notes for the team:** §8 stays stable — **additive only**: `/api/graph` nodes now also carry `owner_name/country/kyc_risk`, edges carry `channel/timestamp`; new `GET /api/accounts` (full list w/ risk, rings, n_findings). Kept P5's account AI-analysis additions intact.
+- **Notes for the team:** §8 stays stable — **additive only**: enriched `/api/graph`, `GET /api/accounts`, new `GET /api/eval/curve` (τ sweep for the sandbox). Demo deep-links: `?live=1`, `?sandbox=1`, `?view=accounts`, `?q=<term>`. Kept P5's account AI-analysis additions intact.
 - **Updated:** 2026-06-13
 
 ### P5 — Alexandros — AI, Eval & Demo
@@ -63,6 +63,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P4 (savvas): shipped 3 demo "wow" features — **Live transaction feed** (replays the network as a monitored stream: nodes light up, KPIs tick, rings fire 🚨 toasts), **one-click Investigation report** (printable/PDF dossier: evidence+flow+transactions+SAR), **Threshold sandbox** (slide alert-τ → live precision/recall on a PR curve). New `GET /api/eval/curve` (additive); deep-links `?live=1`/`?sandbox=1`. Pure frontend + one read-only endpoint. — savvas_
 - _2026-06-13 — P4 (savvas): fixed **Generate** (was always seed 42 → identical data; now sends a random seed each click + `GenReq` defaults bumped to 800/4000/15 to match the generator, so every click is a fresh rich network — thanks @kiriakos for the precise diagnosis) and the Accounts view now hides the graph-only **Transaction filters** (channel/amount/date). `api/main.py` GenReq defaults + frontend; no contract change. — savvas_
 - _2026-06-13 — P1 (kiriakos): 🔴 **@P4 (savvas) — "Generate" button looks broken.** Endpoint is fine (tested live), but `app.js:881` posts empty body → `GenReq` hardcoded `seed=42` → every click rebuilds the **identical** dataset (+ downgrades to 600/6-rings vs committed 800/15). Fix in your lane: random seed per click and/or seed/size inputs and/or bump `GenReq` defaults. Details in my §1 note. — kiriakos_
 - _2026-06-13 — P1 (kiriakos): decoy stress-test **closed** ✅ — with P2's settlement-loop skip + P3's business/low-KYC down-weight, the decoy-ON committed fixture is now **ring-recall 1.0, FP-rings 0, precision 1.0 (earned!), recall 0.77, 11/11 tests green**. Decision B paid off: hard-negatives made detection more robust, not just lowered a number. Data track done; free to pair on demo polish. — kiriakos_
