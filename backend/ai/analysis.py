@@ -111,7 +111,21 @@ def analyze_account(account_id: str, result: dict, dataset: dict) -> dict:
             txt, source = llm.text(
                 [{"role": "user", "content": PROMPT.format(ctx=json.dumps(ctx))}],
                 max_tokens=900, temperature=0.8)
-            return _result(ctx, txt, source)
-        except Exception as e:  # noqa: BLE001 — any provider failure -> template, never break the UI
-            print(f"[analysis] LLM unavailable, using template: {e}")
+            if txt.strip():
+                return _result(ctx, txt, source)
+            # empty content (some reasoning models): treat as a soft failure below
+            raise RuntimeError("model returned empty content")
+        except Exception as e:  # noqa: BLE001
+            # A key IS configured but the call failed — surface the real reason instead of silently
+            # returning the (identical) template, so the user can see it's e.g. a bad OpenRouter key.
+            msg = str(e)
+            print(f"[analysis] OpenRouter call failed: {msg}")
+            out = _template(ctx)
+            out["source"] = "error"
+            out["error"] = msg
+            out["analysis"] = ("⚠️ The AI provider (OpenRouter) call failed, so this is the rule-based "
+                               f"fallback — NOT the LLM.\nReason: {msg}{llm.bad_key_hint()}\n\n"
+                               + out["analysis"])
+            return out
+    # No key configured at all -> deterministic template (keeps the demo working offline).
     return _template(ctx)
