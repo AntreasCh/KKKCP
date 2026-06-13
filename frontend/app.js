@@ -131,7 +131,10 @@ function renderGraph() {
   });
   // Freeze the layout the moment it settles, so nothing keeps drifting.
   network.once("stabilizationIterationsDone", () => network.setOptions({ physics: false }));
-  network.on("click", (p) => { if (p.nodes.length) showAccount(p.nodes[0]); });
+  network.on("click", (p) => {
+    if (p.nodes.length) showAccount(p.nodes[0]);
+    else if (activeRing || activeMembers) clearSelection();   // click empty canvas to deselect
+  });
   network.on("doubleClick", (p) => {
     const n = lastGraph.nodes.find((x) => x.id === p.nodes[0]);
     if (n && n.ring) showRing(n.ring);
@@ -504,6 +507,7 @@ async function showRing(id) {
     `<span class="pill acc" onclick="showAccount('${esc(a)}')">${esc(a)}${ownerOf[a] ? " · " + esc(ownerOf[a]) : ""}</span>`).join("");
 
   d.innerHTML =
+    `<button class="back-btn" onclick="clearSelection()">← Back to all rings</button>` +
     `<div class="detail-head"><span class="ringdot" style="background:${col}"></span>` +
       `<h2>${esc(r.ring_id)}</h2><span class="risk-chip ${tier}">risk ${(r.score * 100).toFixed(0)}</span></div>` +
     `<div class="case-bar"><span class="case-lbl">Case:</span>` +
@@ -583,7 +587,9 @@ async function showAccount(id) {
   const a = await res.json();
   const acc = a.account || {};
   const findings = (a.findings || []).slice().sort((x, y) => y.score - x.score);
+  const backLabel = activeRing ? "← Back to " + activeRing : "← Back to all rings";
   $("detail").innerHTML =
+    `<button class="back-btn" onclick="${activeRing ? `showRing('${esc(activeRing)}')` : "clearSelection()"}">${esc(backLabel)}</button>` +
     `<div class="detail-head"><span class="ringdot" style="background:${riskColor(a.risk)}"></span>` +
       `<h2>${esc(id)}</h2><span class="risk-chip ${riskTier(a.risk)}">risk ${(a.risk * 100).toFixed(0)}</span></div>` +
     `<p class="subtle">${esc(acc.owner_name || "")} · ${esc(acc.account_type || "")} · ` +
@@ -608,6 +614,20 @@ async function showAccount(id) {
   $("tab-inspector").scrollTop = 0;
 }
 window.showAccount = showAccount;
+
+// Deselect: clear the ring highlight, reset the inspector, refit the whole graph.
+function clearSelection() {
+  activeRing = null;
+  destroyFlow();
+  hidePlayback();
+  markActiveRing(null);
+  highlightGraph(null);
+  if (network) network.fit({ animation: { duration: 400, easingFunction: "easeInOutQuad" } });
+  if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+  $("detail").innerHTML = `<div class="empty-state"><div class="ico">🔍</div>` +
+    `<p>Select a ring from the queue to investigate the laundering pattern, money flow, and draft a SAR.</p></div>`;
+}
+window.clearSelection = clearSelection;
 
 // ── account AI analysis (P5): one-shot LLM read of the account + its connected accounts ──
 async function runAccountAnalysis(id) {
@@ -850,7 +870,7 @@ async function refresh() {
   if (sq) { openSearch(); $("search-input").value = sq; renderSearch(sq); }
 }
 
-$("fitbtn").onclick = () => { activeRing = null; markActiveRing(null); hidePlayback(); highlightGraph(null); if (network) network.fit({ animation: true }); };
+$("fitbtn").onclick = () => clearSelection();
 $("showall").onchange = (e) => { showAll = e.target.checked; renderGraph(); };
 
 $("gen").onclick = async () => {
