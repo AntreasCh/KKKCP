@@ -513,7 +513,11 @@ class LiveFeed:
         burst_txs, ring = self._burst()
         txs.extend(burst_txs)
         self.rng.shuffle(txs)
-        dataset = {"accounts": self.accounts, "transactions": txs}
+        # Return a COPY of the accounts list: the engine keeps mutating its own `self.accounts`
+        # as it mints, so handing out the live reference would silently grow the caller's dataset
+        # and double-add when it also appends `next_batch()["accounts"]`. The copy makes the
+        # contract clean — `initial()` is a snapshot; `next_batch().accounts` are strictly new.
+        dataset = {"accounts": list(self.accounts), "transactions": txs}
         labels = {"mule_accounts": sorted(ring.pop("mule_accounts")), "rings": [ring]}
         self._new_accts = []   # everything so far is in `dataset`; next_batch reports only newer ones
         return dataset, labels
