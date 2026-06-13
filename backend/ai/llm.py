@@ -44,11 +44,16 @@ def _client():
     return OpenAI(base_url=OPENROUTER_BASE, api_key=api_key())
 
 
-def complete(messages: list[dict], max_tokens: int = 800, tools: list | None = None) -> dict:
+def complete(messages: list[dict], max_tokens: int = 800, tools: list | None = None,
+             temperature: float | None = None) -> dict:
     """One OpenRouter chat completion via the OpenAI SDK. Returns the assistant message normalized
-    to a dict (role/content[/tool_calls][/reasoning_details]) plus '_source'. Raises on API errors."""
+    to a dict (role/content[/tool_calls][/reasoning_details]) plus '_source'. Raises on API errors.
+
+    Pass temperature (e.g. 0.7) for varied, non-deterministic output; omit for the provider default."""
     client = _client()
     kwargs: dict = {"model": model(), "messages": messages, "max_tokens": max_tokens}
+    if temperature is not None:
+        kwargs["temperature"] = temperature
     if _reasoning_enabled():
         kwargs["extra_body"] = {"reasoning": {"enabled": True}}
     if tools:
@@ -67,9 +72,9 @@ def complete(messages: list[dict], max_tokens: int = 800, tools: list | None = N
     return out
 
 
-def text(messages: list[dict], max_tokens: int = 800) -> tuple[str, str]:
+def text(messages: list[dict], max_tokens: int = 800, temperature: float | None = None) -> tuple[str, str]:
     """Convenience for one-shot text generation. Returns (content, 'openrouter')."""
-    msg = complete(messages, max_tokens=max_tokens)
+    msg = complete(messages, max_tokens=max_tokens, temperature=temperature)
     return (msg.get("content") or ""), "openrouter"
 
 

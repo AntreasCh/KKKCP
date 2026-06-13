@@ -11,15 +11,26 @@ import json
 
 from backend.ai import llm
 
-PROMPT = """You are an AML analyst. Assess the SUBJECT account below and whether it behaves like a
-money mule or part of a laundering network, using its connected accounts and transaction flows.
+PROMPT = """You are a senior AML investigator reviewing a flagged bank account. Use ONLY the
+structured evidence below — the subject account, the accounts sending money INTO it, the accounts
+it sends money OUT to, the aggregate money flow, and the detector findings.
 
-Answer in 4-6 sentences:
-1. Verdict: "likely mule", "suspicious", or "probably legitimate".
-2. The key evidence (patterns, amounts, counterparties, KYC, account age).
-3. A recommended action for an analyst.
+Reason like an analyst, not a template. Ground every claim in the data: cite concrete account ids,
+EUR amounts, transaction counts, KYC levels, account age, and the in-vs-out balance of funds.
+Decide which laundering typologies (if any) fit and justify each from the evidence:
+structuring/smurfing, layering, pass-through relay, fan-in, fan-out, or circular flow.
 
-DATA:
+Write a sharp, specific assessment in natural prose (~120-200 words, no rigid headers) covering:
+- A verdict WITH a confidence level (high/medium/low) and the account's role in the network
+  (mule, relay, aggregator/controller, or likely legitimate).
+- The strongest red flags, each tied to specific counterparties and figures.
+- A brief narrative of how money moves through this account.
+- The 2-3 highest-priority next steps for an investigator (freeze, RFI, SAR, expand to which
+  counterparties, etc.).
+If the evidence is weak, say so plainly rather than inventing risk. Vary your phrasing; do not
+reuse boilerplate sentences.
+
+ACCOUNT & NETWORK EVIDENCE (JSON):
 {ctx}"""
 
 
@@ -47,11 +58,22 @@ def _context(account_id: str, result: dict, dataset: dict) -> dict | None:
                 for cp, ts in ranked]
 
     findings = [f for f in result["findings"] if account_id in f["subject_ids"]][:10]
+    total_in = round(sum(x["amount"] for ts in inflow.values() for x in ts), 2)
+    total_out = round(sum(x["amount"] for ts in outflow.values() for x in ts), 2)
+    all_ts = sorted(t["timestamp"] for t in dataset["transactions"]
+                    if t["src"] == account_id or t["dst"] == account_id)
     return {
         "subject": {"account_id": account_id, "owner": acct.get("owner_name"),
                     "account_type": acct.get("account_type"), "country": acct.get("country"),
                     "kyc_risk": acct.get("kyc_risk"), "opened_at": acct.get("opened_at"),
                     "risk": rmap.get(account_id, {}).get("risk")},
+        "flow_summary": {
+            "total_in": total_in, "total_out": total_out,
+            "retained": round(total_in - total_out, 2),
+            "passthrough_ratio": round(total_out / total_in, 2) if total_in else None,
+            "distinct_senders": len(inflow), "distinct_recipients": len(outflow),
+            "first_tx": all_ts[0] if all_ts else None, "last_tx": all_ts[-1] if all_ts else None,
+        },
         "senders_into_subject": summarize(inflow),
         "recipients_from_subject": summarize(outflow),
         "findings": findings,
@@ -85,8 +107,10 @@ def analyze_account(account_id: str, result: dict, dataset: dict) -> dict:
         return {"error": "account not found"}
     if llm.available():
         try:
+            # temperature > 0 so the assessment varies run-to-run instead of repeating boilerplate
             txt, source = llm.text(
-                [{"role": "user", "content": PROMPT.format(ctx=json.dumps(ctx))}], max_tokens=600)
+                [{"role": "user", "content": PROMPT.format(ctx=json.dumps(ctx))}],
+                max_tokens=900, temperature=0.8)
             return _result(ctx, txt, source)
         except Exception as e:  # noqa: BLE001 — any provider failure -> template, never break the UI
             print(f"[analysis] LLM unavailable, using template: {e}")
