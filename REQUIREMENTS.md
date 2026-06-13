@@ -71,8 +71,9 @@ finds the pattern, ranks it by risk, and produces the paperwork.
 - **Backend:** FastAPI + uvicorn (serves the API *and* the static frontend on `localhost:8000`)
 - **Graph:** `networkx`; community detection via `python-louvain` (`import community as community_louvain`)
 - **Numbers:** `numpy`, `pandas`
-- **AI:** Claude — `boto3` (AWS Bedrock) preferred for sponsor points; `anthropic` SDK as fallback.
-  Model: `claude-haiku-4-5` for the SAR (cheap/fast; it's a writing task).
+- **AI:** Claude via the **Anthropic API** (`anthropic` SDK, needs `ANTHROPIC_API_KEY`). Model
+  `claude-haiku-4-5` (set `MULENET_MODEL` to change). Powers the SAR generator + the tool-using
+  copilot. Optional AWS Bedrock fallback; template fallback if no key.
 - **Frontend:** plain `index.html` + `app.js` + `vis-network` via CDN. **No build step.**
 
 **Run (target):**
@@ -206,13 +207,18 @@ Defaults are starting points — tune against §12 eval. Reporting threshold `T 
 - **Per ring:** combine community density + mean member risk + count of distinct pattern types.
   Output `rings` sorted by score; assign `ring_id = DET_001…`, pick `key_accounts` (top risk).
 
-## 11. SAR generator (P5, `ai/sar.py`)
+## 11. AI layer (P5) — two features, both via the Anthropic API
 
-Input: a detected Ring + its accounts/transactions/findings. Call Claude with **structured output**
-(JSON schema) → `{summary, parties, suspicious_activity, recommended_action}`, then format a short
-SAR narrative. Use Bedrock if AWS creds present, else Anthropic API, else a deterministic template
-that fills from the evidence (so the demo never depends on the network). This is the **only** LLM
-call in the system.
+**11a. SAR generator (`ai/sar.py`).** Input: a detected Ring + its accounts/transactions/findings.
+Call Claude → `{summary, parties, suspicious_activity, recommended_action}`, format a short SAR
+narrative. Anthropic API primary; optional Bedrock fallback; deterministic template if no key (so
+the demo never depends on the network). This part is light — close to a wrapper.
+
+**11b. "Ask MuleNet" copilot (`ai/copilot.py`) — the substantial AI piece, NOT a wrapper.**
+Expose **tools** to Claude (`list_rings`, `get_ring`, `get_account`, …) and run a bounded
+**tool-use loop** so the model *investigates* the detected network before answering — an agent over
+our own data. Served at `POST /api/ask {question}`. TODO(P5): add `trace_path`/`compare_rings`
+tools, stream the answer, and render the tool-call trace in the UI so judges watch it investigate.
 
 ## 12. Evaluation (P5, `eval/evaluate.py`)
 
@@ -266,13 +272,15 @@ and your **definition of done**. Build against `sample_data/` until the real gen
   `sample_graph.json` first.
 - **DoD:** open `localhost:8000`, see the graph, click a ring, see its detail + SAR.
 
-### 👤 P5 — AI (SAR), Evaluation & Demo
-- **Owns:** `ai/sar.py`, `eval/evaluate.py`, demo script, README, final polish.
-- **Build:** SAR generator (§11) with template fallback; eval harness (§12) wired to `/api/eval`;
-  write the 3-minute demo script (§17); fixed demo seed; help integrate.
-- **Depends on:** P3 ring/finding shapes; P1 labels for eval.
-- **DoD:** SAR produces a credible report from a ring; `/api/eval` prints precision/recall/ring-
-  recall; demo runs start-to-finish twice without a hitch.
+### 👤 P5 — AI (copilot + SAR), Evaluation & Demo
+- **Owns:** `ai/copilot.py`, `ai/sar.py`, `eval/evaluate.py`, demo script, README, polish.
+- **Build:** the **tool-using "Ask MuleNet" copilot** (§11b — the substantial part); the SAR
+  generator (§11a, quick); eval harness (§12); the 3-min demo script (§17); fixed demo seed.
+- **Depends on:** P3 ring/finding shapes; P1 labels for eval. Needs `ANTHROPIC_API_KEY` (no AWS).
+- **DoD:** copilot answers questions by calling tools over the findings; SAR drafts a credible
+  report; `/api/eval` prints the metrics; demo runs clean twice.
+- **Note:** SAR alone is light — once copilot + SAR ship, **pair with P2/P3 on detection tuning**
+  (that's where the real hours are). See the "using 5 people" note in TASKS.md.
 
 ## 14. Parallelization plan (how 5 people don't block each other)
 

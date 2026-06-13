@@ -50,8 +50,8 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 ### P5 — (claim) — AI, Eval & Demo
 - **Status:** 🔲 not started
 - **Right now:** —
-- **Files I'm touching:** `backend/ai/sar.py`, `backend/eval/evaluate.py`
-- **Blockers:** 🔴 needs AWS/Bedrock access from organizers
+- **Files I'm touching:** `backend/ai/copilot.py`, `backend/ai/sar.py`, `backend/eval/evaluate.py`
+- **Blockers:** needs `ANTHROPIC_API_KEY` (no AWS needed)
 - **Notes for the team:** —
 - **Updated:** —
 
@@ -72,6 +72,14 @@ detectors improve — not blocking (frozen `Finding` interface + working stubs).
 
 **Shared goal / scoreboard:** `GET /api/eval` — **keep ring-recall ~1.0 while driving
 false-positive rings → 0.**
+
+> 🧑‍🤝‍🧑 **Using 5 people well (when code-gen is fast):** Claude Code makes *typing* fast, so the
+> bottleneck isn't lines of code — it's the **judgment-heavy, iterative** work that agents don't
+> shortcut: tuning detection against the eval, making the data realistic, making the viz genuinely
+> good, designing the copilot's tools. The biggest time-sink is **detection precision (P2+P3)** —
+> run → measure → adjust, many times. So once the faster tracks (P5 AI, P4 UI shell, P1 data) hit
+> "good enough", **those people pile onto P2/P3 tuning and demo polish.** Spend the 5 on *depth and
+> quality*, not on splitting boilerplate.
 
 ---
 
@@ -109,9 +117,12 @@ false-positive rings → 0.**
 3. Prominent eval banner + clean SAR display.
 - **Done when:** clicking a ring tells the laundering story at a glance.
 
-### P5 — AI, Eval & Demo · `ai/sar.py`, `eval/evaluate.py`, demo
-1. **🔴 Get AWS access from the organizers NOW** — gates Bedrock + sponsor points.
-2. Verify Bedrock model id; confirm SAR via Bedrock (template fallback already works).
-3. Build the **"Ask MuleNet" copilot** endpoint (2nd visible AWS feature — closes the AWS gap).
-4. Own eval numbers, the **fixed demo seed**, and the 3-min demo script (REQUIREMENTS §17).
-- **Done when:** SAR generates via Claude; `/api/eval` shows the headline metric; demo runs clean twice.
+### P5 — AI, Eval & Demo · `ai/copilot.py`, `ai/sar.py`, `eval/evaluate.py`, demo
+**AI = Anthropic API (Claude), not Bedrock.** Set `ANTHROPIC_API_KEY`.
+1. Build out the **"Ask MuleNet" copilot** (`ai/copilot.py`, `POST /api/ask`) — the substantial,
+   non-wrapper piece: Claude calls tools (`list_rings`/`get_ring`/`get_account`) to investigate.
+   Add more tools (`trace_path`, `compare_rings`), surface the tool-call trace in the UI.
+2. Confirm the SAR generator works via Anthropic (template fallback already works).
+3. Own eval numbers, the **fixed demo seed**, and the 3-min demo script (REQUIREMENTS §17).
+4. Once 1–2 ship (fast), **pair with P2/P3 on detection tuning** — that's where the real hours are.
+- **Done when:** copilot answers by calling tools; SAR drafts a report; `/api/eval` shows the metric; demo runs clean twice.

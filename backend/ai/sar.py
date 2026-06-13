@@ -1,17 +1,16 @@
-"""SAR generator — REQUIREMENTS.md §11 (Owner: P5). The ONLY LLM call in MuleNet.
+"""SAR generator — REQUIREMENTS.md §11 (Owner: P5).
 
-Order of preference: AWS Bedrock (sponsor points) -> Anthropic API -> deterministic
-template. The template means the demo NEVER depends on the network — AI is additive.
-
-TODO(P5): verify the exact Bedrock model id for our account; add the "Ask MuleNet"
-analyst-copilot endpoint (REQUIREMENTS §"How to close the AWS gap").
+Drafts a Suspicious Activity Report for a detected ring.
+Order of preference: **Anthropic API** -> (optional) AWS Bedrock -> deterministic template.
+The template means the demo NEVER depends on the network — AI is additive.
 """
 from __future__ import annotations
 
 import json
 import os
 
-MODEL_ID = "claude-haiku-4-5"
+# Configurable; tokens here are tiny/cheap. Shared with copilot.py.
+MODEL = os.getenv("MULENET_MODEL", "claude-haiku-4-5")
 
 PROMPT = """You are an AML compliance analyst. Write a concise Suspicious Activity Report (SAR)
 for the money-laundering ring described below. Be factual, cite the patterns and amounts.
@@ -65,32 +64,32 @@ def _wrap_ai(txt: str, ctx: dict, source: str) -> dict:
 def generate_sar(ring, accounts, transactions, findings) -> dict:
     ctx = _context(ring, accounts, transactions, findings)
 
-    # 1) AWS Bedrock (preferred — sponsor points)
+    # 1) Anthropic API (primary)
+    try:
+        if os.getenv("ANTHROPIC_API_KEY"):
+            import anthropic
+            client = anthropic.Anthropic()
+            msg = client.messages.create(
+                model=MODEL, max_tokens=800,
+                messages=[{"role": "user", "content": PROMPT.format(ctx=json.dumps(ctx))}])
+            txt = "".join(b.text for b in msg.content if b.type == "text")
+            return _wrap_ai(txt, ctx, "anthropic")
+    except Exception as e:
+        print(f"[sar] Anthropic API unavailable, trying next: {e}")
+
+    # 2) AWS Bedrock (optional fallback — only if we end up with AWS creds)
     try:
         if os.getenv("AWS_ACCESS_KEY_ID") or os.getenv("AWS_PROFILE"):
             import boto3
             br = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION", "eu-west-1"))
             body = {"anthropic_version": "bedrock-2023-05-31", "max_tokens": 800,
                     "messages": [{"role": "user", "content": PROMPT.format(ctx=json.dumps(ctx))}]}
-            resp = br.invoke_model(modelId=os.getenv("BEDROCK_MODEL", f"anthropic.{MODEL_ID}"),
+            resp = br.invoke_model(modelId=os.getenv("BEDROCK_MODEL", f"anthropic.{MODEL}"),
                                    body=json.dumps(body))
             txt = json.loads(resp["body"].read())["content"][0]["text"]
             return _wrap_ai(txt, ctx, "bedrock")
     except Exception as e:
-        print(f"[sar] Bedrock unavailable, trying next: {e}")
+        print(f"[sar] Bedrock unavailable, using template: {e}")
 
-    # 2) Anthropic API
-    try:
-        if os.getenv("ANTHROPIC_API_KEY"):
-            import anthropic
-            client = anthropic.Anthropic()
-            msg = client.messages.create(
-                model=MODEL_ID, max_tokens=800,
-                messages=[{"role": "user", "content": PROMPT.format(ctx=json.dumps(ctx))}])
-            txt = "".join(b.text for b in msg.content if b.type == "text")
-            return _wrap_ai(txt, ctx, "anthropic")
-    except Exception as e:
-        print(f"[sar] Anthropic API unavailable, using template: {e}")
-
-    # 3) deterministic template (always works)
+    # 3) deterministic template (always works — demo never depends on the network)
     return _template(ctx)

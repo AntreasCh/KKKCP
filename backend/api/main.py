@@ -131,6 +131,17 @@ def sar(ring_id: str):
     return out
 
 
+class AskReq(BaseModel):
+    question: str
+
+
+@app.post("/api/ask")
+def ask(req: AskReq):
+    """'Ask MuleNet' analyst copilot — a tool-using agent over the detection results (P5)."""
+    from backend.ai.copilot import ask as copilot_ask
+    return copilot_ask(req.question, STATE["result"], STATE["dataset"], STATE["labels"])
+
+
 @app.get("/api/eval")
 def api_eval():
     return evaluate(STATE["result"], STATE["labels"])
