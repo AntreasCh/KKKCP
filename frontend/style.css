@@ -386,6 +386,29 @@ kbd {
 }
 .ai-meta { margin-top: 6px; font-size: 11.5px; color: var(--muted); }
 
+/* ── account-focus (ego-network) banner + accounts note ──────────────────── */
+.focus-bar {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 6;
+  display: flex; align-items: center; gap: 10px; padding: 7px 10px 7px 14px;
+  background: var(--surface); border: 1px solid var(--accent); border-radius: 999px;
+  box-shadow: var(--shadow-lg); font-size: 12.5px; max-width: min(90%, 720px);
+}
+.focus-ico { font-size: 13px; }
+.focus-label { color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.focus-label b { color: var(--text); font-family: ui-monospace, Consolas, monospace; }
+.focus-scale { color: var(--muted); }
+.focus-trunc { color: var(--warn); font-weight: 600; }
+.focus-btn { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2);
+  padding: 3px 10px; font-size: 11.5px; font-weight: 600; border-radius: 999px; white-space: nowrap; }
+.focus-btn:hover { border-color: var(--accent); color: var(--accent); }
+.focus-btn.clear { background: var(--accent); border-color: var(--accent); color: #fff; }
+.focus-btn.clear:hover { background: #4338ca; color: #fff; }
+.focus-note { font-size: 12px; color: var(--accent); font-weight: 600; }
+.focus-note b { font-family: ui-monospace, Consolas, monospace; }
+.focus-note .link-btn { background: none; color: var(--accent); font-weight: 600; text-decoration: underline; padding: 0 0 0 4px; }
+.fz-act.txns { border-color: var(--accent); color: var(--accent); }
+.fz-act.txns:hover { background: var(--accent-weak); }
+
 /* themed vis-network tooltip (multi-line, no raw markup) */
 div.vis-tooltip {
   background: var(--surface) !important; color: var(--text) !important;

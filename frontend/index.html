@@ -74,6 +74,12 @@
         <div id="graph-view" class="pane-view">
           <div id="graph"></div>
           <div id="graph-loading" class="graph-loading hidden"><div class="gl-spinner"></div><span>Laying out network…</span></div>
+          <div id="focus-bar" class="focus-bar hidden">
+            <span class="focus-ico">🔎</span>
+            <span id="focus-label" class="focus-label"></span>
+            <button id="focus-hop" class="focus-btn">+1 hop</button>
+            <button id="focus-clear" class="focus-btn clear">← Overview</button>
+          </div>
           <div id="live-bar" class="live-bar hidden">
             <span class="live-dot"></span><b id="live-label">LIVE</b>
             <span id="live-stats" class="live-stats"></span>
@@ -105,6 +111,7 @@
         <div id="accounts-view" class="pane-view hidden">
           <div class="acct-toolbar">
             <span id="acct-count" class="subtle">—</span>
+            <span id="focus-note" class="focus-note hidden"></span>
             <div class="acct-tools">
               <label class="af-ctl" title="Accounts at/above this risk are auto-frozen">🔒 Auto-freeze ≥ <b id="fz-val">90</b>%
                 <input id="fz-threshold" type="range" min="0" max="100" value="90" /></label>

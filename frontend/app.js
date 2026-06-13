@@ -35,6 +35,7 @@ function riskColor(r) {
 }
 
 let network = null, nodesDS = null, edgesDS = null, lastGraph = null, stabilizeTimer = null;
+let focusAcct = null, focusMembers = null, focusHops = 1;   // account-focus (ego-network) mode
 let activeRing = null, activeMembers = null;
 let showAll = false;
 let viewNodes = [], viewEdges = [];
@@ -108,6 +109,7 @@ function edgePasses(e) {
   return true;
 }
 function acctPasses(a) {
+  if (focusMembers && !focusMembers.has(a.account_id)) return false;   // account-focus: only the ego set
   if (FILTERS.underReview && (a.status || "active") === "active") return false;
   if (FILTERS.watchlist && !(a.screening && a.screening.length)) return false;
   if (FILTERS.riskMin && a.risk * 100 < FILTERS.riskMin) return false;
@@ -190,19 +192,25 @@ function updateViewCount() {
   const visible = viewNodes.filter(nodePasses).length;
   const nc = $("nodecount"); if (nc) nc.textContent = `· ${visible} shown`;
   const vc = $("view-count");
-  if (vc) vc.textContent = curView === "graph" ? `${visible} nodes` : `${ALL_ACCOUNTS.filter(acctPasses).length} accounts`;
+  // when focused, always show the scale context: rendered nodes vs the full dataset size
+  if (vc) {
+    if (curView === "graph" && focusAcct) vc.textContent = `${visible} nodes · ${(GRAPH_TOTAL_TX || 0).toLocaleString()} total txns`;
+    else vc.textContent = curView === "graph" ? `${visible} nodes` : `${ALL_ACCOUNTS.filter(acctPasses).length} accounts`;
+  }
   const lm = $("legend-mode");
-  if (lm) lm.textContent = (showAll ? "Showing all accounts & traffic" : "Showing rings + flagged accounts") +
-    (activeFilterCount() ? " · filtered" : ".");
+  if (lm) lm.textContent = focusAcct ? `Focused on ${focusAcct}'s network (${focusHops} hop${focusHops > 1 ? "s" : ""}).`
+    : (showAll ? "Showing all accounts & traffic" : "Showing rings + flagged accounts") + (activeFilterCount() ? " · filtered" : ".");
 }
+let GRAPH_TOTAL_TX = 0;   // full-dataset transaction count, for the "of N total" scale chip
 
 // Labels off unless "Names" is on; tooltip always carries the human detail. The `hidden`
 // flag reflects the active filters, so re-styling a node always re-applies the filter.
 function nodeStyle(n) {
   const inRing = !!n.ring, flagged = n.risk >= 0.5;
-  const value = inRing ? 22 + n.risk * 26 : flagged ? 12 + n.risk * 18 : 4 + n.risk * 6;
+  const isFocus = focusAcct && n.id === focusAcct;   // the account the ego-network is centred on
+  const value = isFocus ? 48 : inRing ? 22 + n.risk * 26 : flagged ? 12 + n.risk * 18 : 4 + n.risk * 6;
   return {
-    id: n.id, label: showNames ? (n.owner_name || n.id) : "", value,
+    id: n.id, label: (showNames || isFocus) ? (n.owner_name || n.id) : "", value,
     hidden: !nodePasses(n),
     // vis renders node titles as plain text — keep it text (no HTML); CSS themes + wraps it.
     title: `${n.id}${n.owner_name ? " — " + n.owner_name : ""}\n` +
@@ -210,11 +218,11 @@ function nodeStyle(n) {
       `risk ${pct(n.risk)}${n.ring ? " · ring " + n.ring : ""}`,
     // accounts on a watchlist get a bold red ring so they pop out of the graph
     color: { background: inRing ? ringColor(n.ring) : riskColor(n.risk),
-             border: n.screened ? "#b91c1c" : (inRing ? "#1e293b" : "#94a3b8"),
-             highlight: { background: inRing ? ringColor(n.ring) : riskColor(n.risk), border: n.screened ? "#b91c1c" : "#1e293b" } },
-    borderWidth: n.screened ? 4 : (inRing ? 2 : 1),
-    font: { color: "#0f172a", size: 12 },
-    opacity: inRing ? 1 : (flagged ? 0.95 : 0.55),
+             border: isFocus ? "#4f46e5" : (n.screened ? "#b91c1c" : (inRing ? "#1e293b" : "#94a3b8")),
+             highlight: { background: inRing ? ringColor(n.ring) : riskColor(n.risk), border: isFocus ? "#4f46e5" : (n.screened ? "#b91c1c" : "#1e293b") } },
+    borderWidth: isFocus ? 5 : (n.screened ? 4 : (inRing ? 2 : 1)),
+    font: { color: "#0f172a", size: isFocus ? 15 : 12 },
+    opacity: isFocus || inRing ? 1 : (flagged ? 0.95 : 0.55),
   };
 }
 function edgeStyle(e) {
@@ -260,6 +268,62 @@ function applyGraphFilters() {
   if (activeMembers) highlightGraph([...activeMembers], false);
   else { nodesDS.update(viewNodes.map(nodeStyle)); edgesDS.update(viewEdges.map(edgeStyle)); }
 }
+
+// ── account focus: ego-network lens (the scalable "filter by account" view) ──
+// Fetches a bounded slice — the account + its counterparties + the transfers among them —
+// so the render stays small/calm no matter how large the full dataset is. Pauses live.
+async function focusOnAccount(id, hops = 1) {
+  if (!id) return;
+  closeSearch();
+  pauseLive();                                   // focus is a stable investigative snapshot
+  if (curView !== "graph") setView("graph");
+  showGraphLoading(true);
+  let g;
+  try { g = await fetch(`/api/graph/account/${encodeURIComponent(id)}?hops=${hops}`).then((r) => r.json()); }
+  catch (e) { showGraphLoading(false); toast(`<span class="t-ico">⚠️</span><div class="t-body">Couldn't load ${esc(id)}'s network.</div>`); return; }
+  if (!g || g.detail) { showGraphLoading(false); toast(`<span class="t-ico">⚠️</span><div class="t-body">${esc((g && g.detail) || "Account not found")}</div>`); return; }
+  focusAcct = id; focusHops = g.hops || hops;
+  focusMembers = new Set(g.nodes.map((n) => n.id));
+  GRAPH_TOTAL_TX = g.total_tx || 0;
+  activeRing = null; activeMembers = null;        // drop any ring selection
+  lastGraph = { nodes: g.nodes, edges: g.edges };
+  showAll = true; $("showall").checked = true;     // show the whole (small) ego network
+  renderGraph();                                   // overlay → settle → freeze (calm)
+  setFocusUI(g);
+  renderAccountsTable();                           // Accounts table now filtered to the ego set
+}
+
+function setFocusUI(g) {
+  const bar = $("focus-bar");
+  if (bar) {
+    bar.classList.toggle("hidden", !focusAcct);
+    if (focusAcct && g) {
+      $("focus-label").innerHTML = `<b>${esc(focusAcct)}</b>${g.owner ? " · " + esc(g.owner) : ""} — ` +
+        `${(g.tx_count || 0).toLocaleString()} transfer${g.tx_count === 1 ? "" : "s"} ` +
+        `<span class="focus-scale">of ${(g.total_tx || 0).toLocaleString()} total</span>` +
+        (g.truncated ? ` · <span class="focus-trunc">view capped</span>` : "");
+      $("focus-hop").classList.toggle("hidden", focusHops >= 2);
+    }
+  }
+  const note = $("focus-note");
+  if (note) {
+    note.classList.toggle("hidden", !focusAcct);
+    if (focusAcct) note.innerHTML = `🔎 <b>${esc(focusAcct)}</b>'s network — <button class="link-btn" onclick="clearFocus()">show all accounts</button>`;
+  }
+  updateViewCount();
+}
+
+async function clearFocus() {
+  if (!focusAcct) return;
+  focusAcct = null; focusMembers = null; focusHops = 1;
+  setFocusUI(null);
+  showAll = false; $("showall").checked = false;
+  await loadGraph();        // restore the overview (rings + flagged) from current STATE
+  renderAccountsTable();
+}
+
+// reset focus state without reloading (caller already refreshes the graph)
+function resetFocusState() { focusAcct = null; focusMembers = null; focusHops = 1; setFocusUI(null); }
 
 // ── top-bar KPIs + left-rail eval ───────────────────────────────────────────
 function setKpis(s) {
@@ -903,7 +967,8 @@ function renderSearch(q) {
 }
 function pickSearch(el) {
   closeSearch();
-  if (el.dataset.type === "ring") showRing(el.dataset.id); else showAccount(el.dataset.id);
+  if (el.dataset.type === "ring") showRing(el.dataset.id);
+  else focusOnAccount(el.dataset.id);   // focus the account's transaction network (the scalable lens)
 }
 
 $("search-btn").onclick = openSearch;
@@ -975,12 +1040,13 @@ function renderAccountsTable() {
     const id = esc(a.account_id);
     const act = (label, action, cls) =>
       `<button class="fz-act ${cls}" onclick="event.stopPropagation();acctDecision('${id}','${action}')">${label}</button>`;
+    const txnBtn = `<button class="fz-act txns" onclick="event.stopPropagation();focusOnAccount('${id}')" title="See only this account's transactions">⊙ Txns</button>`;
     let actions;
-    if (status === "active") actions = act("Freeze", "freeze", "");
+    if (status === "active") actions = txnBtn + act("Freeze", "freeze", "");
     else if (status === "frozen")
-      actions = `<button class="fz-act review" onclick="event.stopPropagation();openReview('${id}')">Review</button>` +
+      actions = txnBtn + `<button class="fz-act review" onclick="event.stopPropagation();openReview('${id}')">Review</button>` +
                 act("Block", "block", "block") + act("Clear", "clear", "clear");
-    else actions = act("Clear", "clear", "clear");   // blocked / banned → re-activate
+    else actions = txnBtn + act("Clear", "clear", "clear");   // blocked / banned → re-activate
     return `<tr onclick="showAccount('${id}')">` +
       `<td class="acct-mono">${id}</td>` +
       `<td>${esc(a.owner_name || "")}</td>` +
@@ -1247,6 +1313,7 @@ function setLiveUI() {
 async function startLive() {
   if (live.on) return;
   if (curView !== "graph") setView("graph");
+  resetFocusState();   // leaving any account-focus view
   clearSelection();
   $("live-btn").disabled = true;
   let res;
@@ -1389,6 +1456,10 @@ document.querySelectorAll(".spd").forEach((b) => b.onclick = () => {
   document.querySelectorAll(".spd").forEach((x) => x.classList.toggle("active", x === b));
 });
 
+// account-focus banner controls
+$("focus-hop").onclick = () => { if (focusAcct) focusOnAccount(focusAcct, 2); };
+$("focus-clear").onclick = clearFocus;
+
 // ── boot ────────────────────────────────────────────────────────────────────
 async function refresh() {
   await loadRings();
@@ -1410,6 +1481,7 @@ $("gen").onclick = async () => {
   btn.disabled = true;
   btn.textContent = "Generating…";
   endLive();   // generating a fresh dataset ends the live session entirely
+  resetFocusState();
   showAll = false; $("showall").checked = false;
   try {
     await fetch("/api/dataset/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ seed: Math.floor(Math.random() * 1000000) }) });

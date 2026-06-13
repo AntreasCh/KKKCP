@@ -261,6 +261,50 @@ def graph(max_nodes: int = 400):
     return {"nodes": nodes, "edges": edges}
 
 
+@app.get("/api/graph/account/{account_id}")
+def graph_account(account_id: str, hops: int = 1, max_nodes: int = 400, max_edges: int = 1500):
+    """Ego-network around one account — the scalable lens. Returns the account + its direct
+    counterparties (hops=1) or one step further (hops=2) + the transfers among them, in the
+    same node/edge shape as /api/graph. The full dataset can be millions of transactions; this
+    response is bounded to `max_nodes`/`max_edges` so the graph render stays small and calm."""
+    d = STATE["dataset"]
+    accts = {a["account_id"]: a for a in d["accounts"]}
+    if account_id not in accts:
+        raise HTTPException(404, f"account {account_id} not found")
+    hops = 2 if int(hops) >= 2 else 1
+    txs = d["transactions"]
+
+    own = [t for t in txs if t["src"] == account_id or t["dst"] == account_id]
+    edges = list(own)
+    if hops >= 2:                                   # follow the money one more step out
+        ring1 = set()
+        for t in own:
+            ring1.add(t["src"]); ring1.add(t["dst"])
+        ring1.discard(account_id)
+        seen = {t["tx_id"] for t in edges}
+        for t in txs:
+            if (t["src"] in ring1 or t["dst"] in ring1) and t["tx_id"] not in seen:
+                edges.append(t); seen.add(t["tx_id"])
+
+    truncated = False
+    if len(edges) > max_edges:                      # keep the largest transfers (the meaningful flows)
+        edges = sorted(edges, key=lambda t: -t.get("amount", 0))[:max_edges]
+        truncated = True
+    keep = {account_id}
+    for t in edges:
+        keep.add(t["src"]); keep.add(t["dst"])
+    if len(keep) > max_nodes:                        # cap nodes: account + highest-risk neighbours
+        risk = {a["account_id"]: a["risk"] for a in STATE["result"]["account_risk"]}
+        keep = {account_id} | set(sorted(keep, key=lambda a: -risk.get(a, 0))[:max_nodes])
+        edges = [t for t in edges if t["src"] in keep and t["dst"] in keep]
+        truncated = True
+
+    node_dicts = [accts[a] for a in keep if a in accts]
+    return {"focus": account_id, "owner": accts[account_id].get("owner_name"), "hops": hops,
+            "nodes": _enriched_nodes(node_dicts), "edges": _enriched_edges(edges),
+            "tx_count": len(own), "total_tx": len(txs), "truncated": truncated}
+
+
 @app.get("/api/accounts")
 def accounts_list():
     """Full account list with risk, ring membership and finding counts — powers the
