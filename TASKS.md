@@ -15,7 +15,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 1. 📊 Live Status Board  *(edit ONLY your block)*
 
-### P1 — Andreas — Data & Schemas
+### P1 — kiriakos — Data & Schemas
 - **Status:** 🔲 not started
 - **Right now:** —
 - **Files I'm touching:** `backend/schemas.py`, `backend/data/generator.py`, `sample_data/`
@@ -23,7 +23,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Notes for the team:** —
 - **Updated:** —
 
-### P2 — Panayiotis — Graph & Structural Detection
+### P2 — panagiotis — Graph & Structural Detection
 - **Status:** 🔲 not started
 - **Right now:** —
 - **Files I'm touching:** `backend/graph/build.py`, `backend/detect/structural.py`
@@ -31,7 +31,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Notes for the team:** —
 - **Updated:** —
 
-### P3 — Savvas — Network Detection & Scoring
+### P3 — savvas — Network Detection & Scoring
 - **Status:** 🔲 not started
 - **Right now:** —
 - **Files I'm touching:** `backend/detect/network.py`, `backend/detect/scoring.py`, `backend/detect/pipeline.py`
@@ -39,7 +39,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Notes for the team:** —
 - **Updated:** —
 
-### P4 — (claim) — API & Frontend
+### P4 — BOSS — API & Frontend
 - **Status:** 🔲 not started
 - **Right now:** —
 - **Files I'm touching:** `backend/api/main.py`, `frontend/`
@@ -47,7 +47,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Notes for the team:** —
 - **Updated:** —
 
-### P5 — (claim) — AI, Eval & Demo
+### P5 — scriptkiddie — AI, Eval & Demo
 - **Status:** 🔲 not started
 - **Right now:** —
 - **Files I'm touching:** `backend/ai/copilot.py`, `backend/ai/sar.py`, `backend/eval/evaluate.py`
