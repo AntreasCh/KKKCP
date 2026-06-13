@@ -48,17 +48,18 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Updated:** —
 
 ### P5 — Alexandros — AI, Eval & Demo
-- **Status:** 🔲 not started
-- **Right now:** —
-- **Files I'm touching:** `backend/ai/copilot.py`, `backend/ai/sar.py`, `backend/eval/evaluate.py`
-- **Blockers:** needs `ANTHROPIC_API_KEY` (no AWS needed)
-- **Notes for the team:** —
-- **Updated:** —
+- **Status:** 🔵 in review
+- **Right now:** copilot tools + trace, eval CLI, SAR confirmed, DEMO.md shipped; ready to pair on P2/P3 detection tuning
+- **Files I'm touching:** `backend/ai/copilot.py`, `backend/ai/sar.py`, `backend/eval/evaluate.py`, `DEMO.md`
+- **Blockers:** `ANTHROPIC_API_KEY` not set locally → copilot/SAR fall back gracefully (template/disabled); logic still testable offline
+- **Notes for the team:** copilot now returns a richer `tool_calls` trace (each entry has `tool`/`input`/`output`) so P4 can render the agent investigating. API contract unchanged.
+- **Updated:** 2026-06-13
 
 ---
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P5: copilot gains `trace_path` + `compare_rings` tools and returns a richer `tool_calls` trace (tool/input/output) for the UI; eval gains `format_report` + `python -m backend.eval.evaluate` CLI and additive `false_positive_rate`; SAR Anthropic+template paths confirmed; demo seed fixed at 42, `DEMO.md` added. Heads-up @P3: Louvain is non-deterministic → ring count drifts run-to-run (~24–26 FP); seeding it would stabilise demo numbers. — Alexandros_
 - _2026-06-13 — P3 (Andreas): temporal fan window + hub-centric risk + money/volume ring assembly → rings 30→7, false-positive rings 26→3, ring-recall held at 1.0. Residual FP/bloat is circular over-detection — drops further once P2's circular timestamp/amount filter lands. — Andreas_
 - _2026-06-13 — Phase 0 scaffold landed: app runs end-to-end, contracts frozen, sample_data committed. Baseline `/api/eval`: ring-recall 1.0, precision 0.023, 26 FP rings. — Claude_
 
