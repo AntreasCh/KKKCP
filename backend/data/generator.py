@@ -393,6 +393,111 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
     return dataset, labels
 
 
+# ── live streaming engine (demo "live feed" mode) ────────────────────────────
+class LiveFeed:
+    """Stateful generator for the demo's LIVE mode.
+
+    Unlike `generate_dataset` (a fixed batch), this models an *ongoing* monitored stream:
+    `initial()` lays down a small starting network (~100 transactions), then each `next_batch()`
+    advances a virtual clock and emits a handful of BRAND-NEW transactions — mostly legitimate
+    traffic, with the occasional freshly-planted laundering burst — so the UI can poll it every
+    1–10s and watch the network (and new rings) form in real time.
+
+    Fully self-contained and additive: it does NOT touch `generate_dataset`, the committed
+    `sample_data/`, or the detection pipeline, so existing metrics/tests are unaffected. P4 wires
+    it behind an endpoint (see TASKS heads-up). All emitted objects honor the frozen schemas.
+    """
+
+    # small laundering bursts the stream can inject live (kept short so they complete in one batch)
+    BURSTS = ("structuring", "fan_in", "cycle")
+
+    def __init__(self, seed: int | None = None, n_accounts: int = 120):
+        self.rng = random.Random(seed)
+        self.clock = BASE
+        self._n = 0
+        self._ring_n = 0
+        self.accounts = []
+        for i in range(1, n_accounts + 1):
+            is_biz = self.rng.random() < 0.15
+            self.accounts.append({
+                "account_id": f"ACC{i:05d}",
+                "owner_name": (self.rng.choice(BIZ) if is_biz
+                               else f"{self.rng.choice(FIRST)} {self.rng.choice(LAST)[0]}."),
+                "account_type": "business" if is_biz else "personal",
+                "country": self.rng.choice(COUNTRIES),
+                "opened_at": _iso(BASE - timedelta(days=self.rng.randint(60, 1200)))[:10],
+                "kyc_risk": self.rng.choices(["low", "medium", "high"], weights=[0.8, 0.15, 0.05])[0],
+            })
+        self.acc_ids = [a["account_id"] for a in self.accounts]
+
+    def _tx(self, src, dst, amount, channel=None) -> dict:
+        self._n += 1
+        return {"tx_id": f"TX{self._n:06d}", "timestamp": _iso(self.clock),
+                "src": src, "dst": dst, "amount": round(float(amount), 2),
+                "currency": "EUR", "channel": channel or self.rng.choice(CHANNELS)}
+
+    def _legit(self, k: int) -> list[dict]:
+        out = []
+        for _ in range(k):
+            self.clock += timedelta(seconds=self.rng.randint(20, 240))
+            s, d = self.rng.sample(self.acc_ids, 2)
+            out.append(self._tx(s, d, round(self.rng.lognormvariate(6.0, 0.9), 2)))
+        return out
+
+    def _burst(self) -> tuple[list[dict], dict]:
+        """Plant one short laundering burst inline; return (transactions, ring-label)."""
+        kind = self.rng.choice(self.BURSTS)
+        self._ring_n += 1
+        txs: list[dict] = []
+        if kind == "structuring":
+            hub = self.rng.choice(self.acc_ids)
+            srcs = self.rng.sample([a for a in self.acc_ids if a != hub], self.rng.randint(4, 6))
+            for s in srcs:
+                self.clock += timedelta(seconds=self.rng.randint(15, 90))
+                txs.append(self._tx(s, hub, self.rng.uniform(0.75, 0.98) * THRESHOLD, "cash_deposit"))
+            accts, mule = [hub] + srcs, [hub]
+        elif kind == "fan_in":
+            hub = self.rng.choice(self.acc_ids)
+            srcs = self.rng.sample([a for a in self.acc_ids if a != hub], self.rng.randint(6, 9))
+            for s in srcs:
+                self.clock += timedelta(seconds=self.rng.randint(10, 70))
+                txs.append(self._tx(s, hub, self.rng.uniform(3_000, 9_000)))
+            accts, mule = [hub] + srcs, [hub]
+        else:  # cycle
+            chain = self.rng.sample(self.acc_ids, self.rng.randint(3, 4))
+            amt = self.rng.uniform(20_000, 60_000)
+            for j in range(len(chain)):
+                self.clock += timedelta(seconds=self.rng.randint(20, 120))
+                txs.append(self._tx(chain[j], chain[(j + 1) % len(chain)], amt * (0.92 ** j), "wire"))
+            accts, mule = list(chain), list(chain)
+        ring = {"ring_id": f"LIVE_{self._ring_n:03d}", "account_ids": accts,
+                "tx_ids": [t["tx_id"] for t in txs], "patterns": [kind], "mule_accounts": mule}
+        return txs, ring
+
+    def initial(self, n_tx: int = 100) -> tuple[dict, dict]:
+        """Starting network: ~`n_tx` legit transactions + one obvious planted ring to anchor the view."""
+        txs = self._legit(max(0, n_tx - 8))
+        burst_txs, ring = self._burst()
+        txs.extend(burst_txs)
+        self.rng.shuffle(txs)
+        dataset = {"accounts": self.accounts, "transactions": txs}
+        labels = {"mule_accounts": sorted(ring.pop("mule_accounts")), "rings": [ring]}
+        return dataset, labels
+
+    def next_batch(self) -> dict:
+        """One tick of the live stream: a few new legit txns, ~25% chance also a laundering burst.
+        Returns {transactions:[...new...], ring: <new ring or None>} for the caller to append/alert."""
+        txs = self._legit(self.rng.randint(3, 9))
+        ring = None
+        if self.rng.random() < 0.25:
+            burst_txs, ring = self._burst()
+            mule = ring.pop("mule_accounts")
+            ring["_mule_accounts"] = mule  # caller may fold into labels
+            txs.extend(burst_txs)
+        self.rng.shuffle(txs)
+        return {"transactions": txs, "ring": ring, "clock": _iso(self.clock)}
+
+
 def main():
     p = argparse.ArgumentParser(description="Generate MuleNet synthetic dataset")
     p.add_argument("--accounts", type=int, default=800)
