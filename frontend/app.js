@@ -56,7 +56,6 @@ const caseStatus = (id) => CASE[id] || "new";
 let caseFilter = "all";
 
 let ALL_RINGS = [];        // loaded rings (for search + case counts)
-let ACCOUNT_INDEX = [];    // {id, risk, ring} for search
 
 // Temporal playback state.
 let pb = { txs: [], members: null, k: 0, timer: null, playing: false };
@@ -137,7 +136,6 @@ function renderGraph() {
     const n = lastGraph.nodes.find((x) => x.id === p.nodes[0]);
     if (n && n.ring) showRing(n.ring);
   });
-  ACCOUNT_INDEX = lastGraph.nodes.map((n) => ({ id: n.id, risk: n.risk, ring: n.ring }));
   updateViewCount();
   if (activeMembers) highlightGraph([...activeMembers]);
 }
@@ -147,6 +145,9 @@ function updateViewCount() {
   const nc = $("nodecount"); if (nc) nc.textContent = `· ${visible} shown`;
   const vc = $("view-count");
   if (vc) vc.textContent = curView === "graph" ? `${visible} nodes` : `${ALL_ACCOUNTS.filter(acctPasses).length} accounts`;
+  const lm = $("legend-mode");
+  if (lm) lm.textContent = (showAll ? "Showing all accounts & traffic" : "Showing rings + flagged accounts") +
+    (activeFilterCount() ? " · filtered" : ".");
 }
 
 // Labels off unless "Names" is on; tooltip always carries the human detail. The `hidden`
@@ -157,9 +158,10 @@ function nodeStyle(n) {
   return {
     id: n.id, label: showNames ? (n.owner_name || n.id) : "", value,
     hidden: !nodePasses(n),
-    title: `<b>${esc(n.id)}</b>${n.owner_name ? " — " + esc(n.owner_name) : ""}<br>` +
-      `${esc(n.type || "")}${n.country ? " · " + esc(n.country) : ""} · KYC ${esc(n.kyc_risk || "?")}<br>` +
-      `risk ${pct(n.risk)}${n.ring ? " · ring " + esc(n.ring) : ""}`,
+    // vis renders node titles as plain text — keep it text (no HTML); CSS themes + wraps it.
+    title: `${n.id}${n.owner_name ? " — " + n.owner_name : ""}\n` +
+      `${n.type || ""}${n.country ? " · " + n.country : ""} · KYC ${n.kyc_risk || "?"}\n` +
+      `risk ${pct(n.risk)}${n.ring ? " · ring " + n.ring : ""}`,
     color: { background: inRing ? ringColor(n.ring) : riskColor(n.risk),
              border: inRing ? "#1e293b" : "#94a3b8",
              highlight: { background: inRing ? ringColor(n.ring) : riskColor(n.risk), border: "#1e293b" } },
@@ -173,7 +175,7 @@ function edgeStyle(e) {
   return {
     id: e.id, from: e.source, to: e.target, arrows: "to",
     hidden: !edgePasses(e),
-    title: `${eur2(e.amount)}${e.channel ? " · " + esc(e.channel) : ""}${e.timestamp ? " · " + fmtDate(e.timestamp) : ""}`,
+    title: `${eur2(e.amount)}${e.channel ? " · " + e.channel : ""}${e.timestamp ? " · " + fmtDate(e.timestamp) : ""}`,
     width: e.ring ? 1.6 : 1,
     color: { color: col, opacity: e.ring ? 0.8 : (e.suspicious ? 0.55 : 0.4) },
   };
@@ -349,6 +351,8 @@ function renderRingFlow(r) {
   const el = $("ring-flow");
   if (!el) return;
   const members = new Set(r.account_ids);
+  const ownerOf = {};
+  (r.accounts || []).forEach((a) => { ownerOf[a.account_id] = a.owner_name; });
   const agg = {};
   for (const t of r.transactions || []) {
     if (!members.has(t.src) || !members.has(t.dst)) continue;
@@ -376,7 +380,7 @@ function renderRingFlow(r) {
     const [role, c] = flowRole(i, o);
     return { id: a, label: a.replace(/^ACC/, ""), shape: "dot", value: 6 + 26 * ((i + o) / maxThru),
       color: { background: c, border: "#1e293b", highlight: { background: c, border: "#1e293b" } },
-      title: `${a} · ${role} · in ${eur(i)} · out ${eur(o)}`,
+      title: `${a}${ownerOf[a] ? " — " + ownerOf[a] : ""}\n${role} · in ${eur(i)} · out ${eur(o)}`,
       font: { color: "#0f172a", size: 11 } };
   });
   const maxAmt = Math.max(...flows.map((f) => f.amount), 1);
@@ -567,10 +571,16 @@ async function showRing(id) {
 
 // ── inspector: account detail ───────────────────────────────────────────────
 async function showAccount(id) {
-  const a = await fetch(`/api/accounts/${id}`).then((x) => x.json());
+  const res = await fetch(`/api/accounts/${id}`);
   destroyFlow();
   hidePlayback();
   switchTab("inspector");
+  if (!res.ok) {
+    $("detail").innerHTML = `<div class="empty-state"><div class="ico">🚫</div><p>Account <b>${esc(id)}</b> not found.</p></div>`;
+    markActiveRing(null);
+    return;
+  }
+  const a = await res.json();
   const acc = a.account || {};
   const findings = (a.findings || []).slice().sort((x, y) => y.score - x.score);
   $("detail").innerHTML =
@@ -672,20 +682,26 @@ function closeSearch() { $("search-modal").classList.add("hidden"); }
 
 function renderSearch(q) {
   q = q.trim().toLowerCase();
-  const out = [];
-  for (const r of ALL_RINGS) {
-    const hay = (r.ring_id + " " + r.patterns.join(" ")).toLowerCase();
-    if (!q || hay.includes(q)) out.push({ type: "ring", id: r.ring_id, sub: `${r.account_ids.length} accts · ${r.patterns.join(", ")}`, sort: -r.score });
-  }
-  let accts = ACCOUNT_INDEX.filter((a) => !q || a.id.toLowerCase().includes(q)).sort((a, b) => b.risk - a.risk);
-  for (const a of accts.slice(0, 8)) out.push({ type: "account", id: a.id, sub: `risk ${pct(a.risk)}${a.ring ? " · ring " + a.ring : ""}` });
-  if (/^acc/i.test(q) && !ACCOUNT_INDEX.some((a) => a.id.toLowerCase() === q))
-    out.push({ type: "account", id: q.toUpperCase(), sub: "open account" });
-  const rings = out.filter((x) => x.type === "ring").sort((a, b) => (a.sort || 0) - (b.sort || 0));
-  const list = [...rings, ...out.filter((x) => x.type === "account")].slice(0, 12);
+  // rings (by id or pattern)
+  const rings = ALL_RINGS
+    .filter((r) => !q || (r.ring_id + " " + r.patterns.join(" ")).toLowerCase().includes(q))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6)
+    .map((r) => ({ type: "ring", id: r.ring_id, sub: `${r.account_ids.length} accounts · ${r.patterns.join(", ")}` }));
+  // accounts (by id, OWNER NAME or country) over the full account list
+  const accts = ALL_ACCOUNTS
+    .filter((a) => !q || a.account_id.toLowerCase().includes(q)
+      || (a.owner_name || "").toLowerCase().includes(q) || (a.country || "").toLowerCase().includes(q))
+    .sort((a, b) => b.risk - a.risk)
+    .slice(0, 8)
+    .map((a) => ({ type: "account", id: a.account_id, owner: a.owner_name,
+      sub: `${a.account_type || ""} · ${a.country || ""} · risk ${pct(a.risk)}` }));
+  const list = [...rings, ...accts].slice(0, 14);
   $("search-results").innerHTML = list.length ? list.map((x, i) =>
     `<div class="sr-item ${i === 0 ? "sel" : ""}" data-type="${x.type}" data-id="${esc(x.id)}">` +
-      `<span class="sr-type ${x.type}">${x.type}</span><span class="sr-id">${esc(x.id)}</span>` +
+      `<span class="sr-type ${x.type}">${x.type}</span>` +
+      `<span class="sr-id">${esc(x.id)}</span>` +
+      (x.owner ? `<span class="sr-owner">${esc(x.owner)}</span>` : "") +
       `<span class="sr-sub">${esc(x.sub || "")}</span></div>`).join("")
     : `<div class="sr-empty">No matches for “${esc(q)}”</div>`;
   $("search-results").querySelectorAll(".sr-item").forEach((el) => el.onclick = () => pickSearch(el));
@@ -708,7 +724,10 @@ $("search-input").onkeydown = (e) => {
 };
 document.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openSearch(); }
-  else if (e.key === "Escape" && !$("search-modal").classList.contains("hidden")) closeSearch();
+  else if (e.key === "Escape") {
+    if (!$("search-modal").classList.contains("hidden")) closeSearch();
+    else if (!$("filter-panel").classList.contains("hidden")) $("filter-panel").classList.add("hidden");
+  }
 });
 
 // ── playback controls ───────────────────────────────────────────────────────
@@ -827,6 +846,8 @@ async function refresh() {
   const params = new URLSearchParams(location.search);
   if (params.get("view") === "accounts") setView("accounts");
   if (params.get("filters") === "1") $("filter-panel").classList.remove("hidden");
+  const sq = params.get("q");
+  if (sq) { openSearch(); $("search-input").value = sq; renderSearch(sq); }
 }
 
 $("fitbtn").onclick = () => { activeRing = null; markActiveRing(null); hidePlayback(); highlightGraph(null); if (network) network.fit({ animation: true }); };

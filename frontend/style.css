@@ -293,7 +293,8 @@ kbd {
 .sr-type.ring { background: #ede9fe; color: #6d28d9; }
 .sr-type.account { background: #e0f2fe; color: #0369a1; }
 .sr-id { font-weight: 700; font-family: ui-monospace, Consolas, monospace; }
-.sr-sub { color: var(--muted); font-size: 12px; margin-left: auto; }
+.sr-owner { color: var(--text-2); font-size: 12.5px; }
+.sr-sub { color: var(--muted); font-size: 12px; margin-left: auto; text-align: right; }
 .sr-empty { padding: 20px; text-align: center; color: var(--muted); }
 .search-foot { display: flex; gap: 6px; align-items: center; padding: 8px 16px; border-top: 1px solid var(--border);
   color: var(--muted); font-size: 11px; background: var(--surface-2); }
@@ -360,6 +361,16 @@ kbd {
   border-radius: 8px; padding: 11px 13px; color: var(--text-2); white-space: pre-wrap;
 }
 .ai-meta { margin-top: 6px; font-size: 11.5px; color: var(--muted); }
+
+/* themed vis-network tooltip (multi-line, no raw markup) */
+div.vis-tooltip {
+  background: var(--surface) !important; color: var(--text) !important;
+  border: 1px solid var(--border-strong) !important; border-radius: 8px !important;
+  padding: 7px 10px !important; box-shadow: var(--shadow-lg) !important;
+  font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 12px !important; line-height: 1.45 !important; white-space: pre-line !important;
+  color-scheme: light; pointer-events: none;
+}
 
 .hidden { display: none !important; }
 

@@ -15,7 +15,7 @@
     </div>
     <div class="topbar-right">
       <button id="search-btn" class="search-trigger" title="Search (Ctrl / ⌘ K)">
-        🔍 <span>Search rings &amp; accounts</span> <kbd>⌘K</kbd>
+        🔍 <span>Search owners, accounts, rings</span> <kbd>⌘K</kbd>
       </button>
       <div id="kpis" class="kpis"></div>
       <label class="toggle" title="Show the full network, including legitimate background traffic">
@@ -68,7 +68,7 @@
             <div class="legend-row"><span class="dot" style="background:#cbd5e1"></span> low / background</div>
             <div class="legend-row"><span class="dot ring-dot"></span> in a detected ring</div>
             <div class="legend-row"><span class="edge-swatch"></span> suspicious transfer</div>
-            <div class="legend-note">Each dot = an account · line = a transfer.<br/>Showing rings + flagged accounts only.</div>
+            <div class="legend-note">Each dot = an account · line = a transfer.<br/><span id="legend-mode">Showing rings + flagged accounts.</span></div>
           </div>
         </div>
 
@@ -149,7 +149,7 @@
     <div class="search-box">
       <div class="search-inwrap">
         <span class="search-ico">🔍</span>
-        <input id="search-input" type="text" placeholder="Search rings or accounts… e.g. DET_003, ACC00042" />
+        <input id="search-input" type="text" placeholder="Search by owner, account or ring… e.g. Maria, ACC00042, DET_003" />
       </div>
       <div id="search-results" class="search-results"></div>
       <div class="search-foot"><kbd>↑</kbd><kbd>↓</kbd> navigate · <kbd>↵</kbd> open · <kbd>esc</kbd> close</div>
