@@ -32,12 +32,12 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Updated:** —
 
 ### P3 — Andreas — Network Detection & Scoring
-- **Status:** 🔲 not started
-- **Right now:** —
-- **Files I'm touching:** `backend/detect/network.py`, `backend/detect/scoring.py`, `backend/detect/pipeline.py`
+- **Status:** 🟡 in progress
+- **Right now:** temporal fan window + flagged-subgraph ring assembly + volume-based ring scoring
+- **Files I'm touching:** `backend/detect/network.py`, `backend/detect/scoring.py`
 - **Blockers:** —
-- **Notes for the team:** —
-- **Updated:** —
+- **Notes for the team:** detect_fan is now account-type (hub in subject_ids, counterparties in evidence) — still a valid Finding, no schema change. Rings now built from flagged-account clusters + tx volume, not raw Louvain.
+- **Updated:** 2026-06-13
 
 ### P4 — savvas — API & Frontend
 - **Status:** 🔲 not started
