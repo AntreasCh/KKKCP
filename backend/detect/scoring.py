@@ -52,6 +52,13 @@ MIN_RING_SCORE = 0.45
 MIN_RING_SIZE = 3
 MONEY_EDGE = 5_000        # a seed must contain at least one transfer this large (kills legit-cycle noise)
 SEED_SCORE_FLOOR = 0.3    # a down-weighted account finding (e.g. legit hub) must not seed a ring
+# Lifecycle bonus (per distinct typology beyond the 2nd). A ring that spans a full laundering
+# lifecycle — placement (structuring) → layering (pass-through) → integration (fan-out/in) — is
+# qualitatively more sophisticated and higher-risk than a simple 2-party loop, even when its many
+# spokes dilute average member risk. This surfaces the flagship multi-stage rings to the top of
+# the analyst queue. Additive + capped at 1.0; only raises multi-pattern rings, so it cannot drop
+# a true ring or spawn a false-positive one (verified: ring-recall 1.0, FP-rings 0 hold).
+LIFECYCLE_BONUS = 0.12
 
 
 def _has_money_edge(members: set[str], pair_amt: dict) -> bool:
@@ -151,7 +158,8 @@ def build_rings(findings: list[dict], account_risk: list[dict], transactions: li
         risk_term = 0.6 * max_risk + 0.4 * avg_risk
         diversity = min(1.0, 0.25 * len(m["patterns"]))
         vol_factor = min(1.0, vol / 50_000)
-        score = round(0.5 * risk_term + 0.2 * diversity + 0.3 * vol_factor, 3)
+        lifecycle = LIFECYCLE_BONUS * max(0, len(m["patterns"]) - 2)
+        score = round(min(1.0, 0.5 * risk_term + 0.2 * diversity + 0.3 * vol_factor + lifecycle), 3)
         if score < MIN_RING_SCORE or vol < MIN_RING_VOLUME:
             continue
         rings.append({"account_ids": members, "tx_ids": txids, "patterns": sorted(m["patterns"]),

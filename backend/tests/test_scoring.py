@@ -43,6 +43,17 @@ def test_ring_metrics_hold():
     assert METRICS["false_positive_rings"] == 0, f"false-positive rings appeared: {METRICS}"
 
 
+def test_top_ranked_ring_is_a_full_lifecycle_ring():
+    # The lifecycle bonus must surface a multi-typology ring (full placement→layering→integration)
+    # to #1 of the analyst queue — a sophisticated ring should outrank a simple 2-party loop.
+    rings = RESULT["rings"]
+    assert rings, "no rings detected"
+    max_patterns = max(len(r["patterns"]) for r in rings)
+    assert max_patterns >= 3, "expected at least one full-lifecycle (3+ typology) ring in the fixture"
+    assert len(rings[0]["patterns"]) == max_patterns, \
+        f"top ring has {len(rings[0]['patterns'])} patterns; a full-lifecycle ring should rank #1"
+
+
 def test_no_legit_account_outscores_a_true_mule_floor():
     # Behind the precision: even the worst hard-negative (the mega-merchant that trips
     # passthrough+circular and hit risk 1.0 before the fix) must be pulled well below τ=0.5 by the
