@@ -16,12 +16,12 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 ## 1. 📊 Live Status Board  *(edit ONLY your block)*
 
 ### P1 — kiriakos — Data & Schemas
-- **Status:** 🔵 in review (data done; one ring-recall gap is P3-side, see heads-up)
-- **Right now:** committed richer fixture — 800 accts / ~4.1k txns / 15 rings (3 per pattern). Eval on it: **ring-recall 0.87, FP-rings 1, acct-precision 0.42** (vs Phase-0 baseline recall 1.0 but precision 0.023 / 26 FP-rings — the old 1.0 was trivial; everything was flagged).
-- **Files I'm touching:** `backend/data/generator.py`, `sample_data/`
+- **Status:** ✅ done — data/labels complete & validated against the latest integrated pipeline
+- **Right now:** fixture stands at 800 accts / ~4.1k txns / 15 rings (3 per pattern). Current eval: **ring-recall 1.0, FP-rings 0, acct-precision 1.0** (P3 landed the fan-out fix 👍). Verified labels are honest — the account-recall gap is **not** a labels problem (see heads-up).
+- **Files I'm touching:** `backend/data/generator.py`, `sample_data/` (idle — done)
 - **Blockers:** —
-- **Notes for the team:** `schemas.py` unchanged (still frozen). New data adds **legit hubs** (employers/merchants/utilities: business + low-KYC + old accounts, traffic spread over 30d) and gives **mule centres** a realistic profile (fresh accounts, elevated KYC, high-risk jurisdiction) — a fair signal to separate payroll fan-out from mules. Labels split **ring account_ids** (full set, for ring-recall) from **mule_accounts** (central/relay only).
-  - **🔴 @P3 (Andreas):** the 2 missed rings are both `mule_fanout`. `detect_fan` correctly emits a `fan_out` finding (score ~0.9) but only the **hub** is in `subject_ids`; the spokes sit in `evidence.counterparties`. `build_rings` assembles from flagged accounts only → detected ring = `{hub}` → <60% overlap → miss. **Fix:** when seeding a ring from a fan finding, pull in `evidence.counterparties`. That alone should push ring-recall back to ~1.0.
+- **Notes for the team:** `schemas.py` unchanged (frozen). Data has **legit hubs** (business/low-KYC/aged, traffic spread over 30d) + realistic **mule profiles** (fresh accts, elevated KYC, high-risk CC). Labels split full **ring account_ids** (ring-recall) from central **mule_accounts** (precision).
+  - **🟡 @P2/@P3 — account-recall 0.359 is detection-side, not labels:** I checked all 25 unflagged "mules" — they're genuine relays/hubs, correctly labeled, just under-scored. Concrete draggers: **`ACC00593` fan-in hub (14 incoming) → risk 0.00**; **`ACC00066`/`ACC00735` structuring hubs → 0.00**; **~11 layering interior relays all stuck at exactly 0.30** (P2's flat passthrough score, just under τ=0.5). Levers: make passthrough score scale with ratio/speed (not flat 0.6), and have `detect_fan`/scoring credit a high in-degree hub even when its burst is partly outside the 48h window. Happy to pair — I won't change labels (they're correct; dropping them would just mask this).
 - **Updated:** 2026-06-13
 
 ### P2 — panagiotis — Graph & Structural Detection
@@ -60,6 +60,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P1 (kiriakos): data ✅ done — confirmed ring-recall 1.0 / FP-rings 0 / acct-precision 1.0 on the integrated pipeline. Audited the acct-recall gap (0.359): all 25 unflagged "mules" are correctly-labeled relays/hubs being under-scored — `ACC00593` fan-in hub (14 in) →0.00, structuring hubs →0.00, ~11 layering relays pinned at 0.30 (<τ). It's detection-side (P2 flat passthrough score + crediting in-degree hubs), not labels — not changing labels (would just mask it). — kiriakos_
 - _2026-06-13 — P3 (Andreas): integration pass — ring-recall 0.87→1.0 (15/15, mule_fanout now 3/3), account precision 0.61→1.0 (0 FP), FP rings →0, and detection made DETERMINISTIC (was 11–26 rings/run). Fixes in network.py/scoring.py only, no schema/API change: peak-risk blend in ring score, legit-hub fan down-weight (business+low-KYC), order-independent build_rings + seeded Louvain, money-edge-bounded seed expansion (killed the 95-acct mega-blobs). Account recall still 0.359 → P2 passthrough scoring is the next lever. — Andreas_
 - _2026-06-13 — P4 (savvas): graph readability pass — focus view (rings + flagged only) with a "Show all traffic" toggle, labels→hover tooltips, size/opacity hierarchy; plus a per-ring money-flow diagram (source→mule→destination, edge width ∝ amount, top-28 capped) in the detail panel. Pure frontend; §8 unchanged. — savvas_
 - _2026-06-13 — P2 (panagiotis): `detect_circular` now fires only on time-ordered, value-retaining money loops (retention 0.7–1.25, ≤72h, len≥3). Catches all 3 circular rings on the new fixture, 0 FP; nudged acct-precision 0.42→0.61. Added `backend/tests/` (data-driven, 5 pass). Remaining ring-recall gap is the `mule_fanout` assembly issue @kiriakos already flagged to @Andreas. — panagiotis_
