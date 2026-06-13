@@ -148,10 +148,21 @@ def stream_start(seed: int | None = None):
     return {"summary": _summary()}
 
 
+def _enforced_ids() -> set[str]:
+    """Accounts whose status forbids them from transacting (frozen / blocked / banned).
+    A freeze is a freeze: such an account must neither send nor receive money."""
+    return {a["account_id"] for a in STATE["dataset"]["accounts"]
+            if a.get("status", "active") != "active"}
+
+
 @app.get("/api/stream/next")
 def stream_next():
     """One tick of the live stream: emit new transactions, re-run detection, return the new
-    edges + any freshly-detected ring (for a 🚨 alert) + an updated summary."""
+    edges + any freshly-detected ring (for a 🚨 alert) + an updated summary.
+
+    Enforcement: a frozen/blocked/banned account cannot move money. Any freshly-streamed
+    transaction touching such an account (as sender OR receiver) is *prevented* here — it
+    never enters the dataset, so the live feed actually stops mules transacting once frozen."""
     lf = STATE.get("live")
     if not lf:
         raise HTTPException(409, "no active live stream — call /api/stream/start first")
@@ -162,6 +173,20 @@ def stream_next():
     # STATE — add only the genuinely-missing ones so we never duplicate an account_id.
     have = {a["account_id"] for a in STATE["dataset"]["accounts"]}
     STATE["dataset"]["accounts"].extend(a for a in new_accts if a["account_id"] not in have)
+
+    # Enforcement: a frozen/blocked/banned account cannot move money. Drop any freshly-streamed
+    # tx whose sender OR receiver is under enforcement (and any burst leg/ring that empties out).
+    enforced = _enforced_ids()
+    prevented = [t for t in batch["transactions"] if t["src"] in enforced or t["dst"] in enforced]
+    if prevented:
+        blk = {t["tx_id"] for t in prevented}
+        batch["transactions"] = [t for t in batch["transactions"] if t["tx_id"] not in blk]
+        rb = batch.get("ring")
+        if rb:  # a planted burst whose accounts got frozen — drop the prevented legs / dead ring
+            rb["tx_ids"] = [tid for tid in rb.get("tx_ids", []) if tid not in blk]
+            if not rb["tx_ids"]:
+                batch["ring"] = None
+
     STATE["dataset"]["transactions"].extend(batch["transactions"])
     burst = batch.get("ring")
     if burst:
@@ -182,7 +207,9 @@ def stream_next():
             alert = {"ring_id": best["ring_id"], "account_ids": best["account_ids"],
                      "patterns": best["patterns"], "n_accounts": len(best["account_ids"])}
     return {"new_nodes": _enriched_nodes(new_accts), "new_edges": _enriched_edges(batch["transactions"]),
-            "ring": alert, "clock": batch.get("clock"), "summary": _summary()}
+            "ring": alert, "clock": batch.get("clock"), "summary": _summary(),
+            # transactions stopped this tick because a party is frozen/blocked/banned
+            "prevented": [{"src": t["src"], "dst": t["dst"], "amount": t["amount"]} for t in prevented]}
 
 
 @app.post("/api/stream/stop")

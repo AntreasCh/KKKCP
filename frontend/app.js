@@ -1202,10 +1202,13 @@ function toast(html, onClick) {
 }
 function dismissToast(el) { if (!el.parentNode) return; el.classList.add("out"); setTimeout(() => el.remove(), 300); }
 
+let livePrevented = 0;   // running count of transactions stopped because a party is frozen
 function liveStats(s, clock) {
   $("live-stats").innerHTML =
     `<b>${(s.transactions || 0).toLocaleString()}</b> transactions · <b>${s.rings_detected}</b> rings · ` +
-    `<b>${s.flagged_accounts}</b> flagged${clock ? ` · ${fmtDate(clock)}` : ""}`;
+    `<b>${s.flagged_accounts}</b> flagged` +
+    (livePrevented ? ` · <b class="blocked-stat">🛑 ${livePrevented.toLocaleString()}</b> blocked` : "") +
+    `${clock ? ` · ${fmtDate(clock)}` : ""}`;
 }
 function fireRingAlert(ring) {
   const id = ring.ring_id;
@@ -1250,6 +1253,7 @@ async function startLive() {
   try { res = await fetch("/api/stream/start", { method: "POST" }).then((r) => r.json()); }
   catch (e) { toast(`<span class="t-ico">⚠️</span><div class="t-body">Could not start the live stream.</div>`); $("live-btn").disabled = false; return; }
   showAll = true; $("showall").checked = true;   // show the whole (small) live network
+  livePrevented = 0;                              // fresh stream → reset the blocked-tx counter
   await refresh();
   live.on = true; live.paused = false; live.started = true; live.speed = 1;
   document.querySelectorAll(".spd").forEach((b) => b.classList.toggle("active", b.dataset.spd === "1"));
@@ -1334,6 +1338,12 @@ async function pollLive() {
   if (b.detail) {   // server stream vanished (e.g. backend reloaded) — re-establish from scratch
     toast(`<span class="t-ico">⚠️</span><div class="t-body">Live stream reset — restarting.</div>`);
     live.on = false; live.started = false; startLive(); return;
+  }
+  if (b.prevented && b.prevented.length) {   // enforcement stopped a frozen account from transacting
+    livePrevented += b.prevented.length;
+    const p = b.prevented[0];
+    toast(`<span class="t-ico">🛑</span><div class="t-body"><b>Blocked ${b.prevented.length} transaction${b.prevented.length === 1 ? "" : "s"}</b>` +
+      `<small>frozen account · ${esc(p.src)} → ${esc(p.dst)} · €${(p.amount || 0).toLocaleString()}</small></div>`);
   }
   if (b.summary) { liveStats(b.summary, b.clock); setKpis(b.summary); }
   // 1) new accounts join as nodes first (placed beside a neighbour, layout stays frozen)

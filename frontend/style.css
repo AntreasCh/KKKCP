@@ -416,6 +416,7 @@ div.vis-tooltip {
 }
 .live-stats { color: var(--text-2); font-variant-numeric: tabular-nums; }
 .live-stats b { color: var(--text); letter-spacing: 0; font-size: 12.5px; }
+.live-stats b.blocked-stat { color: var(--danger); }
 .live-speed { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; padding: 1px; }
 .spd { background: none; color: var(--muted); padding: 2px 7px; font-size: 11px; font-weight: 700; border-radius: 5px; }
 .spd:hover { color: var(--text); }
