@@ -82,7 +82,7 @@
           <label class="toggle" id="names-wrap" title="Show owner names on graph nodes">
             <input type="checkbox" id="names" /> Names
           </label>
-          <button id="live-btn" class="btn-ghost" title="Replay the network as a live monitored feed">▶ Live feed</button>
+          <button id="live-btn" class="btn-ghost" title="Pause / resume the live monitored feed">▶ Live feed</button>
           <button id="filter-btn" class="btn-ghost">⚙ Filters <span id="filter-count" class="fcount hidden">0</span></button>
           <button id="fitbtn" class="btn-ghost" title="Reset / fit the view">⤢ Fit</button>
         </div>
@@ -93,14 +93,14 @@
         <div id="graph-view" class="pane-view">
           <div id="graph"></div>
           <div id="live-bar" class="live-bar hidden">
-            <span class="live-dot"></span><b>LIVE</b>
+            <span class="live-dot"></span><b id="live-label">LIVE</b>
             <span id="live-stats" class="live-stats"></span>
             <span class="live-speed">
               <button class="spd active" data-spd="1">1×</button>
               <button class="spd" data-spd="2">2×</button>
               <button class="spd" data-spd="4">4×</button>
             </span>
-            <button id="live-stop" class="live-stop">■ Stop</button>
+            <button id="live-stop" class="live-stop">⏸ Pause</button>
           </div>
           <div id="playback" class="playback hidden">
             <button id="pb-play" class="pb-btn" title="Play / pause">▶</button>

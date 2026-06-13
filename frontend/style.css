@@ -397,6 +397,9 @@ div.vis-tooltip {
 .live-bar b { color: var(--danger); letter-spacing: .08em; font-size: 11px; }
 .live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); flex: none;
   box-shadow: 0 0 0 0 rgba(220,38,38,.6); animation: livepulse 1.2s infinite; }
+/* paused: data is frozen on screen, stream is resumable — drop the urgent red pulse */
+.live-bar.paused b { color: var(--muted); }
+.live-bar.paused .live-dot { animation: none; background: var(--muted); box-shadow: none; }
 @keyframes livepulse {
   0% { box-shadow: 0 0 0 0 rgba(220,38,38,.55); }
   70% { box-shadow: 0 0 0 7px rgba(220,38,38,0); }

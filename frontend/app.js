@@ -1008,7 +1008,7 @@ $("f-watchlist").onchange = (e) => { FILTERS.watchlist = e.target.checked; onFil
 // ── center view toggle (Graph / Accounts) + name labels ─────────────────────
 function setView(v) {
   curView = v;
-  if (v !== "graph") stopLive();
+  if (v !== "graph") pauseLive();   // leaving the graph just freezes the feed (resumable)
   document.querySelectorAll(".vt").forEach((b) => b.classList.toggle("active", b.dataset.view === v));
   $("graph-view").classList.toggle("hidden", v !== "graph");
   $("accounts-view").classList.toggle("hidden", v !== "accounts");
@@ -1131,9 +1131,14 @@ loadNotifs();
 updateNotifBadge();
 
 // ── live transaction feed (true real-time stream via P1's LiveFeed engine) ──
-// Starts a server-side stream, then polls /api/stream/next: new transactions appear
-// as edges, the network grows, and freshly-detected rings fire 🚨 alerts.
-let live = { on: false, timer: null, speed: 1 };
+// Auto-starts on app load and polls /api/stream/next: new transactions appear as
+// edges, the network grows, and freshly-detected rings fire 🚨 alerts.
+// Pause = freeze (stop polling, keep the streamed data + the server-side stream
+// alive); Resume = continue the SAME stream from exactly where it left off.
+//   on:      currently polling
+//   paused:  user stopped it; data is frozen on screen, stream is resumable
+//   started: a server-side stream exists this session (resume continues it)
+let live = { on: false, paused: false, started: false, timer: null, speed: 1 };
 
 function toast(html, onClick) {
   const box = $("toasts");
@@ -1162,14 +1167,30 @@ function fireRingAlert(ring) {
   if (card) { card.classList.add("flash"); card.scrollIntoView({ block: "nearest" }); setTimeout(() => card.classList.remove("flash"), 1500); }
 }
 
-function haltLive() {   // stop local polling only (no server call / refresh)
-  live.on = false;
-  if (live.timer) clearTimeout(live.timer);
-  live.timer = null;
-  $("live-btn").textContent = "▶ Live feed";
-  $("live-bar").classList.add("hidden");
+function clearLiveTimer() { if (live.timer) clearTimeout(live.timer); live.timer = null; }
+
+// Reflect the current live state on both controls (toolbar button + banner).
+function setLiveUI() {
+  const bar = $("live-bar"), btn = $("live-btn"), stop = $("live-stop"), label = $("live-label");
+  if (live.on) {                          // streaming
+    btn.textContent = "⏸ Pause feed";
+    stop.textContent = "⏸ Pause";
+    bar.classList.remove("hidden", "paused");
+    if (label) label.textContent = "LIVE";
+  } else if (live.started) {              // paused — data frozen, stream resumable
+    btn.textContent = "▶ Resume feed";
+    stop.textContent = "▶ Resume";
+    bar.classList.remove("hidden");
+    bar.classList.add("paused");
+    if (label) label.textContent = "PAUSED";
+  } else {                                // not running at all
+    btn.textContent = "▶ Live feed";
+    bar.classList.add("hidden");
+    bar.classList.remove("paused");
+  }
 }
 
+// Begin a FRESH stream (boot, or restarting after Generate). Resets to initial().
 async function startLive() {
   if (live.on) return;
   if (curView !== "graph") setView("graph");
@@ -1180,12 +1201,37 @@ async function startLive() {
   catch (e) { toast(`<span class="t-ico">⚠️</span><div class="t-body">Could not start the live stream.</div>`); $("live-btn").disabled = false; return; }
   showAll = true; $("showall").checked = true;   // show the whole (small) live network
   await refresh();
-  live.on = true; live.speed = 1;
+  live.on = true; live.paused = false; live.started = true; live.speed = 1;
   document.querySelectorAll(".spd").forEach((b) => b.classList.toggle("active", b.dataset.spd === "1"));
-  $("live-bar").classList.remove("hidden");
-  $("live-btn").textContent = "■ Stop feed"; $("live-btn").disabled = false;
+  $("live-btn").disabled = false;
+  setLiveUI();
   liveStats(res.summary, null);
   scheduleLive();
+}
+
+// Freeze: stop polling but keep the streamed data on screen AND the server-side
+// stream alive, so Resume can continue it. No /api/stream/stop, no refresh.
+function pauseLive() {
+  if (!live.on) return;
+  live.on = false; live.paused = true;
+  clearLiveTimer();
+  setLiveUI();
+}
+
+// Continue the SAME stream from where it stopped — just resume polling.
+function resumeLive() {
+  if (live.on || !live.started) return;
+  live.on = true; live.paused = false;
+  setLiveUI();
+  scheduleLive();
+}
+
+// Full stop (used by Generate): tear the live session down without restoring a
+// fixture here — the caller decides what to load next.
+function endLive() {
+  live.on = false; live.paused = false; live.started = false;
+  clearLiveTimer();
+  setLiveUI();
 }
 
 function scheduleLive() {
@@ -1199,7 +1245,11 @@ async function pollLive() {
   let b;
   try { b = await fetch("/api/stream/next").then((r) => r.json()); }
   catch (e) { scheduleLive(); return; }
-  if (!live.on || b.detail) { return; }
+  if (!live.on) return;
+  if (b.detail) {   // server stream vanished (e.g. backend reloaded) — re-establish from scratch
+    toast(`<span class="t-ico">⚠️</span><div class="t-body">Live stream reset — restarting.</div>`);
+    live.on = false; live.started = false; startLive(); return;
+  }
   if (b.summary) { liveStats(b.summary, b.clock); setKpis(b.summary); }
   if (b.ring) {
     await loadRings();                              // rebuild queue + RING_COLOR with the new ring
@@ -1217,18 +1267,10 @@ async function pollLive() {
   scheduleLive();
 }
 
-async function stopLive() {
-  const was = live.on;
-  haltLive();
-  showAll = false; $("showall").checked = false;
-  if (was) {
-    try { await fetch("/api/stream/stop", { method: "POST" }); } catch (e) {}
-    await refresh();   // restore the committed fixture
-  }
-}
-
-$("live-btn").onclick = () => { if (live.on) stopLive(); else startLive(); };
-$("live-stop").onclick = stopLive;
+// Toolbar + banner controls cycle: streaming → pause → resume → pause …
+// First-ever click (no stream yet) starts fresh.
+$("live-btn").onclick = () => { if (live.on) pauseLive(); else if (live.started) resumeLive(); else startLive(); };
+$("live-stop").onclick = () => { if (live.on) pauseLive(); else resumeLive(); };
 document.querySelectorAll(".spd").forEach((b) => b.onclick = () => {
   live.speed = +b.dataset.spd;
   document.querySelectorAll(".spd").forEach((x) => x.classList.toggle("active", x === b));
@@ -1245,7 +1287,6 @@ async function refresh() {
   if (params.get("filters") === "1") $("filter-panel").classList.remove("hidden");
   const sq = params.get("q");
   if (sq) { openSearch(); $("search-input").value = sq; renderSearch(sq); }
-  if (params.get("live") === "1") setTimeout(startLive, 400);
 }
 
 $("fitbtn").onclick = () => clearSelection();
@@ -1255,7 +1296,7 @@ $("gen").onclick = async () => {
   const btn = $("gen");
   btn.disabled = true;
   btn.textContent = "Generating…";
-  haltLive();
+  endLive();   // generating a fresh dataset ends the live session entirely
   showAll = false; $("showall").checked = false;
   try {
     await fetch("/api/dataset/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ seed: Math.floor(Math.random() * 1000000) }) });
@@ -1267,7 +1308,17 @@ $("gen").onclick = async () => {
   } finally { btn.disabled = false; btn.textContent = "↻ Generate"; }
 };
 
-refresh();
+// ── boot: load current state, then auto-start the live feed ─────────────────
+// The app opens "live" — polling begins on load. Skip the auto-start when the URL
+// deep-links into a specific fixture view (?view=, ?q=, ?filters=, #ring) or with
+// ?live=0; ?live=1 forces live even alongside those params.
+(async function boot() {
+  await refresh();
+  const p = new URLSearchParams(location.search);
+  const forceLive = p.get("live") === "1";
+  const deepLinked = p.get("live") === "0" || p.get("q") || p.get("view") || p.get("filters") || location.hash.slice(1);
+  if (forceLive || !deepLinked) startLive();
+})();
 
 // ── compliance: auto-freeze-by-threshold + manual review (§6) ───────────────
 // Accounts ≥ the threshold are auto-frozen (default 90%); moving the slider re-applies
