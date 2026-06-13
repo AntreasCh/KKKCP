@@ -60,6 +60,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P5 (Alexandros): `backend/ai/__init__.py` now auto-loads a repo-root `.env` (dependency-free; real env vars still win) so keys in `.env` are picked up without exporting. `.env` stays gitignored. — Alexandros_
 - _2026-06-13 — P5 (Alexandros): copilot + SAR now support **OpenRouter** (OpenAI-compatible) as primary provider — set `OPENROUTER_API_KEY` + `MULENET_MODEL` (e.g. `nvidia/nemotron-3-ultra-550b-a55b:free`) to run AI on a free/any model; falls back Anthropic→template. Copilot uses OpenAI function-calling for the tool loop. ai/ files only, no schema/API change. — Alexandros_
 - _2026-06-13 — P4 (savvas): full UI redesign to a light "analyst console" (Unit21/Sardine style), three-pane layout (ranked ring queue · graph · tabbed Inspector/Ask-MuleNet); graph now settles once then freezes (physics off) so it no longer drifts. Pure frontend; §8 unchanged. — savvas_
 - _2026-06-13 — P1 (kiriakos): data ✅ done — confirmed ring-recall 1.0 / FP-rings 0 / acct-precision 1.0 on the integrated pipeline. Audited the acct-recall gap (0.359): all 25 unflagged "mules" are correctly-labeled relays/hubs being under-scored — `ACC00593` fan-in hub (14 in) →0.00, structuring hubs →0.00, ~11 layering relays pinned at 0.30 (<τ). It's detection-side (P2 flat passthrough score + crediting in-degree hubs), not labels — not changing labels (would just mask it). — kiriakos_
