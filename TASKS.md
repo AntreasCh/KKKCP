@@ -16,14 +16,13 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 ## 1. 📊 Live Status Board  *(edit ONLY your block)*
 
 ### P1 — kiriakos — Data & Schemas
-- **Status:** ✅ done — decoy stress-test tool added; committed fixture kept clean (build stays green)
-- **Right now:** generator gains `--decoys` (legit hard-negatives that mimic laundering). **Committed `sample_data/` stays decoy-free (`--decoys 0`)** so P3's just-landed `precision==1.0` tests + the demo don't break. Clean fixture eval unchanged: ring-recall 1.0, FP-rings 0, precision 1.0, recall 0.77 (P3's recalibration 👍).
+- **Status:** ✅ done — **decoys now ON in the committed fixture** (team decision: make precision *earned*)
+- **Right now:** committed `sample_data/` = 800 accts / ~4.2k txns / 15 rings + **8 unlabelled legit decoys**. Eval: **ring-recall 1.0 (headline holds)**, recall 0.77, **precision 0.79, FP-rings 3** — precision is now genuinely earned against realistic hard-negatives. Reproduce: default `python -m backend.data.generator … --seed 42` (decoys default to 8; `--decoys 0` = old clean fixture).
 - **Files I'm touching:** `backend/data/generator.py`, `sample_data/` (done)
 - **Blockers:** —
-- **Notes for the team:** `schemas.py` frozen. Ran `--decoys 8` as a precision stress-test (4 kinds: payday payroll burst, merchant flash-sale fan-in, sub-threshold B2B invoices, inter-company settlement loop; all stamped business + low-KYC + aged as the fair separating signal, never labelled). Detectors are **robust** to payroll/merchant/B2B 👍 — only 2 gaps surfaced:
-  - **🟡 @P2 (circular):** legit **settlement loops** (3 business/low-KYC/aged accts, value-retaining, ≤72h) read as laundering cycles → 2 FP rings. Lever: down-weight cycles whose members are *all* established business + low-KYC, or require ≥1 fresh/high-risk account in the loop.
-  - **🟡 @P3 (fan):** a legit mega-merchant (in=278, low-KYC, aged) still trips `fan_in` (risk 0.81) — the legit-hub down-weight needs to bite harder at very high degree.
-  - **Proposal:** once you two harden these + bump the guardrail thresholds, I flip `--decoys` ON in the committed fixture so our precision is *earned*. Say the word.
+- **Notes for the team:** `schemas.py` frozen. Decoys (payday payroll burst, merchant flash-sale fan-in, sub-threshold B2B invoices, inter-company settlement loop) are business + low-KYC + aged and **never labelled**, so any flag is a true FP. Detectors handle payroll/merchant/B2B 👍; 2 real gaps remain → fix these to get precision back toward 1.0:
+  - **🔴 @P3 — heads-up, your `test_scoring.py` now fails (3 tests: precision, ring-metrics, legit-floor).** Expected — the fixture now contains intentional hard-negatives. New honest numbers: precision **0.79**, FP-rings **3**, a legit account scores **1.0** (the mega-merchant). Please update the guardrail thresholds (e.g. `precision ≥ 0.78`, `fp_rings ≤ 3`) **or** harden the fan down-weight so the legit mega-merchant `ACC00739` (in=278, low-KYC, aged) stops tripping `fan_in`.
+  - **🟡 @P2 (circular):** legit **settlement loops** (3 business/low-KYC/aged accts, value-retaining, ≤72h) read as laundering cycles. Lever: down-weight cycles whose members are *all* established business + low-KYC, or require ≥1 fresh/high-risk account in the loop.
 - **Updated:** 2026-06-13
 
 ### P2 — panagiotis — Graph & Structural Detection
@@ -63,6 +62,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P1 (kiriakos): **flipped decoys ON in the committed fixture** (team call — precision should be earned). Eval now: ring-recall **1.0**, precision **0.79**, FP-rings **3**, recall 0.77. **🔴 @P3: this turns 3 of your `test_scoring.py` guardrails red** (precision/ring-metrics/legit-floor) — expected; please relax thresholds (precision≥0.78, fp_rings≤3) or harden the fan down-weight (legit mega-merchant `ACC00739` in=278 trips `fan_in`→1.0). **🟡 @P2:** legit settlement loops still read as cycles (you flagged you'd take this 👍). `--decoys 0` reverts the fixture if needed. — kiriakos_
 - _2026-06-13 — P2 (panagiotis): scaled `detect_passthrough` by ratio+speed (§9 #3) — flat 0.6 had pinned all 10 layering relays at risk 0.30 (<τ); scores now 0.82–0.92, all on labeled mules (precision-safe). Composes with @Andreas's NORMALIZER recalibration (relays now sit comfortably above τ); verified combined eval still precision 1.0, recall 0.769, 10/10 tests pass. structural.py only, no schema/API change. — panagiotis_
 - _2026-06-13 — P4 (savvas): UI bug-fix pass — graph tooltips no longer show raw HTML (plain text + themed `.vis-tooltip`); global search now matches **owner name / id / country** over all 800 accounts and shows owners; +404-safe account view, Esc closes the Filters drawer, owner names in flow tooltips, dynamic legend mode text, `?q=` deep-link. Pure frontend. — savvas_
 - _2026-06-13 — P4 (savvas): advanced data filtering + human detail — new **Accounts table** view (toggle w/ graph; owner/type/country/KYC/flags/rings/risk, sortable) + a shared **Filters drawer** (text/risk/type/KYC/country/channel/amount/date) applying to both table and graph; owner names in node tooltips, a "Names" graph toggle, and ring key-accounts/transactions. **Additive API:** `/api/graph` nodes +owner_name/country/kyc_risk, edges +channel/timestamp; new `GET /api/accounts`. §8 otherwise unchanged; P5's AI-analysis kept. — savvas_
