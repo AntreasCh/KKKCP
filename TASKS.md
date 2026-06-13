@@ -16,11 +16,12 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 ## 1. 📊 Live Status Board  *(edit ONLY your block)*
 
 ### P1 — kiriakos — Data & Schemas
-- **Status:** 🟡 in progress
-- **Right now:** richer generator — 2–3 instances per pattern, realistic legit noise (salary/merchant/bills + legit hubs), AMLSim-aligned typologies; then regenerate `sample_data/`
+- **Status:** 🔵 in review (data done; one ring-recall gap is P3-side, see heads-up)
+- **Right now:** committed richer fixture — 800 accts / ~4.1k txns / 15 rings (3 per pattern). Eval on it: **ring-recall 0.87, FP-rings 1, acct-precision 0.42** (vs Phase-0 baseline recall 1.0 but precision 0.023 / 26 FP-rings — the old 1.0 was trivial; everything was flagged).
 - **Files I'm touching:** `backend/data/generator.py`, `sample_data/`
 - **Blockers:** —
-- **Notes for the team:** `schemas.py` unchanged (still frozen). Labels now separate **ring account_ids** (full involved set, for ring-recall) from **mule_accounts** (central/relay nodes only) — so account-precision isn't punished by labelling one-shot smurfs. Default `--rings` bumped to 15 (3 per pattern) for the committed fixture; API's `n_rings=6` still works.
+- **Notes for the team:** `schemas.py` unchanged (still frozen). New data adds **legit hubs** (employers/merchants/utilities: business + low-KYC + old accounts, traffic spread over 30d) and gives **mule centres** a realistic profile (fresh accounts, elevated KYC, high-risk jurisdiction) — a fair signal to separate payroll fan-out from mules. Labels split **ring account_ids** (full set, for ring-recall) from **mule_accounts** (central/relay only).
+  - **🔴 @P3 (Andreas):** the 2 missed rings are both `mule_fanout`. `detect_fan` correctly emits a `fan_out` finding (score ~0.9) but only the **hub** is in `subject_ids`; the spokes sit in `evidence.counterparties`. `build_rings` assembles from flagged accounts only → detected ring = `{hub}` → <60% overlap → miss. **Fix:** when seeding a ring from a fan finding, pull in `evidence.counterparties`. That alone should push ring-recall back to ~1.0.
 - **Updated:** 2026-06-13
 
 ### P2 — panagiotis — Graph & Structural Detection
@@ -59,6 +60,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P1 (kiriakos): shipped richer fixture (800 accts / 4.1k txns / 15 rings, 3 per pattern) + legit hubs (payroll/merchant/utility) + realistic mule profiles. Eval: ring-recall 0.87, FP-rings 26→1, acct-precision 0.023→0.42. 🔴 @P3: 2 missed rings are `mule_fanout` — `build_rings` should expand a fan finding to its `evidence.counterparties` (spokes), which lifts recall back to ~1.0. schemas.py untouched. — kiriakos_
 - _2026-06-13 — P1 (kiriakos): starting richer generator — 2–3 instances/pattern, realistic legit noise + legit hubs, AMLSim-aligned typologies; labels split ring-set vs mule-set. schemas.py untouched. — kiriakos_
 - _2026-06-13 — P5: copilot gains `trace_path` + `compare_rings` tools and returns a richer `tool_calls` trace (tool/input/output) for the UI; eval gains `format_report` + `python -m backend.eval.evaluate` CLI and additive `false_positive_rate`; SAR Anthropic+template paths confirmed; demo seed fixed at 42, `DEMO.md` added. Heads-up @P3: Louvain is non-deterministic → ring count drifts run-to-run (~24–26 FP); seeding it would stabilise demo numbers. — Alexandros_
 - _2026-06-13 — P3 (Andreas): temporal fan window + hub-centric risk + money/volume ring assembly → rings 30→7, false-positive rings 26→3, ring-recall held at 1.0. Residual FP/bloat is circular over-detection — drops further once P2's circular timestamp/amount filter lands. — Andreas_
