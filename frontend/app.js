@@ -28,10 +28,11 @@ const RING_COLORS = ["#4f46e5", "#0891b2", "#e11d48", "#d97706", "#7c3aed", "#05
   "#ea580c", "#0284c7", "#db2777", "#2563eb", "#65a30d", "#9333ea"];
 let RING_COLOR = {};
 function ringColor(id) { return RING_COLOR[id] || "#64748b"; }
+// Node fill = a risk heat scale: high → red, medium → amber, low → green.
 function riskColor(r) {
-  if (r >= 0.66) return "#dc2626";
-  if (r >= 0.33) return "#d97706";
-  return "#cbd5e1";
+  if (r >= 0.66) return "#dc2626";   // high risk
+  if (r >= 0.33) return "#d97706";   // medium risk
+  return "#22c55e";                  // low risk (green = safe)
 }
 
 let network = null, nodesDS = null, edgesDS = null, lastGraph = null, stabilizeTimer = null;
@@ -133,18 +134,20 @@ function nodeStyle(n) {
     hidden: !nodePasses(n),
     // vis renders node titles as plain text — keep it text (no HTML); CSS themes + wraps it.
     title: `${n.id}${n.owner_name ? " — " + n.owner_name : ""}\n` +
-      `${n.type || ""}${n.country ? " · " + n.country : ""} · KYC ${n.kyc_risk || "?"}\n` +
+      `${n.type || ""}${n.country ? " · " + n.country : ""}\n` +
       `risk ${pct(n.risk)}${n.ring ? " · ring " + n.ring : ""}`,
-    color: { background: inRing ? ringColor(n.ring) : riskColor(n.risk),
-             border: isFocus ? "#4f46e5" : (inRing ? "#1e293b" : "#94a3b8"),
-             highlight: { background: inRing ? ringColor(n.ring) : riskColor(n.risk), border: isFocus ? "#4f46e5" : "#1e293b" } },
-    borderWidth: isFocus ? 5 : (inRing ? 2 : 1),
+    // fill always encodes RISK (red→amber→green); ring membership is shown with a violet ring border
+    color: { background: riskColor(n.risk),
+             border: isFocus ? "#4f46e5" : (inRing ? "#7c3aed" : "#94a3b8"),
+             highlight: { background: riskColor(n.risk), border: isFocus ? "#4f46e5" : (inRing ? "#7c3aed" : "#1e293b") } },
+    borderWidth: isFocus ? 5 : (inRing ? 3 : 1),
     font: { color: "#0f172a", size: isFocus ? 15 : 12 },
     opacity: isFocus || inRing ? 1 : (flagged ? 0.95 : 0.55),
   };
 }
 function edgeStyle(e) {
-  const col = e.ring ? ringColor(e.ring) : (e.suspicious ? "#ef4444" : "#cbd5e1");
+  // violet = part of a detected ring, red = suspicious transfer, grey = background
+  const col = e.ring ? "#7c3aed" : (e.suspicious ? "#ef4444" : "#cbd5e1");
   return {
     id: e.id, from: e.source, to: e.target, arrows: "to",
     hidden: !edgePasses(e),
@@ -312,7 +315,7 @@ async function showAccount(id) {
     `<div class="detail-head"><span class="ringdot" style="background:${riskColor(a.risk)}"></span>` +
       `<h2>${esc(id)}</h2><span class="risk-chip ${riskTier(a.risk)}">risk ${(a.risk * 100).toFixed(0)}</span></div>` +
     `<p class="subtle">${esc(acc.owner_name || "")} · ${esc(acc.account_type || "")} · ` +
-      `${esc(acc.country || "")} · KYC ${esc(acc.kyc_risk || "")}</p>` +
+      `${esc(acc.country || "")}</p>` +
     `<div class="enf-block"><span class="fz-status st-${esc(acc.status || "active")}">${esc(acc.status || "active")}</span>` +
       `<span class="enf-actions">` +
         `<button class="fz-act" onclick="acctDecision('${esc(id)}','freeze')">Freeze</button>` +
@@ -427,13 +430,12 @@ function renderAccountsTable() {
       `<td>${esc(a.owner_name || "")}</td>` +
       `<td>${esc(a.account_type || "")}</td>` +
       `<td>${esc(a.country || "")}</td>` +
-      `<td><span class="kyc-pill kyc-${esc(a.kyc_risk || "low")}">${esc(a.kyc_risk || "")}</span></td>` +
       `<td class="num">${a.n_findings || 0}</td>` +
       `<td>${rings ? `<span class="pill">${esc((a.rings || [])[0])}${rings > 1 ? " +" + (rings - 1) : ""}</span>` : "—"}</td>` +
       `<td class="num"><span class="risk-chip ${tier}">${(a.risk * 100).toFixed(0)}</span></td>` +
       `<td><span class="fz-status st-${esc(status)}">${esc(status)}</span></td>` +
       `<td class="acct-actions">${actions}</td></tr>`;
-  }).join("") || `<tr><td colspan="10" class="subtle" style="padding:24px;text-align:center">No accounts match the filters.</td></tr>`;
+  }).join("") || `<tr><td colspan="9" class="subtle" style="padding:24px;text-align:center">No accounts match the filters.</td></tr>`;
   document.querySelectorAll("#acct-table th").forEach((th) => {
     th.classList.toggle("sorted", th.dataset.sort === key);
     th.classList.toggle("asc", th.dataset.sort === key && dir === 1);
@@ -528,7 +530,6 @@ function openReview(id) {
     `<div class="rv-grid">` +
       `<div><span class="rv-k">Owner</span><span class="rv-v">${esc(a.owner_name || "—")}</span></div>` +
       `<div><span class="rv-k">Type</span><span class="rv-v">${esc(a.account_type || "—")}</span></div>` +
-      `<div><span class="rv-k">KYC</span><span class="rv-v"><span class="kyc-pill kyc-${esc(a.kyc_risk || "low")}">${esc(a.kyc_risk || "—")}</span></span></div>` +
       `<div><span class="rv-k">Risk</span><span class="rv-v"><span class="risk-chip ${riskTier(a.risk)}">${(a.risk * 100).toFixed(0)}</span></span></div>` +
     `</div>` +
     `<div class="rv-reason"><div class="rv-reason-head">🔒 Why this account is under review</div>` +
