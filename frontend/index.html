@@ -34,28 +34,86 @@
       <div id="rings" class="rings"></div>
     </aside>
 
-    <!-- CENTER: the network graph (static once settled) -->
+    <!-- CENTER: graph ↔ accounts table, with shared filters -->
     <section class="graph-pane">
-      <div id="graph"></div>
-      <div class="graph-toolbar">
-        <button id="fitbtn" class="btn-ghost" title="Reset / fit the view">⤢ Fit</button>
+      <div class="pane-header">
+        <div class="view-toggle">
+          <button class="vt active" data-view="graph">◉ Graph</button>
+          <button class="vt" data-view="accounts">▦ Accounts</button>
+        </div>
+        <div class="pane-tools">
+          <span id="view-count" class="view-count"></span>
+          <label class="toggle" id="names-wrap" title="Show owner names on graph nodes">
+            <input type="checkbox" id="names" /> Names
+          </label>
+          <button id="filter-btn" class="btn-ghost">⚙ Filters <span id="filter-count" class="fcount hidden">0</span></button>
+          <button id="fitbtn" class="btn-ghost" title="Reset / fit the view">⤢ Fit</button>
+        </div>
       </div>
 
-      <!-- temporal playback: scrub a ring's transactions over time -->
-      <div id="playback" class="playback hidden">
-        <button id="pb-play" class="pb-btn" title="Play / pause">▶</button>
-        <input id="pb-range" type="range" min="0" max="0" value="0" />
-        <span id="pb-label" class="pb-label"></span>
-        <button id="pb-close" class="pb-btn close" title="Exit playback">✕</button>
-      </div>
-      <div id="legend" class="legend">
-        <div class="legend-title">Legend <span id="nodecount" class="nodecount"></span></div>
-        <div class="legend-row"><span class="dot" style="background:#dc2626"></span> high risk (≥66%)</div>
-        <div class="legend-row"><span class="dot" style="background:#d97706"></span> medium risk (≥33%)</div>
-        <div class="legend-row"><span class="dot" style="background:#cbd5e1"></span> low / background</div>
-        <div class="legend-row"><span class="dot ring-dot"></span> in a detected ring</div>
-        <div class="legend-row"><span class="edge-swatch"></span> suspicious transfer</div>
-        <div class="legend-note">Each dot = an account · line = a transfer.<br/>Showing rings + flagged accounts only.</div>
+      <div class="pane-body">
+        <!-- GRAPH view -->
+        <div id="graph-view" class="pane-view">
+          <div id="graph"></div>
+          <div id="playback" class="playback hidden">
+            <button id="pb-play" class="pb-btn" title="Play / pause">▶</button>
+            <input id="pb-range" type="range" min="0" max="0" value="0" />
+            <span id="pb-label" class="pb-label"></span>
+            <button id="pb-close" class="pb-btn close" title="Exit playback">✕</button>
+          </div>
+          <div id="legend" class="legend">
+            <div class="legend-title">Legend <span id="nodecount" class="nodecount"></span></div>
+            <div class="legend-row"><span class="dot" style="background:#dc2626"></span> high risk (≥66%)</div>
+            <div class="legend-row"><span class="dot" style="background:#d97706"></span> medium risk (≥33%)</div>
+            <div class="legend-row"><span class="dot" style="background:#cbd5e1"></span> low / background</div>
+            <div class="legend-row"><span class="dot ring-dot"></span> in a detected ring</div>
+            <div class="legend-row"><span class="edge-swatch"></span> suspicious transfer</div>
+            <div class="legend-note">Each dot = an account · line = a transfer.<br/>Showing rings + flagged accounts only.</div>
+          </div>
+        </div>
+
+        <!-- ACCOUNTS table view -->
+        <div id="accounts-view" class="pane-view hidden">
+          <div class="acct-toolbar"><span id="acct-count" class="subtle">—</span></div>
+          <div class="acct-scroll">
+            <table class="acct-table" id="acct-table">
+              <thead><tr>
+                <th data-sort="account_id">Account</th>
+                <th data-sort="owner_name">Owner</th>
+                <th data-sort="account_type">Type</th>
+                <th data-sort="country">Country</th>
+                <th data-sort="kyc_risk">KYC</th>
+                <th data-sort="n_findings" class="num">Flags</th>
+                <th data-sort="rings">Rings</th>
+                <th data-sort="risk" class="num sorted">Risk</th>
+              </tr></thead>
+              <tbody id="acct-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- FILTER drawer (shared by graph + table) -->
+        <aside id="filter-panel" class="filter-panel hidden">
+          <div class="fp-head"><b>Filters</b>
+            <button id="filter-reset" class="link-btn">Reset all</button>
+            <button id="filter-close" class="pb-btn close" title="Close">✕</button>
+          </div>
+          <div class="fp-body">
+            <div class="fp-group"><label>Search owner / account</label>
+              <input id="f-text" type="text" placeholder="e.g. Maria, ACC00012" /></div>
+            <div class="fp-group"><label>Minimum risk <b id="f-risk-val">0</b>%</label>
+              <input id="f-risk" type="range" min="0" max="100" value="0" /></div>
+            <div class="fp-group"><label>Account type</label><div id="f-type" class="chips"></div></div>
+            <div class="fp-group"><label>KYC risk</label><div id="f-kyc" class="chips"></div></div>
+            <div class="fp-group"><label>Country</label><div id="f-country" class="chips"></div></div>
+            <div class="fp-sep">Transaction filters (graph)</div>
+            <div class="fp-group"><label>Channel</label><div id="f-channel" class="chips"></div></div>
+            <div class="fp-group"><label>Amount range (€)</label>
+              <div class="fp-row"><input id="f-amin" type="number" placeholder="min" /><span>–</span><input id="f-amax" type="number" placeholder="max" /></div></div>
+            <div class="fp-group"><label>Date range</label>
+              <div class="fp-row"><input id="f-dfrom" type="date" /><span>–</span><input id="f-dto" type="date" /></div></div>
+          </div>
+        </aside>
       </div>
     </section>
 

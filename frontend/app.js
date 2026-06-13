@@ -61,6 +61,53 @@ let ACCOUNT_INDEX = [];    // {id, risk, ring} for search
 // Temporal playback state.
 let pb = { txs: [], members: null, k: 0, timer: null, playing: false };
 
+// Accounts table + shared filtering.
+const CHANNELS = ["wire", "sepa", "card", "crypto", "cash_deposit"];
+let ALL_ACCOUNTS = [];
+let curView = "graph", showNames = false;
+let acctSort = { key: "risk", dir: -1 };
+const FILTERS = { text: "", riskMin: 0, types: new Set(), kyc: new Set(), countries: new Set(),
+  channels: new Set(), amtMin: null, amtMax: null, dateFrom: null, dateTo: null };
+
+const matchText = (id, owner) => {
+  const t = FILTERS.text.trim().toLowerCase();
+  return !t || id.toLowerCase().includes(t) || (owner || "").toLowerCase().includes(t);
+};
+function nodePasses(n) {
+  if (FILTERS.riskMin && n.risk * 100 < FILTERS.riskMin) return false;
+  if (FILTERS.types.size && !FILTERS.types.has(n.type)) return false;
+  if (FILTERS.kyc.size && !FILTERS.kyc.has(n.kyc_risk)) return false;
+  if (FILTERS.countries.size && !FILTERS.countries.has(n.country)) return false;
+  return matchText(n.id, n.owner_name);
+}
+function edgePasses(e) {
+  if (FILTERS.channels.size && !FILTERS.channels.has(e.channel)) return false;
+  if (FILTERS.amtMin != null && e.amount < FILTERS.amtMin) return false;
+  if (FILTERS.amtMax != null && e.amount > FILTERS.amtMax) return false;
+  if (FILTERS.dateFrom && new Date(e.timestamp) < FILTERS.dateFrom) return false;
+  if (FILTERS.dateTo && new Date(e.timestamp) > FILTERS.dateTo) return false;
+  return true;
+}
+function acctPasses(a) {
+  if (FILTERS.riskMin && a.risk * 100 < FILTERS.riskMin) return false;
+  if (FILTERS.types.size && !FILTERS.types.has(a.account_type)) return false;
+  if (FILTERS.kyc.size && !FILTERS.kyc.has(a.kyc_risk)) return false;
+  if (FILTERS.countries.size && !FILTERS.countries.has(a.country)) return false;
+  return matchText(a.account_id, a.owner_name);
+}
+function activeFilterCount() {
+  let n = 0;
+  if (FILTERS.text) n++;
+  if (FILTERS.riskMin > 0) n++;
+  if (FILTERS.types.size) n++;
+  if (FILTERS.kyc.size) n++;
+  if (FILTERS.countries.size) n++;
+  if (FILTERS.channels.size) n++;
+  if (FILTERS.amtMin != null || FILTERS.amtMax != null) n++;
+  if (FILTERS.dateFrom || FILTERS.dateTo) n++;
+  return n;
+}
+
 // ── graph (settles once, then freezes — no perpetual motion) ────────────────
 async function loadGraph() {
   lastGraph = await fetch("/api/graph").then((r) => r.json());
@@ -91,18 +138,28 @@ function renderGraph() {
     if (n && n.ring) showRing(n.ring);
   });
   ACCOUNT_INDEX = lastGraph.nodes.map((n) => ({ id: n.id, risk: n.risk, ring: n.ring }));
-  const nc = $("nodecount");
-  if (nc) nc.textContent = `· ${viewNodes.length}${showAll ? "" : " key"} nodes`;
+  updateViewCount();
   if (activeMembers) highlightGraph([...activeMembers]);
 }
 
-// Labels hidden by default (tooltip carries the id); ring/flagged stand out.
+function updateViewCount() {
+  const visible = viewNodes.filter(nodePasses).length;
+  const nc = $("nodecount"); if (nc) nc.textContent = `· ${visible} shown`;
+  const vc = $("view-count");
+  if (vc) vc.textContent = curView === "graph" ? `${visible} nodes` : `${ALL_ACCOUNTS.filter(acctPasses).length} accounts`;
+}
+
+// Labels off unless "Names" is on; tooltip always carries the human detail. The `hidden`
+// flag reflects the active filters, so re-styling a node always re-applies the filter.
 function nodeStyle(n) {
   const inRing = !!n.ring, flagged = n.risk >= 0.5;
   const value = inRing ? 22 + n.risk * 26 : flagged ? 12 + n.risk * 18 : 4 + n.risk * 6;
   return {
-    id: n.id, label: "", value,
-    title: `${n.id} · risk ${pct(n.risk)}${n.ring ? " · ring " + n.ring : ""}`,
+    id: n.id, label: showNames ? (n.owner_name || n.id) : "", value,
+    hidden: !nodePasses(n),
+    title: `<b>${esc(n.id)}</b>${n.owner_name ? " — " + esc(n.owner_name) : ""}<br>` +
+      `${esc(n.type || "")}${n.country ? " · " + esc(n.country) : ""} · KYC ${esc(n.kyc_risk || "?")}<br>` +
+      `risk ${pct(n.risk)}${n.ring ? " · ring " + esc(n.ring) : ""}`,
     color: { background: inRing ? ringColor(n.ring) : riskColor(n.risk),
              border: inRing ? "#1e293b" : "#94a3b8",
              highlight: { background: inRing ? ringColor(n.ring) : riskColor(n.risk), border: "#1e293b" } },
@@ -115,18 +172,19 @@ function edgeStyle(e) {
   const col = e.ring ? ringColor(e.ring) : (e.suspicious ? "#ef4444" : "#cbd5e1");
   return {
     id: e.id, from: e.source, to: e.target, arrows: "to",
-    title: eur2(e.amount),
+    hidden: !edgePasses(e),
+    title: `${eur2(e.amount)}${e.channel ? " · " + esc(e.channel) : ""}${e.timestamp ? " · " + fmtDate(e.timestamp) : ""}`,
     width: e.ring ? 1.6 : 1,
     color: { color: col, opacity: e.ring ? 0.8 : (e.suspicious ? 0.55 : 0.4) },
   };
 }
 
-function highlightGraph(members) {
+function highlightGraph(members, doFit = true) {
   if (!nodesDS) return;
   const set = members ? new Set(members) : null;
   activeMembers = set;
   nodesDS.update(viewNodes.map((n) => {
-    const base = nodeStyle(n);
+    const base = nodeStyle(n);          // carries the filter `hidden`
     if (!set) return base;
     const on = set.has(n.id);
     base.opacity = on ? 1 : 0.12;
@@ -134,18 +192,24 @@ function highlightGraph(members) {
     return base;
   }));
   edgesDS.update(viewEdges.map((e) => {
-    const base = edgeStyle(e);
-    base.hidden = false;                 // un-hide anything the playback scrubber hid
+    const base = edgeStyle(e);          // resets filter `hidden`, clears any playback hide
     if (!set) return base;
     const on = set.has(e.source) && set.has(e.target);
     base.color = { color: on ? base.color.color : "#e2e8f0", opacity: on ? 0.9 : 0.15 };
     base.width = on ? 2.2 : 1;
     return base;
   }));
-  if (set) {
+  if (set && doFit) {
     const present = [...set].filter((id) => nodesDS.get(id));
     if (present.length) network.fit({ nodes: present, animation: { duration: 450, easingFunction: "easeInOutQuad" } });
   }
+}
+
+// Re-apply node/edge styling (filters + names) without rebuilding the layout.
+function applyGraphFilters() {
+  if (!nodesDS) return;
+  if (activeMembers) highlightGraph([...activeMembers], false);
+  else { nodesDS.update(viewNodes.map(nodeStyle)); edgesDS.update(viewEdges.map(edgeStyle)); }
 }
 
 // ── top-bar KPIs + left-rail eval ───────────────────────────────────────────
@@ -380,7 +444,7 @@ function renderPlaybackFrame(k) {
   edgesDS.update(viewEdges.filter((e) => pb.members.has(e.source) && pb.members.has(e.target)).map((e) => {
     const on = full || revealedTx.has(e.id);
     const base = edgeStyle(e);
-    return { id: e.id, hidden: !on, width: on ? 2.4 : 1, color: { color: base.color.color, opacity: 0.95 } };
+    return { id: e.id, hidden: !on || base.hidden, width: on ? 2.4 : 1, color: { color: base.color.color, opacity: 0.95 } };
   }));
   nodesDS.update(viewNodes.filter((n) => pb.members.has(n.id)).map((n) => {
     const base = nodeStyle(n);
@@ -421,15 +485,19 @@ async function showRing(id) {
       `<div class="ev-body">${evidenceText(f)}</div></div>`;
   }).join("") || `<span class="subtle">No detector evidence attached.</span>`;
 
+  const ownerOf = {};
+  (r.accounts || []).forEach((a) => { ownerOf[a.account_id] = a.owner_name; });
+
   const txs = (r.transactions || []).slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   const txRows = txs.map((t) => {
     const near = t.amount >= 0.7 * REPORTING_THRESHOLD && t.amount < REPORTING_THRESHOLD;
-    return `<tr><td>${fmtDate(t.timestamp)}</td><td class="mono">${esc(t.src)} → ${esc(t.dst)}</td>` +
+    const flowTitle = `${ownerOf[t.src] || t.src} → ${ownerOf[t.dst] || t.dst}`;
+    return `<tr><td>${fmtDate(t.timestamp)}</td><td class="mono" title="${esc(flowTitle)}">${esc(t.src)} → ${esc(t.dst)}</td>` +
       `<td class="amt ${near ? "near" : ""}">${eur2(t.amount)}</td><td>${esc(t.channel)}</td></tr>`;
   }).join("");
 
   const keyAccts = (r.key_accounts || []).map((a) =>
-    `<span class="pill acc" onclick="showAccount('${esc(a)}')">${esc(a)}</span>`).join("");
+    `<span class="pill acc" onclick="showAccount('${esc(a)}')">${esc(a)}${ownerOf[a] ? " · " + esc(ownerOf[a]) : ""}</span>`).join("");
 
   d.innerHTML =
     `<div class="detail-head"><span class="ringdot" style="background:${col}"></span>` +
@@ -648,12 +716,117 @@ $("pb-play").onclick = () => { if (pb.playing) stopPlayback(); else startPlaybac
 $("pb-range").oninput = (e) => { stopPlayback(); renderPlaybackFrame(+e.target.value); };
 $("pb-close").onclick = () => { hidePlayback(); if (activeMembers) highlightGraph([...activeMembers]); };
 
+// ── accounts table (center view #2) ─────────────────────────────────────────
+async function loadAccounts() {
+  ALL_ACCOUNTS = await fetch("/api/accounts").then((r) => r.json());
+  buildFilterOptions();
+  renderAccountsTable();
+}
+
+function renderAccountsTable() {
+  if (!ALL_ACCOUNTS.length) return;
+  const rows = ALL_ACCOUNTS.filter(acctPasses);
+  const { key, dir } = acctSort;
+  rows.sort((a, b) => {
+    let x = a[key], y = b[key];
+    if (key === "rings") { x = (a.rings || []).length; y = (b.rings || []).length; }
+    if (typeof x === "string") { x = x.toLowerCase(); y = (y || "").toLowerCase(); }
+    return x < y ? -dir : x > y ? dir : 0;
+  });
+  $("acct-count").textContent = `${rows.length} of ${ALL_ACCOUNTS.length} accounts` +
+    (activeFilterCount() ? " (filtered)" : "");
+  $("acct-body").innerHTML = rows.map((a) => {
+    const tier = riskTier(a.risk);
+    const rings = (a.rings || []).length;
+    return `<tr onclick="showAccount('${esc(a.account_id)}')">` +
+      `<td class="acct-mono">${esc(a.account_id)}</td>` +
+      `<td>${esc(a.owner_name || "")}</td>` +
+      `<td>${esc(a.account_type || "")}</td>` +
+      `<td>${esc(a.country || "")}</td>` +
+      `<td><span class="kyc-pill kyc-${esc(a.kyc_risk || "low")}">${esc(a.kyc_risk || "")}</span></td>` +
+      `<td class="num">${a.n_findings || 0}</td>` +
+      `<td>${rings ? `<span class="pill">${esc((a.rings || [])[0])}${rings > 1 ? " +" + (rings - 1) : ""}</span>` : "—"}</td>` +
+      `<td class="num"><span class="risk-chip ${tier}">${(a.risk * 100).toFixed(0)}</span></td></tr>`;
+  }).join("") || `<tr><td colspan="8" class="subtle" style="padding:24px;text-align:center">No accounts match the filters.</td></tr>`;
+  document.querySelectorAll("#acct-table th").forEach((th) => {
+    th.classList.toggle("sorted", th.dataset.sort === key);
+    th.classList.toggle("asc", th.dataset.sort === key && dir === 1);
+  });
+}
+document.querySelectorAll("#acct-table th").forEach((th) => th.onclick = () => {
+  const k = th.dataset.sort;
+  if (acctSort.key === k) acctSort.dir *= -1;
+  else { acctSort.key = k; acctSort.dir = (k === "risk" || k === "n_findings" || k === "rings") ? -1 : 1; }
+  renderAccountsTable();
+});
+
+// ── filter panel ────────────────────────────────────────────────────────────
+function renderChips(containerId, values, set) {
+  const el = $(containerId);
+  el.innerHTML = values.map((v) => `<button class="fchip ${set.has(v) ? "on" : ""}" data-v="${esc(v)}">${esc(v)}</button>`).join("");
+  el.querySelectorAll(".fchip").forEach((b) => b.onclick = () => {
+    const v = b.dataset.v;
+    if (set.has(v)) set.delete(v); else set.add(v);
+    b.classList.toggle("on");
+    onFiltersChanged();
+  });
+}
+function buildFilterOptions() {
+  renderChips("f-type", ["personal", "business"], FILTERS.types);
+  renderChips("f-kyc", ["low", "medium", "high"], FILTERS.kyc);
+  renderChips("f-country", [...new Set(ALL_ACCOUNTS.map((a) => a.country).filter(Boolean))].sort(), FILTERS.countries);
+  renderChips("f-channel", CHANNELS, FILTERS.channels);
+}
+function onFiltersChanged() {
+  const n = activeFilterCount();
+  const badge = $("filter-count");
+  badge.textContent = n; badge.classList.toggle("hidden", n === 0);
+  applyGraphFilters();
+  updateViewCount();
+  renderAccountsTable();
+}
+function resetFilters() {
+  FILTERS.text = ""; FILTERS.riskMin = 0;
+  FILTERS.types.clear(); FILTERS.kyc.clear(); FILTERS.countries.clear(); FILTERS.channels.clear();
+  FILTERS.amtMin = FILTERS.amtMax = FILTERS.dateFrom = FILTERS.dateTo = null;
+  $("f-text").value = ""; $("f-risk").value = 0; $("f-risk-val").textContent = "0";
+  $("f-amin").value = ""; $("f-amax").value = ""; $("f-dfrom").value = ""; $("f-dto").value = "";
+  buildFilterOptions();
+  onFiltersChanged();
+}
+
+$("filter-btn").onclick = () => $("filter-panel").classList.toggle("hidden");
+$("filter-close").onclick = () => $("filter-panel").classList.add("hidden");
+$("filter-reset").onclick = resetFilters;
+$("f-text").oninput = (e) => { FILTERS.text = e.target.value; onFiltersChanged(); };
+$("f-risk").oninput = (e) => { FILTERS.riskMin = +e.target.value; $("f-risk-val").textContent = e.target.value; onFiltersChanged(); };
+$("f-amin").oninput = (e) => { FILTERS.amtMin = e.target.value === "" ? null : +e.target.value; onFiltersChanged(); };
+$("f-amax").oninput = (e) => { FILTERS.amtMax = e.target.value === "" ? null : +e.target.value; onFiltersChanged(); };
+$("f-dfrom").oninput = (e) => { FILTERS.dateFrom = e.target.value ? new Date(e.target.value) : null; onFiltersChanged(); };
+$("f-dto").oninput = (e) => { FILTERS.dateTo = e.target.value ? new Date(e.target.value + "T23:59:59") : null; onFiltersChanged(); };
+
+// ── center view toggle (Graph / Accounts) + name labels ─────────────────────
+function setView(v) {
+  curView = v;
+  document.querySelectorAll(".vt").forEach((b) => b.classList.toggle("active", b.dataset.view === v));
+  $("graph-view").classList.toggle("hidden", v !== "graph");
+  $("accounts-view").classList.toggle("hidden", v !== "accounts");
+  $("names-wrap").classList.toggle("hidden", v !== "graph");
+  updateViewCount();
+  if (v === "graph" && network) setTimeout(() => network.redraw(), 30);
+}
+document.querySelectorAll(".vt").forEach((b) => b.onclick = () => setView(b.dataset.view));
+$("names").onchange = (e) => { showNames = e.target.checked; applyGraphFilters(); };
+
 // ── boot ────────────────────────────────────────────────────────────────────
 async function refresh() {
   await loadRings();
-  await Promise.all([loadGraph(), loadSummary(), loadEval()]);
+  await Promise.all([loadGraph(), loadSummary(), loadEval(), loadAccounts()]);
   const id = decodeURIComponent(location.hash.slice(1));
   if (id && RING_COLOR[id]) showRing(id);
+  const params = new URLSearchParams(location.search);
+  if (params.get("view") === "accounts") setView("accounts");
+  if (params.get("filters") === "1") $("filter-panel").classList.remove("hidden");
 }
 
 $("fitbtn").onclick = () => { activeRing = null; markActiveRing(null); hidePlayback(); highlightGraph(null); if (network) network.fit({ animation: true }); };
@@ -667,6 +840,7 @@ $("gen").onclick = async () => {
     await fetch("/api/dataset/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
     activeRing = null; activeMembers = null; destroyFlow(); hidePlayback();
     CASE = {}; try { localStorage.removeItem("mulenet_cases"); } catch (e) {}  // fresh dataset → fresh cases
+    resetFilters();
     $("detail").innerHTML = `<div class="empty-state"><div class="ico">🔍</div><p>Select a ring from the queue to investigate.</p></div>`;
     await refresh();
   } finally { btn.disabled = false; btn.textContent = "↻ Generate"; }

@@ -90,14 +90,36 @@ def graph(max_nodes: int = 400):
         if len(keep) >= max_nodes:
             break
         keep.add(a["account_id"])
+    # owner/country/KYC on nodes and channel/timestamp on edges are additive fields
+    # so the frontend can show human detail and filter on it (§8 consumers unaffected).
     nodes = [{"id": a["account_id"], "label": a["account_id"], "risk": risk.get(a["account_id"], 0),
-              "type": a["account_type"], "ring": node_ring.get(a["account_id"])}
+              "type": a["account_type"], "ring": node_ring.get(a["account_id"]),
+              "owner_name": a.get("owner_name"), "country": a.get("country"), "kyc_risk": a.get("kyc_risk")}
              for a in d["accounts"] if a["account_id"] in keep]
     edges = [{"id": t["tx_id"], "source": t["src"], "target": t["dst"], "amount": t["amount"],
               "suspicious": risk.get(t["src"], 0) >= 0.5 or risk.get(t["dst"], 0) >= 0.5,
-              "ring": tx_ring.get(t["tx_id"])}
+              "ring": tx_ring.get(t["tx_id"]), "channel": t.get("channel"), "timestamp": t.get("timestamp")}
              for t in d["transactions"] if t["src"] in keep and t["dst"] in keep]
     return {"nodes": nodes, "edges": edges}
+
+
+@app.get("/api/accounts")
+def accounts_list():
+    """Full account list with risk, ring membership and finding counts — powers the
+    filterable Accounts table (P4). Additive; the per-account detail route is unchanged."""
+    d, r = STATE["dataset"], STATE["result"]
+    rmap = {a["account_id"]: a["risk"] for a in r["account_risk"]}
+    acc_rings: dict[str, list] = {}
+    for ring in r["rings"]:
+        for a in ring["account_ids"]:
+            acc_rings.setdefault(a, []).append(ring["ring_id"])
+    fcount: dict[str, int] = {}
+    for f in r["findings"]:
+        for a in f["subject_ids"]:
+            fcount[a] = fcount.get(a, 0) + 1
+    return [{**a, "risk": round(rmap.get(a["account_id"], 0), 3),
+             "rings": acc_rings.get(a["account_id"], []),
+             "n_findings": fcount.get(a["account_id"], 0)} for a in d["accounts"]]
 
 
 @app.get("/api/rings")
