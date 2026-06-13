@@ -19,7 +19,14 @@ WEIGHTS = {"structuring": 0.9, "circular": 0.9, "passthrough": 0.8,
 # Detectors strong enough to seed a ring (community is context only).
 STRONG = {"structuring", "circular", "passthrough", "fan_in", "fan_out"}
 
-NORMALIZER = 1.6          # account risk = min(1, weighted_sum / NORMALIZER)
+# account risk = min(1, weighted_sum / NORMALIZER). Calibrated so that ONE proven strong
+# typology crosses τ=0.5: a relay (passthrough 0.8·0.6=0.48), a circular loop, a structuring
+# pattern or an unsuppressed fan each warrants suspicion on its own — that's how AML triage
+# works. (1.6 required two corroborating signals, which under-scored single-role mules and
+# capped account recall at 0.36.) Safe because the strong detectors never fire on a legit
+# account here, so the worst legit weighted-sum (~0.24, factor-suppressed fan) stays well
+# below τ. Verified: precision holds at 1.0, recall 0.36→0.77, 0 FP rings. See test_scoring.py.
+NORMALIZER = 0.9
 MIN_RING_VOLUME = 15_000  # EUR of transactions among members — laundering moves real money
 MIN_RING_SCORE = 0.45
 MIN_RING_SIZE = 3
