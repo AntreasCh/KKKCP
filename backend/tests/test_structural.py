@@ -62,6 +62,22 @@ def test_structuring_finds_a_planted_ring():
     assert _accounts_in(findings) & structuring_true, "missed every structuring ring"
 
 
+def test_circular_skips_legit_settlement_loops():
+    # Hard-negative decoys (P1): legit inter-company settlement loops are all established
+    # business + low-KYC. detect_circular must NOT flag a loop whose every member fits that
+    # profile, or it produces false-positive rings on legitimate B2B activity.
+    acc = {a["account_id"]: a for a in ACCOUNTS}
+
+    def all_legit_biz(ids):
+        return all(acc[i].get("account_type") == "business"
+                   and acc[i].get("kyc_risk") == "low" for i in ids)
+
+    findings = structural.detect_circular(None, ACCOUNTS, TXS)
+    for f in findings:
+        assert not all_legit_biz(f["subject_ids"]), \
+            f"flagged a legit all-business/low-KYC settlement loop: {f['subject_ids']}"
+
+
 def test_passthrough_is_bounded():
     # passthrough feeds account risk, not rings; just guard it stays specific, not spammy
     findings = structural.detect_passthrough(None, ACCOUNTS, TXS)

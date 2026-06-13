@@ -117,6 +117,14 @@ def detect_circular(graph, accounts, transactions) -> list[dict]:
         dg.add_edge(t["src"], t["dst"])
         tx_by_pair[(t["src"], t["dst"])].append(t)
 
+    # Established-business / low-KYC accounts run legitimate inter-company SETTLEMENT loops
+    # (money cycles back, value retained, fast) that are structurally identical to laundering.
+    # The separating signal is the KYC/account profile: a real laundering ring always contains
+    # at least one fresh / personal / elevated-KYC account, while a legit settlement loop is
+    # ALL established business + low-KYC. Skip a cycle only when every member fits that profile.
+    legit_biz = {a["account_id"] for a in (accounts or [])
+                 if a.get("account_type") == "business" and a.get("kyc_risk") == "low"}
+
     findings, seen = [], set()
     try:
         gen = nx.simple_cycles(dg, length_bound=5)  # §9 #2: cycles of length 2–5
@@ -130,6 +138,8 @@ def detect_circular(graph, accounts, transactions) -> list[dict]:
         key = frozenset(cyc)
         if key in seen:
             continue
+        if legit_biz and all(a in legit_biz for a in cyc):
+            continue  # legit inter-company settlement loop (all established business + low-KYC)
         proof = _trace_money_loop(cyc, tx_by_pair)
         if proof is None:
             continue  # topological cycle with no time-ordered, value-retaining money loop
