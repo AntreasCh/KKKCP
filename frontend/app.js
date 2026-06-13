@@ -1010,6 +1010,116 @@ function setView(v) {
 document.querySelectorAll(".vt").forEach((b) => b.onclick = () => setView(b.dataset.view));
 $("names").onchange = (e) => { showNames = e.target.checked; applyGraphFilters(); };
 
+// ── dark mode ─────────────────────────────────────────────────────────────
+// Theme is just a `data-theme` attribute on <html>; the no-flash bootstrap in
+// index.html applies the saved choice before first paint, this only toggles it.
+function applyTheme(theme) {
+  const dark = theme === "dark";
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  const btn = $("theme-btn");
+  if (btn) { btn.textContent = dark ? "☀️" : "🌙"; btn.title = dark ? "Switch to light mode" : "Switch to dark mode"; }
+}
+function toggleTheme() {
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  const next = dark ? "light" : "dark";
+  try { localStorage.setItem("mulenet_theme", next); } catch (e) {}
+  applyTheme(next);
+}
+applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
+$("theme-btn").onclick = toggleTheme;
+
+// ── live-feed notifications inbox (grouped by pattern, deduped by ring) ─────
+// Live alerts used to be transient toasts only; we also persist each one here so
+// the analyst can re-open the bell and review every ring the feed has flagged,
+// grouped by laundering pattern. Repeat alerts for the same ring fold into a count.
+let NOTIFS = {};
+function loadNotifs() { try { NOTIFS = JSON.parse(localStorage.getItem("mulenet_notifs")) || {}; } catch (e) { NOTIFS = {}; } }
+function saveNotifs() { try { localStorage.setItem("mulenet_notifs", JSON.stringify(NOTIFS)); } catch (e) {} }
+
+const PAT_LABEL = { structuring: "Structuring", circular: "Circular flow", passthrough: "Pass-through",
+  fan_in: "Fan-in", fan_out: "Fan-out", community: "Dense community", cycle: "Circular flow" };
+const patLabel = (p) => PAT_LABEL[p] || (p ? p[0].toUpperCase() + p.slice(1).replace(/_/g, " ") : "Other");
+function ago(ms) {
+  const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+function recordNotif(ring) {
+  const id = ring.ring_id;
+  const patterns = ring.patterns || [];
+  const n = ring.n_accounts ?? (ring.account_ids || []).length;
+  const now = Date.now();
+  const cur = NOTIFS[id];
+  if (cur) { cur.count++; cur.last = now; cur.read = false; cur.patterns = patterns; cur.n_accounts = n; }
+  else { NOTIFS[id] = { ring_id: id, patterns, n_accounts: n, count: 1, first: now, last: now, read: false }; }
+  saveNotifs();
+  updateNotifBadge();
+  if (!$("notif-panel").classList.contains("hidden")) renderNotifs();
+}
+function unreadCount() { return Object.values(NOTIFS).filter((x) => !x.read).length; }
+function updateNotifBadge() {
+  const u = unreadCount(), badge = $("notif-badge");
+  badge.textContent = u > 99 ? "99+" : u;
+  badge.classList.toggle("hidden", u === 0);
+}
+function renderNotifs() {
+  const list = $("notif-list"), entries = Object.values(NOTIFS);
+  $("np-sub").textContent = entries.length ? `${entries.length} ring${entries.length > 1 ? "s" : ""}` : "";
+  if (!entries.length) {
+    list.innerHTML = `<div class="np-empty"><span class="ico">🔔</span>No live-feed alerts yet.<br/>Start the live feed to watch rings fire here.</div>`;
+    return;
+  }
+  // group by primary pattern, newest ring first within each group
+  const groups = {};
+  for (const e of entries) { const k = (e.patterns && e.patterns[0]) || "other"; (groups[k] ||= []).push(e); }
+  const order = Object.keys(groups).sort((a, b) =>
+    Math.max(...groups[b].map((x) => x.last)) - Math.max(...groups[a].map((x) => x.last)));
+  let html = "";
+  for (const k of order) {
+    const items = groups[k].sort((a, b) => b.last - a.last);
+    html += `<div class="np-group-head"><span class="np-dot" style="--itemcolor:${detColor(k)}"></span>` +
+      `${esc(patLabel(k))} <span class="gc">${items.length}</span></div>`;
+    for (const e of items) {
+      const col = detColor((e.patterns && e.patterns[0]) || "");
+      html += `<div class="np-item ${e.read ? "" : "unread"}" data-ring="${esc(e.ring_id)}" style="--itemcolor:${col}">` +
+        `<span class="np-dot"></span>` +
+        `<div class="np-main"><div class="np-rid">${esc(e.ring_id)}</div>` +
+        `<div class="np-meta">${e.n_accounts} accounts · ${esc((e.patterns || []).map(patLabel).join(", "))}</div></div>` +
+        `<div class="np-when">${ago(e.last)}${e.count > 1 ? `<span class="np-count">×${e.count}</span>` : ""}</div></div>`;
+    }
+  }
+  list.innerHTML = html;
+  list.querySelectorAll(".np-item").forEach((el) => el.onclick = () => {
+    const id = el.dataset.ring;
+    if (NOTIFS[id]) { NOTIFS[id].read = true; saveNotifs(); updateNotifBadge(); }
+    closeNotifs();
+    showRing(id);
+  });
+}
+function openNotifs() {
+  $("notif-panel").classList.remove("hidden");
+  Object.values(NOTIFS).forEach((x) => x.read = true);   // opening = read everything
+  saveNotifs(); updateNotifBadge(); renderNotifs();
+}
+function closeNotifs() { $("notif-panel").classList.add("hidden"); }
+function toggleNotifs() { $("notif-panel").classList.contains("hidden") ? openNotifs() : closeNotifs(); }
+function clearNotifs() { NOTIFS = {}; saveNotifs(); updateNotifBadge(); renderNotifs(); }
+
+$("notif-btn").onclick = (e) => { e.stopPropagation(); toggleNotifs(); };
+$("notif-close").onclick = closeNotifs;
+$("notif-clear").onclick = clearNotifs;
+// click outside the panel closes it
+document.addEventListener("click", (e) => {
+  const panel = $("notif-panel");
+  if (panel.classList.contains("hidden")) return;
+  if (!panel.contains(e.target) && e.target !== $("notif-btn")) closeNotifs();
+});
+loadNotifs();
+updateNotifBadge();
+
 // ── live transaction feed (true real-time stream via P1's LiveFeed engine) ──
 // Starts a server-side stream, then polls /api/stream/next: new transactions appear
 // as edges, the network grows, and freshly-detected rings fire 🚨 alerts.
@@ -1034,6 +1144,7 @@ function liveStats(s, clock) {
 }
 function fireRingAlert(ring) {
   const id = ring.ring_id;
+  recordNotif(ring);   // persist to the grouped notifications inbox (survives the 5s toast)
   toast(`<span class="t-ico">🚨</span><div class="t-body"><b>Laundering ring detected</b>` +
     `<small>${esc(id)} · ${ring.n_accounts ?? (ring.account_ids || []).length} accounts · ${esc((ring.patterns || []).join(", "))}</small></div>`,
     () => showRing(id));

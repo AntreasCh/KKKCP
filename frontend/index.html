@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MuleNet — AML Network Detector</title>
+  <!-- apply saved theme before first paint to avoid a flash of the wrong theme -->
+  <script>try { if (localStorage.getItem("mulenet_theme") === "dark") document.documentElement.setAttribute("data-theme", "dark"); } catch (e) {}</script>
   <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
   <link rel="stylesheet" href="/style.css" />
 </head>
@@ -21,9 +23,24 @@
       <label class="toggle" title="Show the full network, including legitimate background traffic">
         <input type="checkbox" id="showall" /> Show all traffic
       </label>
+      <button id="notif-btn" class="icon-btn" title="Live-feed alerts">
+        🔔<span id="notif-badge" class="notif-badge hidden">0</span>
+      </button>
+      <button id="theme-btn" class="icon-btn" title="Toggle dark mode">🌙</button>
       <button id="gen" class="btn-primary">↻ Generate</button>
     </div>
   </header>
+
+  <!-- live-feed notifications inbox (grouped, persisted) -->
+  <div id="notif-panel" class="notif-panel hidden">
+    <div class="np-head">
+      <b>Live-feed alerts</b>
+      <span id="np-sub" class="np-sub"></span>
+      <button id="notif-clear" class="link-btn">Clear all</button>
+      <button id="notif-close" class="pb-btn close" title="Close">✕</button>
+    </div>
+    <div id="notif-list" class="np-list"></div>
+  </div>
 
   <main class="three-pane">
     <!-- LEFT: model performance + ranked ring queue -->

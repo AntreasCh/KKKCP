@@ -58,6 +58,14 @@ button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
 .btn-ghost { background: var(--surface); color: var(--text-2); border: 1px solid var(--border); padding: 6px 11px; box-shadow: var(--shadow); }
 .btn-ghost:hover { border-color: var(--border-strong); background: var(--surface-2); }
 
+/* topbar icon buttons (theme toggle + notifications bell) */
+.icon-btn { position: relative; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border);
+  width: 34px; height: 34px; border-radius: 9px; font-size: 15px; line-height: 1; box-shadow: var(--shadow); }
+.icon-btn:hover { border-color: var(--border-strong); background: var(--surface-3); }
+.notif-badge { position: absolute; top: -6px; right: -6px; min-width: 17px; height: 17px; padding: 0 4px;
+  background: var(--danger); color: #fff; border-radius: 999px; font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--surface); }
+
 /* ── three-pane layout ───────────────────────────────────────────────── */
 .three-pane { display: grid; grid-template-columns: 320px 1fr 420px; height: calc(100vh - 56px); }
 .rail-left { border-right: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; overflow: hidden; }
@@ -436,6 +444,90 @@ div.vis-tooltip {
   padding: 8px 11px; font-size: 12.5px; margin: 10px 0; }
 .scr-alert b { color: #991b1b; }
 .fp-check { font-size: 12px; align-items: flex-start; }
+
+/* ── live-feed notifications inbox (grouped + persisted) ─────────────────── */
+.notif-panel {
+  position: fixed; top: 62px; right: 18px; z-index: 61; width: min(360px, 92vw);
+  max-height: min(70vh, 560px); display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 16px 44px rgba(15,23,42,.22); overflow: hidden;
+}
+.np-head { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border-bottom: 1px solid var(--border); flex: none; }
+.np-head b { font-size: 13.5px; }
+.np-sub { color: var(--muted); font-size: 11.5px; }
+.np-head .link-btn { margin-left: auto; background: none; color: var(--accent); font-size: 11.5px; font-weight: 600; }
+.np-head .link-btn:hover { text-decoration: underline; }
+.np-list { overflow-y: auto; padding: 6px 0 10px; }
+.np-empty { color: var(--muted); text-align: center; padding: 30px 16px; font-size: 12.5px; }
+.np-empty .ico { font-size: 26px; opacity: .5; display: block; margin-bottom: 6px; }
+.np-group-head { display: flex; align-items: center; gap: 7px; padding: 10px 14px 4px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.np-group-head .gc { background: var(--surface-3); color: var(--text-2); border-radius: 999px;
+  padding: 0 7px; font-size: 10px; letter-spacing: 0; }
+.np-item { display: grid; grid-template-columns: auto 1fr auto; gap: 9px; align-items: center;
+  padding: 8px 14px; cursor: pointer; border-left: 3px solid transparent; }
+.np-item:hover { background: var(--accent-weak); border-left-color: var(--itemcolor, var(--accent)); }
+.np-item.unread { background: var(--accent-weak); }
+.np-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--itemcolor, var(--danger)); flex: none; }
+.np-item .np-main .np-rid { font-weight: 700; font-size: 12.5px; font-family: ui-monospace, Consolas, monospace; }
+.np-item .np-main .np-meta { color: var(--muted); font-size: 11px; margin-top: 1px; }
+.np-item .np-when { color: var(--muted); font-size: 10.5px; white-space: nowrap; text-align: right; }
+.np-item .np-when .np-count { display: block; font-weight: 700; color: var(--danger); }
+
+/* ── dark mode ───────────────────────────────────────────────────────────
+   Theme is driven entirely by the custom properties above, so dark mode is a
+   single variable override on <html data-theme="dark"> + a few fixes for the
+   handful of hard-coded light surfaces. */
+:root[data-theme="dark"] {
+  --bg: #0a0f1c;
+  --surface: #131a2a;
+  --surface-2: #1a2235;
+  --surface-3: #232d44;
+  --border: #2a3550;
+  --border-strong: #3c496a;
+  --text: #e6edf6;
+  --text-2: #c2cde0;
+  --muted: #8a99b5;
+  --accent: #818cf8;        /* indigo-400 — brighter so it reads on dark */
+  --accent-weak: #1e2747;
+  --danger: #f87171;
+  --danger-weak: #341a1d;
+  --warn: #fbbf24;
+  --warn-weak: #2c2208;
+  --ok: #34d399;
+  --ok-weak: #0e2a20;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 1px 3px rgba(0,0,0,.3);
+  --shadow-lg: 0 6px 18px rgba(0,0,0,.5);
+}
+/* primary buttons keep white text — accent is light in dark mode, so darken it for fill */
+:root[data-theme="dark"] .btn-primary { background: #4f46e5; }
+:root[data-theme="dark"] .btn-primary:hover { background: #4338ca; }
+:root[data-theme="dark"] .fchip.on, :root[data-theme="dark"] .cf-chip.active,
+:root[data-theme="dark"] .vt.active, :root[data-theme="dark"] .ca-btn.active,
+:root[data-theme="dark"] .spd.active, :root[data-theme="dark"] .msg.user { color: #fff; }
+:root[data-theme="dark"] .fchip.on, :root[data-theme="dark"] .cf-chip.active,
+:root[data-theme="dark"] .ca-btn.active, :root[data-theme="dark"] .spd.active,
+:root[data-theme="dark"] .msg.user { background: #4f46e5; border-color: #4f46e5; }
+/* fixes for hard-coded light surfaces */
+:root[data-theme="dark"] #graph-view {
+  background: radial-gradient(circle at 1px 1px, #1e2a44 1px, transparent 0) 0 0 / 22px 22px, var(--surface-2); }
+:root[data-theme="dark"] .legend,
+:root[data-theme="dark"] .live-bar,
+:root[data-theme="dark"] .playback { background: rgba(19,26,42,.96); }
+:root[data-theme="dark"] div.vis-tooltip { color-scheme: dark; }
+:root[data-theme="dark"] .notif-panel,
+:root[data-theme="dark"] .search-box { box-shadow: 0 16px 44px rgba(0,0,0,.6); }
+:root[data-theme="dark"] .sr-type.ring { background: #312157; color: #c4b5fd; }
+:root[data-theme="dark"] .sr-type.account { background: #0c2a44; color: #93c5fd; }
+:root[data-theme="dark"] .scr-panel, :root[data-theme="dark"] .scr-alert { background: #2a1416; border-color: #5b2326; }
+:root[data-theme="dark"] .scr-alert, :root[data-theme="dark"] .scr-alert b { color: #fca5a5; }
+:root[data-theme="dark"] .scr-badge.scr-sanctions { background: #2a1416; color: #fca5a5; border-color: #5b2326; }
+:root[data-theme="dark"] .scr-badge.scr-pep { background: #0c1f3d; color: #93c5fd; border-color: #1e3a6b; }
+:root[data-theme="dark"] .scr-badge.scr-adverse { background: #2c2208; color: #fcd34d; border-color: #5a4410; }
+:root[data-theme="dark"] .ai-btn { border-color: #3c496a; }
+:root[data-theme="dark"] .ai-btn:hover { background: #28315a; }
+:root[data-theme="dark"] .rb-seg + .rb-seg { border-left-color: rgba(0,0,0,.4); }
+:root[data-theme="dark"] .kpi.flag b { color: var(--danger); }
 
 .hidden { display: none !important; }
 
