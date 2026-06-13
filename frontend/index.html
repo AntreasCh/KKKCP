@@ -15,6 +15,9 @@
     </div>
     <div class="controls">
       <div id="summary" class="summary-chips">loading…</div>
+      <label class="toggle" title="Show the full network, including legitimate background traffic">
+        <input type="checkbox" id="showall" /> Show all traffic
+      </label>
       <button id="gen" class="btn-primary">↻ Generate dataset</button>
     </div>
   </header>
@@ -23,12 +26,13 @@
     <section id="graph-wrap">
       <div id="graph"></div>
       <div id="legend" class="legend">
-        <div class="legend-title">Legend</div>
+        <div class="legend-title">Legend <span id="nodecount" class="nodecount"></span></div>
         <div class="legend-row"><span class="dot" style="background:#ff5a5f"></span> high risk (≥66%)</div>
         <div class="legend-row"><span class="dot" style="background:#e3b341"></span> medium risk (≥33%)</div>
         <div class="legend-row"><span class="dot" style="background:#3a4756"></span> low / background</div>
         <div class="legend-row"><span class="dot ring-dot"></span> in a detected ring</div>
         <div class="legend-row"><span class="edge-swatch"></span> suspicious transfer</div>
+        <div class="legend-note">Each dot = an account · line = a transfer.<br/>Showing rings + flagged accounts only.</div>
       </div>
       <button id="fitbtn" class="btn-ghost graph-btn" title="Reset / fit view">⤢ Fit</button>
     </section>
