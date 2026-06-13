@@ -3,63 +3,74 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MuleNet — Money-Laundering Network Detector</title>
+  <title>MuleNet — AML Network Detector</title>
   <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <header>
+  <header class="topbar">
     <div class="brand">
       <h1>🕸️ MuleNet</h1>
       <span class="tag">Money-Laundering Network Detector · team KKKCP</span>
     </div>
-    <div class="controls">
-      <div id="summary" class="summary-chips">loading…</div>
+    <div class="topbar-right">
+      <div id="kpis" class="kpis"></div>
       <label class="toggle" title="Show the full network, including legitimate background traffic">
         <input type="checkbox" id="showall" /> Show all traffic
       </label>
-      <button id="gen" class="btn-primary">↻ Generate dataset</button>
+      <button id="gen" class="btn-primary">↻ Generate</button>
     </div>
   </header>
 
-  <main>
-    <section id="graph-wrap">
+  <main class="three-pane">
+    <!-- LEFT: model performance + ranked ring queue -->
+    <aside class="rail-left">
+      <div id="eval" class="eval-card">evaluating…</div>
+      <div class="rail-section-head">Detected rings <span id="rings-count" class="count-badge">·</span></div>
+      <div id="rings" class="rings"></div>
+    </aside>
+
+    <!-- CENTER: the network graph (static once settled) -->
+    <section class="graph-pane">
       <div id="graph"></div>
+      <div class="graph-toolbar">
+        <button id="fitbtn" class="btn-ghost" title="Reset / fit the view">⤢ Fit</button>
+      </div>
       <div id="legend" class="legend">
         <div class="legend-title">Legend <span id="nodecount" class="nodecount"></span></div>
-        <div class="legend-row"><span class="dot" style="background:#ff5a5f"></span> high risk (≥66%)</div>
-        <div class="legend-row"><span class="dot" style="background:#e3b341"></span> medium risk (≥33%)</div>
-        <div class="legend-row"><span class="dot" style="background:#3a4756"></span> low / background</div>
+        <div class="legend-row"><span class="dot" style="background:#dc2626"></span> high risk (≥66%)</div>
+        <div class="legend-row"><span class="dot" style="background:#d97706"></span> medium risk (≥33%)</div>
+        <div class="legend-row"><span class="dot" style="background:#cbd5e1"></span> low / background</div>
         <div class="legend-row"><span class="dot ring-dot"></span> in a detected ring</div>
         <div class="legend-row"><span class="edge-swatch"></span> suspicious transfer</div>
         <div class="legend-note">Each dot = an account · line = a transfer.<br/>Showing rings + flagged accounts only.</div>
       </div>
-      <button id="fitbtn" class="btn-ghost graph-btn" title="Reset / fit view">⤢ Fit</button>
     </section>
 
-    <aside id="side">
-      <!-- Headline metric for the judges -->
-      <div id="eval" class="card eval-card">eval…</div>
+    <!-- RIGHT: tabbed inspector / copilot -->
+    <aside class="rail-right">
+      <div class="tabs">
+        <button class="tab active" data-tab="inspector">Inspector</button>
+        <button class="tab" data-tab="ask">Ask MuleNet</button>
+      </div>
 
-      <!-- Ask MuleNet copilot -->
-      <div class="card chat-card">
-        <h2>💬 Ask MuleNet</h2>
-        <p class="hint">An AI analyst that investigates the network by calling tools.</p>
+      <div id="tab-inspector" class="tabpane">
+        <div id="detail">
+          <div class="empty-state">
+            <div class="ico">🔍</div>
+            <p>Select a ring from the queue to investigate the laundering pattern, money flow, and draft a SAR.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-ask" class="tabpane chat hidden">
+        <div class="chat-intro"><b>Ask MuleNet</b> — an AI analyst that investigates the detected network by calling tools, then answers.</div>
         <div id="chat-log" class="chat-log"></div>
         <form id="chat-form" class="chat-form" autocomplete="off">
           <input id="chat-input" type="text" placeholder="e.g. What's the riskiest ring and why?" />
           <button type="submit" class="btn-primary">Ask</button>
         </form>
       </div>
-
-      <!-- Detected rings -->
-      <div class="card">
-        <h2>Detected rings <span id="rings-count" class="count"></span></h2>
-        <div id="rings" class="rings"></div>
-      </div>
-
-      <!-- Click-through detail -->
-      <div id="detail" class="card hidden"></div>
     </aside>
   </main>
 
