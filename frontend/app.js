@@ -1012,10 +1012,13 @@ function setView(v) {
   document.querySelectorAll(".vt").forEach((b) => b.classList.toggle("active", b.dataset.view === v));
   $("graph-view").classList.toggle("hidden", v !== "graph");
   $("accounts-view").classList.toggle("hidden", v !== "accounts");
+  $("compliance-view").classList.toggle("hidden", v !== "compliance");
   $("names-wrap").classList.toggle("hidden", v !== "graph");
   $("fp-tx").classList.toggle("hidden", v !== "graph");   // transaction filters only apply to the graph
+  $("filter-btn").classList.toggle("hidden", v === "compliance");  // filters don't apply to the queue
   updateViewCount();
   if (v === "graph" && network) setTimeout(() => network.redraw(), 30);
+  if (v === "compliance") openCompliance();
 }
 document.querySelectorAll(".vt").forEach((b) => b.onclick = () => setView(b.dataset.view));
 $("names").onchange = (e) => { showNames = e.target.checked; applyGraphFilters(); };
@@ -1366,7 +1369,7 @@ async function acctDecision(id, action) {
   const res = await fetch(`/api/accounts/${id}/decision`, { method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action }) }).then((x) => x.json());
   await loadAccounts();
-  if (!$("freeze-panel").classList.contains("hidden")) await fzRenderQueue();
+  if (curView === "compliance") await fzRenderQueue();
   if (INSPECTED_ACCT === id) showAccount(id);                  // refresh the open inspector
   if (!$("review-modal").classList.contains("hidden") && $("rv-title").textContent === id) {
     const st = $("rv-status"); st.textContent = res.status; st.className = `fz-status st-${res.status}`;
@@ -1411,18 +1414,15 @@ function openReview(id) {
 }
 window.openReview = openReview;
 
-async function toggleFreeze() {
-  const opened = $("freeze-panel").classList.toggle("hidden") === false;
-  if (!opened) return;
-  try {   // sync the slider to the server's current threshold, then show the live queue
+// entering the Compliance view: sync the slider to the server's threshold + show the live queue
+async function openCompliance() {
+  try {
     const cfg = await fetch("/api/freeze").then((r) => r.json());
     $("fz-threshold").value = Math.round((cfg.threshold ?? 0.9) * 100);
   } catch (e) {}
   fzPreview();
   fzRenderQueue();
 }
-$("freeze-btn").onclick = (e) => { e.stopPropagation(); toggleFreeze(); };
-$("freeze-close").onclick = () => $("freeze-panel").classList.add("hidden");
 $("fz-threshold").oninput = fzPreview;                                       // live label while dragging
 $("fz-threshold").onchange = (e) => applyThreshold(+e.target.value, true);   // re-freeze on release
 $("fz-freeze").onclick = () => applyThreshold(+$("fz-threshold").value, true);

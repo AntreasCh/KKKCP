@@ -26,7 +26,6 @@
       <button id="notif-btn" class="icon-btn" title="Live-feed alerts">
         🔔<span id="notif-badge" class="notif-badge hidden">0</span>
       </button>
-      <button id="freeze-btn" class="icon-btn" title="Compliance — freeze high-risk accounts &amp; review">🔒</button>
       <button id="theme-btn" class="icon-btn" title="Toggle dark mode">🌙</button>
       <button id="gen" class="btn-primary">↻ Generate</button>
     </div>
@@ -41,24 +40,6 @@
       <button id="notif-close" class="pb-btn close" title="Close">✕</button>
     </div>
     <div id="notif-list" class="np-list"></div>
-  </div>
-
-  <!-- compliance: freeze-by-threshold + manual review queue (§6) -->
-  <div id="freeze-panel" class="notif-panel freeze-panel hidden">
-    <div class="np-head">
-      <b>🔒 Compliance — freeze &amp; review</b>
-      <button id="freeze-close" class="pb-btn close" title="Close">✕</button>
-    </div>
-    <div class="fz-controls">
-      <label>Freeze accounts with risk ≥ <b id="fz-val">90</b>%</label>
-      <input id="fz-threshold" type="range" min="0" max="100" value="90" />
-      <div class="fz-row">
-        <span id="fz-preview" class="subtle">—</span>
-        <button id="fz-freeze" class="btn-primary">Freeze</button>
-      </div>
-    </div>
-    <div class="np-head fz-qhead"><b>Review queue</b> <span id="fz-count" class="np-sub"></span></div>
-    <div id="fz-queue" class="np-list"></div>
   </div>
 
   <main class="three-pane">
@@ -76,6 +57,7 @@
         <div class="view-toggle">
           <button class="vt active" data-view="graph">◉ Graph</button>
           <button class="vt" data-view="accounts">▦ Accounts</button>
+          <button class="vt" data-view="compliance">🔒 Compliance</button>
         </div>
         <div class="pane-tools">
           <span id="view-count" class="view-count"></span>
@@ -138,6 +120,22 @@
               <tbody id="acct-body"></tbody>
             </table>
           </div>
+        </div>
+
+        <!-- COMPLIANCE view — freeze-by-threshold + manual review queue (§6) -->
+        <div id="compliance-view" class="pane-view hidden">
+          <div class="cv-controls">
+            <div class="cv-control-head">🔒 Auto-freeze policy</div>
+            <label class="cv-thr-label">Freeze accounts with risk ≥ <b id="fz-val">90</b>%</label>
+            <input id="fz-threshold" type="range" min="0" max="100" value="90" />
+            <div class="fz-row">
+              <span id="fz-preview" class="subtle">—</span>
+              <button id="fz-freeze" class="btn-primary">Re-apply</button>
+            </div>
+            <p class="cv-hint">Accounts at/above the threshold are frozen automatically. Move the slider to re-apply. Reviewed accounts (block/ban/clear) are kept.</p>
+          </div>
+          <div class="cv-qhead"><b>Review queue</b> <span id="fz-count" class="np-sub"></span></div>
+          <div id="fz-queue" class="cv-queue"></div>
         </div>
 
         <!-- FILTER drawer (shared by graph + table) -->
