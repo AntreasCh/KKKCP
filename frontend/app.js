@@ -120,6 +120,7 @@ function renderGraph() {
   viewEdges = lastGraph.edges.filter((e) =>
     keep.has(e.source) && keep.has(e.target) && (showAll || e.ring || e.suspicious));
 
+  if (network) network.destroy();   // avoid leaking the previous network on re-render
   nodesDS = new vis.DataSet(viewNodes.map(nodeStyle));
   edgesDS = new vis.DataSet(viewEdges.map(edgeStyle));
   network = new vis.Network($("graph"), { nodes: nodesDS, edges: edgesDS }, {
@@ -477,7 +478,13 @@ function startPlayback() {
 
 // ── inspector: ring detail ──────────────────────────────────────────────────
 async function showRing(id) {
-  const r = await fetch(`/api/rings/${id}`).then((x) => x.json());
+  const res = await fetch(`/api/rings/${id}`);
+  if (!res.ok) {   // stale id (e.g. an old deep-link after Generate) — don't crash
+    toast(`<span class="t-ico">⚠️</span><div class="t-body">Ring <b>${esc(id)}</b> no longer exists.</div>`);
+    clearSelection();
+    return;
+  }
+  const r = await res.json();
   switchTab("inspector");
   const col = ringColor(id);
   const tier = riskTier(r.score);
