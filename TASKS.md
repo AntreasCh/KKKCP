@@ -42,10 +42,10 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ### P4 — savvas — API & Frontend
 - **Status:** 🔵 in review
-- **Right now:** full UI redesign — light "analyst console" (Unit21/Sardine style), three-pane layout (ranked ring queue · network graph · tabbed Inspector/Ask-MuleNet), and the graph is now **static** (settles once, then physics off — no perpetual drift). Keeps focus view + flow diagram + evidence + SAR + copilot.
+- **Right now:** added AML-tool features on the light console — temporal playback (scrub a ring's txns over time), case workflow (status chips + filter + escalate/clear/file, persisted), global search (⌘K palette over rings & accounts), and a per-ring risk-breakdown bar (detector contributions). Builds on the three-pane redesign + static graph + flow diagram.
 - **Files I'm touching:** `backend/api/main.py`, `frontend/index.html`, `frontend/app.js`, `frontend/style.css`
 - **Blockers:** —
-- **Notes for the team:** §8 API contract stays stable (only additive `ring` field on /api/graph). Copilot needs `ANTHROPIC_API_KEY` for a live demo; degrades gracefully otherwise.
+- **Notes for the team:** §8 API contract stays stable (only additive `ring` field on /api/graph). Copilot needs `ANTHROPIC_API_KEY` (or `OPENROUTER_API_KEY` per P5) for a live demo; degrades gracefully otherwise.
 - **Updated:** 2026-06-13
 
 ### P5 — Alexandros — AI, Eval & Demo
@@ -60,6 +60,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P4 (savvas): added AML-tool UX on the console — temporal playback (scrub a ring's transactions over time on the graph), case workflow (status chips + filter + escalate/clear/file, persisted to localStorage), global search/command-palette (⌘K over rings & accounts), and a per-ring risk-breakdown bar (detector contributions). Pure frontend; §8 unchanged. — savvas_
 - _2026-06-13 — P5 (Alexandros): `backend/ai/__init__.py` now auto-loads a repo-root `.env` (dependency-free; real env vars still win) so keys in `.env` are picked up without exporting. `.env` stays gitignored. — Alexandros_
 - _2026-06-13 — P5 (Alexandros): copilot + SAR now support **OpenRouter** (OpenAI-compatible) as primary provider — set `OPENROUTER_API_KEY` + `MULENET_MODEL` (e.g. `nvidia/nemotron-3-ultra-550b-a55b:free`) to run AI on a free/any model; falls back Anthropic→template. Copilot uses OpenAI function-calling for the tool loop. ai/ files only, no schema/API change. — Alexandros_
 - _2026-06-13 — P4 (savvas): full UI redesign to a light "analyst console" (Unit21/Sardine style), three-pane layout (ranked ring queue · graph · tabbed Inspector/Ask-MuleNet); graph now settles once then freezes (physics off) so it no longer drifts. Pure frontend; §8 unchanged. — savvas_
