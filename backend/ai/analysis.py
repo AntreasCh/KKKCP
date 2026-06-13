@@ -11,24 +11,30 @@ import json
 
 from backend.ai import llm
 
-PROMPT = """You are a senior AML investigator reviewing a flagged bank account. Use ONLY the
-structured evidence below — the subject account, the accounts sending money INTO it, the accounts
-it sends money OUT to, the aggregate money flow, and the detector findings.
+PROMPT = """You are a senior AML investigator writing a short, objective assessment of ONE bank account.
 
-Reason like an analyst, not a template. Ground every claim in the data: cite concrete account ids,
-EUR amounts, transaction counts, KYC levels, account age, and the in-vs-out balance of funds.
-Decide which laundering typologies (if any) fit and justify each from the evidence:
-structuring/smurfing, layering, pass-through relay, fan-in, fan-out, or circular flow.
+Be evidence-led, NOT alarmist. A deterministic detection system has already scored this account:
+its `risk` (0.0 = clean … 1.0 = highest), `risk_band`, and `findings` list are AUTHORITATIVE — base
+your verdict on them, not on a hunch.
 
-Write a sharp, specific assessment in natural prose (~120-200 words, no rigid headers) covering:
-- A verdict WITH a confidence level (high/medium/low) and the account's role in the network
-  (mule, relay, aggregator/controller, or likely legitimate).
-- The strongest red flags, each tied to specific counterparties and figures.
-- A brief narrative of how money moves through this account.
-- The 2-3 highest-priority next steps for an investigator (freeze, RFI, SAR, expand to which
-  counterparties, etc.).
-If the evidence is weak, say so plainly rather than inventing risk. Vary your phrasing; do not
-reuse boilerplate sentences.
+Decision rules (follow them):
+- If `risk_band` is "low" (risk < 0.3) AND `findings` is empty: the account looks **LEGITIMATE**.
+  Say so plainly, briefly explain the benign pattern (e.g. salary/payroll, a merchant collecting
+  many small payments, normal personal use, routine business settlement), and recommend NO action /
+  routine monitoring. Do NOT call normal activity "suspicious" and do NOT invent laundering typologies.
+- Only name a laundering typology (structuring/smurfing, layering, pass-through relay, fan-in,
+  fan-out, circular) if a `findings` entry or the flow numbers clearly support it — and cite that
+  specific evidence. High volume alone is NOT suspicious (legitimate businesses move large sums).
+- Scale your language to the score: low → reassuring; medium → cautious, note what to watch;
+  high → flag clearly with the proof.
+
+Using ONLY the JSON evidence, write ~100-170 words of natural prose covering:
+1. A verdict that matches `risk`/`findings`, with a confidence level and the account's role
+   (mule, relay, aggregator, or legitimate <type>).
+2. The concrete reasons — cite account ids, EUR amounts, KYC, account age, the in/out balance — or,
+   if legitimate, why the activity is consistent with normal behaviour.
+3. A proportionate recommendation.
+Vary your phrasing; don't reuse boilerplate.
 
 ACCOUNT & NETWORK EVIDENCE (JSON):
 {ctx}"""
@@ -62,11 +68,14 @@ def _context(account_id: str, result: dict, dataset: dict) -> dict | None:
     total_out = round(sum(x["amount"] for ts in outflow.values() for x in ts), 2)
     all_ts = sorted(t["timestamp"] for t in dataset["transactions"]
                     if t["src"] == account_id or t["dst"] == account_id)
+    risk = rmap.get(account_id, {}).get("risk") or 0
+    risk_band = "high" if risk >= 0.6 else ("medium" if risk >= 0.3 else "low")
     return {
         "subject": {"account_id": account_id, "owner": acct.get("owner_name"),
                     "account_type": acct.get("account_type"), "country": acct.get("country"),
                     "kyc_risk": acct.get("kyc_risk"), "opened_at": acct.get("opened_at"),
-                    "risk": rmap.get(account_id, {}).get("risk")},
+                    "risk": risk, "risk_band": risk_band, "n_findings": len(findings),
+                    "flagged_by_detectors": bool(findings)},
         "flow_summary": {
             "total_in": total_in, "total_out": total_out,
             "retained": round(total_in - total_out, 2),
@@ -107,10 +116,11 @@ def analyze_account(account_id: str, result: dict, dataset: dict) -> dict:
         return {"error": "account not found"}
     if llm.available():
         try:
-            # temperature > 0 so the assessment varies run-to-run instead of repeating boilerplate
+            # moderate temperature: enough variation to avoid boilerplate, low enough to stay
+            # grounded in the risk score (so a 0-risk account isn't called "suspicious")
             txt, source = llm.text(
                 [{"role": "user", "content": PROMPT.format(ctx=json.dumps(ctx))}],
-                max_tokens=900, temperature=0.8)
+                max_tokens=900, temperature=0.5)
             if txt.strip():
                 return _result(ctx, txt, source)
             # empty content (some reasoning models): treat as a soft failure below
