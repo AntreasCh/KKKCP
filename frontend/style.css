@@ -534,3 +534,37 @@ div.vis-tooltip {
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; border: 2px solid var(--surface); }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* ── compliance: freeze-by-threshold + manual review (§6) ─────────────────── */
+.freeze-panel { width: 360px; }
+.fz-controls { padding: 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 9px; }
+.fz-controls > label { font-size: 12.5px; color: var(--text-2); }
+.fz-controls > label b { color: var(--accent); }
+.fz-controls input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+.fz-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.fz-qhead { padding: 9px 14px; }
+.fz-item { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 9px 14px; border-bottom: 1px solid var(--surface-3); }
+.fz-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.fz-id { font-family: ui-monospace, Consolas, monospace; cursor: pointer; color: var(--accent); }
+.fz-id:hover { text-decoration: underline; }
+.fz-actions { display: flex; gap: 5px; flex: none; }
+.fz-act { font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 7px;
+  border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-2); }
+.fz-act:hover { background: var(--surface-2); }
+.fz-act.block { color: var(--danger); border-color: #fca5a5; }
+.fz-act.ban { color: #fff; background: var(--danger); border-color: var(--danger); }
+.fz-act.ban:hover { background: #b91c1c; }
+.fz-act.clear { color: var(--ok); border-color: #86efac; }
+
+/* status chip (inspector, table, review queue) */
+.fz-status { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .03em; padding: 1px 7px; border-radius: 999px; }
+.fz-status.st-active  { background: var(--surface-3); color: var(--muted); }
+.fz-status.st-frozen  { background: #e0f2fe; color: #0369a1; }
+.fz-status.st-blocked { background: var(--warn-weak); color: var(--warn); }
+.fz-status.st-banned  { background: var(--danger-weak); color: var(--danger); }
+
+/* enforcement bar in the account inspector */
+.enf-block { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0 4px; }
+.enf-actions { display: flex; gap: 5px; flex-wrap: wrap; }

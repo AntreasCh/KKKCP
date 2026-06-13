@@ -619,6 +619,7 @@ async function showRing(id) {
 
 // ── inspector: account detail ───────────────────────────────────────────────
 async function showAccount(id) {
+  INSPECTED_ACCT = id;
   const res = await fetch(`/api/accounts/${id}`);
   destroyFlow();
   hidePlayback();
@@ -638,6 +639,13 @@ async function showAccount(id) {
       `<h2>${esc(id)}</h2><span class="risk-chip ${riskTier(a.risk)}">risk ${(a.risk * 100).toFixed(0)}</span></div>` +
     `<p class="subtle">${esc(acc.owner_name || "")} · ${esc(acc.account_type || "")} · ` +
       `${esc(acc.country || "")} · KYC ${esc(acc.kyc_risk || "")}</p>` +
+    `<div class="enf-block"><span class="fz-status st-${esc(acc.status || "active")}">${esc(acc.status || "active")}</span>` +
+      `<span class="enf-actions">` +
+        `<button class="fz-act" onclick="acctDecision('${esc(id)}','freeze')">Freeze</button>` +
+        `<button class="fz-act block" onclick="acctDecision('${esc(id)}','block')">Block</button>` +
+        `<button class="fz-act ban" onclick="acctDecision('${esc(id)}','ban')">Ban</button>` +
+        `<button class="fz-act clear" onclick="acctDecision('${esc(id)}','clear')">Clear</button>` +
+      `</span></div>` +
     ((a.screening && a.screening.length)
       ? `<div class="scr-panel">${a.screening.map((s) => { const m = screenMeta(s.type);
           return `<div class="scr-row"><span class="scr-badge ${m.cls}">${m.icon} ${esc(s.label)}</span>` +
@@ -924,8 +932,10 @@ function renderAccountsTable() {
   $("acct-body").innerHTML = rows.map((a) => {
     const tier = riskTier(a.risk);
     const rings = (a.rings || []).length;
+    const stChip = (a.status && a.status !== "active")
+      ? ` <span class="fz-status st-${esc(a.status)}">${esc(a.status)}</span>` : "";
     return `<tr onclick="showAccount('${esc(a.account_id)}')">` +
-      `<td class="acct-mono">${esc(a.account_id)}</td>` +
+      `<td class="acct-mono">${esc(a.account_id)}${stChip}</td>` +
       `<td>${esc(a.owner_name || "")}</td>` +
       `<td>${esc(a.account_type || "")}</td>` +
       `<td>${esc(a.country || "")}</td>` +
@@ -1258,3 +1268,61 @@ $("gen").onclick = async () => {
 };
 
 refresh();
+
+// ── compliance: freeze-by-threshold + manual review (§6) ────────────────────
+// Admin sets a risk % threshold → freeze matching accounts → review queue → per
+// account block / ban / clear. Mutates Account.status server-side (in-memory).
+var INSPECTED_ACCT = null;   // var (hoisted) so showAccount can set it safely
+
+function fzPreview() {
+  const t = +$("fz-threshold").value;
+  $("fz-val").textContent = t;
+  const n = ALL_ACCOUNTS.filter((a) => (a.risk * 100) >= t && (a.status || "active") === "active").length;
+  $("fz-preview").textContent = `will freeze ${n} account${n === 1 ? "" : "s"} ≥ ${t}%`;
+}
+
+async function fzRenderQueue() {
+  const q = await fetch("/api/frozen").then((r) => r.json());
+  $("fz-count").textContent = q.length ? `${q.length} under review` : "none";
+  $("fz-queue").innerHTML = q.length
+    ? q.map((a) =>
+        `<div class="fz-item"><div class="fz-meta">` +
+          `<b class="fz-id" onclick="showAccount('${esc(a.account_id)}')">${esc(a.account_id)}</b>` +
+          `<span class="fz-status st-${esc(a.status)}">${esc(a.status)}</span>` +
+          `<span class="subtle">${esc(a.owner_name || "")} · risk ${(a.risk * 100).toFixed(0)}%</span>` +
+        `</div><div class="fz-actions">` +
+          `<button class="fz-act block" onclick="acctDecision('${esc(a.account_id)}','block')">Block</button>` +
+          `<button class="fz-act ban" onclick="acctDecision('${esc(a.account_id)}','ban')">Ban</button>` +
+          `<button class="fz-act clear" onclick="acctDecision('${esc(a.account_id)}','clear')">Clear</button>` +
+        `</div></div>`).join("")
+    : `<div class="np-empty"><span class="ico">🔒</span>No accounts under review.<br/>Set a threshold and click Freeze.</div>`;
+}
+
+async function doFreeze() {
+  const pct = +$("fz-threshold").value;
+  const r = await fetch("/api/freeze", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ threshold: pct / 100 }) }).then((x) => x.json());
+  await loadAccounts();   // refresh cached statuses (table chips + preview)
+  fzPreview();
+  await fzRenderQueue();
+  toast(`<span class="t-ico">🔒</span><div class="t-body"><b>Froze ${r.count} account${r.count === 1 ? "" : "s"}</b>` +
+    `<small>risk ≥ ${pct}% — pending review</small></div>`);
+}
+
+async function acctDecision(id, action) {
+  await fetch(`/api/accounts/${id}/decision`, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action }) }).then((x) => x.json());
+  await loadAccounts();
+  if (!$("freeze-panel").classList.contains("hidden")) await fzRenderQueue();
+  if (INSPECTED_ACCT === id) showAccount(id);   // refresh the open inspector
+}
+window.acctDecision = acctDecision;
+
+function toggleFreeze() {
+  const opened = $("freeze-panel").classList.toggle("hidden") === false;
+  if (opened) { fzPreview(); fzRenderQueue(); }
+}
+$("freeze-btn").onclick = (e) => { e.stopPropagation(); toggleFreeze(); };
+$("freeze-close").onclick = () => $("freeze-panel").classList.add("hidden");
+$("fz-threshold").oninput = fzPreview;
+$("fz-freeze").onclick = doFreeze;

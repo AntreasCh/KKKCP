@@ -272,6 +272,56 @@ def analyze(acc_id: str):
     return analyze_account(acc_id, STATE["result"], STATE["dataset"])
 
 
+# ── enforcement: risk-threshold freezing + manual review (§6) ────────────────
+# Mutates Account.status (active → frozen → blocked/banned/cleared) on the in-memory
+# dataset, so the table/inspector reflect it. Resets to "active" on regenerate/restart.
+_RISK = lambda: {a["account_id"]: a["risk"] for a in STATE["result"]["account_risk"]}
+_DECISIONS = {"block": "blocked", "ban": "banned", "clear": "active", "freeze": "frozen"}
+
+
+class FreezeReq(BaseModel):
+    threshold: float = 0.9  # risk fraction 0..1 (UI sends percentage / 100)
+
+
+class DecisionReq(BaseModel):
+    action: str  # block | ban | clear | freeze
+
+
+@app.post("/api/freeze")
+def freeze(req: FreezeReq):
+    """Freeze every still-active account whose risk ≥ threshold; returns the frozen list."""
+    risk = _RISK()
+    frozen = []
+    for a in STATE["dataset"]["accounts"]:
+        if a.get("status", "active") == "active" and risk.get(a["account_id"], 0) >= req.threshold:
+            a["status"] = "frozen"
+            frozen.append(a["account_id"])
+    return {"threshold": req.threshold, "frozen": frozen, "count": len(frozen)}
+
+
+@app.get("/api/frozen")
+def frozen():
+    """The review queue: accounts under enforcement (frozen/blocked/banned), highest risk first."""
+    risk = _RISK()
+    out = [{"account_id": a["account_id"], "owner_name": a.get("owner_name"),
+            "status": a.get("status", "active"), "risk": round(risk.get(a["account_id"], 0), 3)}
+           for a in STATE["dataset"]["accounts"] if a.get("status", "active") != "active"]
+    out.sort(key=lambda x: -x["risk"])
+    return out
+
+
+@app.post("/api/accounts/{acc_id}/decision")
+def decision(acc_id: str, req: DecisionReq):
+    """Record a reviewer's decision on an account: block / ban / clear (unfreeze) / freeze."""
+    amap = {a["account_id"]: a for a in STATE["dataset"]["accounts"]}
+    if acc_id not in amap:
+        raise HTTPException(404, "account not found")
+    if req.action not in _DECISIONS:
+        raise HTTPException(400, f"invalid action (expected one of {list(_DECISIONS)})")
+    amap[acc_id]["status"] = _DECISIONS[req.action]
+    return {"account_id": acc_id, "status": amap[acc_id]["status"]}
+
+
 @app.post("/api/rings/{ring_id}/sar")
 def sar(ring_id: str):
     r = next((x for x in STATE["result"]["rings"] if x["ring_id"] == ring_id), None)
