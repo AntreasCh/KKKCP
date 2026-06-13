@@ -16,13 +16,11 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 ## 1. 📊 Live Status Board  *(edit ONLY your block)*
 
 ### P1 — kiriakos — Data & Schemas
-- **Status:** ✅ done — **decoys now ON in the committed fixture** (team decision: make precision *earned*)
-- **Right now:** committed `sample_data/` = 800 accts / ~4.2k txns / 15 rings + **8 unlabelled legit decoys**. Eval: **ring-recall 1.0 (headline holds)**, recall 0.77, **precision 0.79, FP-rings 3** — precision is now genuinely earned against realistic hard-negatives. Reproduce: default `python -m backend.data.generator … --seed 42` (decoys default to 8; `--decoys 0` = old clean fixture).
+- **Status:** ✅ done — decoys ON; precision **earned** (P2+P3 hardened, all green)
+- **Right now:** committed `sample_data/` = 800 accts / ~4.2k txns / 15 rings + **8 unlabelled legit decoys**. Integrated eval: **ring-recall 1.0, FP-rings 0, account precision 1.0, recall 0.77, 11/11 tests pass** — precision is now genuinely earned against realistic hard-negatives. Reproduce: default `python -m backend.data.generator … --seed 42` (decoys default to 8; `--decoys 0` = clean fixture).
 - **Files I'm touching:** `backend/data/generator.py`, `sample_data/` (done)
 - **Blockers:** —
-- **Notes for the team:** `schemas.py` frozen. Decoys (payday payroll burst, merchant flash-sale fan-in, sub-threshold B2B invoices, inter-company settlement loop) are business + low-KYC + aged and **never labelled**, so any flag is a true FP. Detectors handle payroll/merchant/B2B 👍; 2 real gaps remain → fix these to get precision back toward 1.0:
-  - **🔴 @P3 — heads-up, your `test_scoring.py` now fails (3 tests: precision, ring-metrics, legit-floor).** Expected — the fixture now contains intentional hard-negatives. New honest numbers: precision **0.79**, FP-rings **3**, a legit account scores **1.0** (the mega-merchant). Please update the guardrail thresholds (e.g. `precision ≥ 0.78`, `fp_rings ≤ 3`) **or** harden the fan down-weight so the legit mega-merchant `ACC00739` (in=278, low-KYC, aged) stops tripping `fan_in`.
-  - **🟡 @P2 (circular):** legit **settlement loops** (3 business/low-KYC/aged accts, value-retaining, ≤72h) read as laundering cycles. Lever: down-weight cycles whose members are *all* established business + low-KYC, or require ≥1 fresh/high-risk account in the loop.
+- **Notes for the team:** `schemas.py` frozen. The decoy stress-test is **closed**: 🟢 @P2 fixed the settlement-loop FP (skip all-business/low-KYC cycles) and 🟢 @P3 added a business+low-KYC profile down-weight, so the mega-merchant + settlement loops no longer flag — **FP-rings 3→0, precision 0.79→1.0**, recall held. Decoys (payday payroll burst, merchant flash-sale fan-in, sub-threshold B2B invoices, inter-company settlement loop) are business+low-KYC+aged and never labelled. Data track is complete; available to pair on demo polish or push account-recall past 0.77 if wanted.
 - **Updated:** 2026-06-13
 
 ### P2 — panagiotis — Graph & Structural Detection
@@ -64,6 +62,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P1 (kiriakos): decoy stress-test **closed** ✅ — with P2's settlement-loop skip + P3's business/low-KYC down-weight, the decoy-ON committed fixture is now **ring-recall 1.0, FP-rings 0, precision 1.0 (earned!), recall 0.77, 11/11 tests green**. Decision B paid off: hard-negatives made detection more robust, not just lowered a number. Data track done; free to pair on demo polish. — kiriakos_
 - _2026-06-13 — P2 (panagiotis): **settlement-loop FP fixed** — `detect_circular` now skips cycles whose every member is established business+low-KYC (the legit inter-company loop profile). On the decoy-ON committed fixture: **FP-rings 2→0**, all 3 true circular rings kept, ring-recall 1.0, account precision 1.0/recall 0.769. structural.py only, no schema/API change, 11 tests pass. 🟢 @Andreas: your `test_scoring.py` FP-rings guardrail can now assert `==0`. — panagiotis_
 - _2026-06-13 — P3 (Andreas): decoy hard-negatives handled — **account precision 0.79→1.000, recall held 0.769, F1 0.870, ring-recall 1.0** (was 8 legit-business FPs incl. mega-merchant `ACC00739` at risk 1.0). Added an established-business (business AND low-KYC) ×0.18 profile down-weight in `scoring.py` (recall-safe: 0/39 mules are low-KYC; verified by sweep). `scoring.py`+`pipeline.py` only, no schema/API change; `test_scoring.py` updated to decoy reality (10/10 pass). **@P2:** cleared the structuring FP ring (3→2); the 2 remaining are the legit circular settlement loops — your detector-source fix. — Andreas_
 
