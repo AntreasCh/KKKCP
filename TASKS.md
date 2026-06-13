@@ -16,12 +16,12 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 ## 1. 📊 Live Status Board  *(edit ONLY your block)*
 
 ### P1 — kiriakos — Data & Schemas
-- **Status:** 🔲 not started
-- **Right now:** —
-- **Files I'm touching:** `backend/schemas.py`, `backend/data/generator.py`, `sample_data/`
+- **Status:** 🟡 in progress
+- **Right now:** richer generator — 2–3 instances per pattern, realistic legit noise (salary/merchant/bills + legit hubs), AMLSim-aligned typologies; then regenerate `sample_data/`
+- **Files I'm touching:** `backend/data/generator.py`, `sample_data/`
 - **Blockers:** —
-- **Notes for the team:** —
-- **Updated:** —
+- **Notes for the team:** `schemas.py` unchanged (still frozen). Labels now separate **ring account_ids** (full involved set, for ring-recall) from **mule_accounts** (central/relay nodes only) — so account-precision isn't punished by labelling one-shot smurfs. Default `--rings` bumped to 15 (3 per pattern) for the committed fixture; API's `n_rings=6` still works.
+- **Updated:** 2026-06-13
 
 ### P2 — panagiotis — Graph & Structural Detection
 - **Status:** 🔲 not started
@@ -59,6 +59,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 
 ## 2. 🪵 Activity Log  *(append-only — newest at TOP, one line, sign it)*
 
+- _2026-06-13 — P1 (kiriakos): starting richer generator — 2–3 instances/pattern, realistic legit noise + legit hubs, AMLSim-aligned typologies; labels split ring-set vs mule-set. schemas.py untouched. — kiriakos_
 - _2026-06-13 — P5: copilot gains `trace_path` + `compare_rings` tools and returns a richer `tool_calls` trace (tool/input/output) for the UI; eval gains `format_report` + `python -m backend.eval.evaluate` CLI and additive `false_positive_rate`; SAR Anthropic+template paths confirmed; demo seed fixed at 42, `DEMO.md` added. Heads-up @P3: Louvain is non-deterministic → ring count drifts run-to-run (~24–26 FP); seeding it would stabilise demo numbers. — Alexandros_
 - _2026-06-13 — P3 (Andreas): temporal fan window + hub-centric risk + money/volume ring assembly → rings 30→7, false-positive rings 26→3, ring-recall held at 1.0. Residual FP/bloat is circular over-detection — drops further once P2's circular timestamp/amount filter lands. — Andreas_
 - _2026-06-13 — Phase 0 scaffold landed: app runs end-to-end, contracts frozen, sample_data committed. Baseline `/api/eval`: ring-recall 1.0, precision 0.023, 26 FP rings. — Claude_
