@@ -60,12 +60,14 @@ def _iso(dt: datetime) -> str:
 
 def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
                      n_rings: int = 15, seed: int = 42, window_days: int = 30,
-                     n_decoys: int = 8):
+                     n_decoys: int | None = None):
     """Return (dataset, labels) dicts conforming to schemas.py §7.
 
-    Deterministic for a given ``seed``. ``n_rings`` is distributed round-robin across the five
-    typologies, so e.g. 15 → 3 of each, 6 → 2 structuring + 1 of the rest. ``n_decoys`` plants
-    legit hard-negative structures (round-robin over 4 kinds) that are *not* labelled.
+    Deterministic for a given ``seed``. Always plants ONE flagship multi-stage "kingpin" ring
+    (placement → layering → integration) plus ``n_rings`` single-typology rings distributed
+    round-robin across the five typologies (15 → 3 each). ``n_decoys`` plants legit
+    hard-negative structures; **when None (default) the count AND kinds are randomized per
+    seed** so every Generate click stresses precision differently (`0` = none, N = exactly N).
     """
     rng = random.Random(seed)
     win_min = window_days * 24 * 60
@@ -263,9 +265,54 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
         return {"ring_id": f"TRUE_{idx:03d}", "account_ids": ring_accts,
                 "tx_ids": ring_txs, "patterns": [pattern]}
 
-    # Distribute n_rings round-robin across the five typologies → 2–3 instances each.
+    def plant_kingpin(idx: int) -> dict:
+        """Flagship multi-stage ring — the full laundering lifecycle around one orchestrator:
+        smurfs ─(sub-threshold cash)→ collector ─(layering)→ relay1 ─→ KINGPIN ─(fan-out)→ cash-outs.
+        collector & relay1 each receive-then-forward (>=money-edge, single counterparty, <24h) so
+        they're pass-throughs; the collector also trips structuring + fan_in; the kingpin trips
+        fan_out and pays a small kickback to relay1 — that kickback makes the fan-out seed share two
+        accounts with the chain, so `build_rings` merges every stage into ONE ring spanning
+        structuring + fan_in + passthrough + fan_out (max pattern diversity) with the largest member
+        volume. Chain kept to 2 hops so it adds only 2 pass-through findings (keeps the detector lean)."""
+        smurfs = fresh(6, used_central)
+        collector, relay1, kingpin = fresh(3, used_central | set(smurfs))
+        cashouts = fresh(5, used_central | set(smurfs) | {collector, relay1, kingpin})
+        k_txs: list[str] = []
+        t0 = BASE + timedelta(days=rng.randint(3, max(4, window_days - 6)), hours=rng.randint(0, 6))
+
+        # stage 1 — placement: 6 smurfs deposit sub-threshold cash into the collector (≈10h burst)
+        pot = 0.0
+        for j, s in enumerate(smurfs):
+            amt = rng.uniform(0.85, 0.985) * THRESHOLD
+            pot += amt
+            k_txs.append(new_tx(s, collector, amt, jitter(t0, j * 1.6 + rng.uniform(0, 1)), "cash_deposit"))
+
+        # stage 2 — layering: collector → relay1 → kingpin, each forwarding ~0.92 to a SINGLE
+        # counterparty within 24h (pass-through shape)
+        amt = pot * rng.uniform(0.90, 0.95)
+        k_txs.append(new_tx(collector, relay1, amt, jitter(t0, 16 + rng.uniform(0, 4)), "wire"))
+        amt *= rng.uniform(0.90, 0.95)
+        k_txs.append(new_tx(relay1, kingpin, amt, jitter(t0, 30 + rng.uniform(0, 4)), "crypto"))
+
+        # stage 3 — integration: kingpin fans the laundered sum out to cash-out mules (≥€5k chunks),
+        # plus a kickback to relay1 (the lieutenant's cut) which also bridges the fan-out into the ring
+        targets = [relay1] + cashouts
+        each = amt / len(targets)
+        for j, c in enumerate(targets):
+            k_txs.append(new_tx(kingpin, c, each * rng.uniform(0.95, 1.05),
+                                jitter(t0, 44 + j * 1.5 + rng.uniform(0, 1)), "wire"))
+
+        spine = [collector, relay1, kingpin]
+        used_central.update(spine)
+        mules.update(spine)  # the orchestration spine are the mules; smurfs/cash-outs are one-shot
+        return {"ring_id": f"TRUE_{idx:03d}",
+                "account_ids": smurfs + spine + cashouts, "tx_ids": k_txs,
+                "patterns": ["structuring", "layering", "mule_fanin", "mule_fanout"]}
+
+    # Flagship kingpin first (reserves clean accounts), then n_rings single-typology rings.
+    labels_rings.append(plant_kingpin(1))
     order = [PATTERNS[i % len(PATTERNS)] for i in range(max(1, n_rings))]
-    for idx, pattern in enumerate(order, start=1):
+    for idx, pattern in enumerate(order, start=2):
         labels_rings.append(plant(pattern, idx))
 
     # Realistic profile for mule *centres*: freshly opened + elevated KYC risk — the way real
@@ -289,8 +336,11 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
         cands = [b for b in biz_ids if b not in exclude] or [a for a in acc_ids if a not in exclude]
         return rng.sample(cands, min(n, len(cands)))
 
-    for k in range(max(0, n_decoys)):
-        kind = DECOYS[k % len(DECOYS)]
+    # Dynamic by default: a random count AND a random kind per decoy, so each seed (every live
+    # "Generate" click) stresses precision with a different hard-negative mix. Explicit N is honored.
+    decoy_count = rng.randint(5, 12) if n_decoys is None else max(0, n_decoys)
+    for k in range(decoy_count):
+        kind = rng.choice(DECOYS)
         t0 = BASE + timedelta(days=rng.randint(1, max(2, window_days - 3)), hours=rng.randint(0, 18))
 
         if kind == "payroll_burst":
@@ -350,7 +400,8 @@ def main():
     p.add_argument("--rings", type=int, default=15)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--window-days", type=int, default=30)
-    p.add_argument("--decoys", type=int, default=8, help="legit hard-negative structures (unlabelled)")
+    p.add_argument("--decoys", type=int, default=None,
+                   help="legit hard-negative structures (unlabelled); omit = random count+kinds, 0 = none")
     p.add_argument("--out", default=str(Path(__file__).resolve().parents[2] / "sample_data"))
     a = p.parse_args()
 
@@ -362,10 +413,11 @@ def main():
 
     from collections import Counter
     by_pat = Counter(p for r in labels["rings"] for p in r["patterns"])
+    decoys_desc = "random" if a.decoys is None else a.decoys
     print(f"Wrote {len(dataset['accounts'])} accounts, {len(dataset['transactions'])} txns, "
           f"{len(labels['rings'])} rings ({len(labels['mule_accounts'])} mules), "
-          f"{a.decoys} decoys -> {out}")
-    print("  rings by pattern:", dict(by_pat))
+          f"{decoys_desc} decoys -> {out}")
+    print("  rings by pattern:", dict(by_pat), "(incl. 1 flagship kingpin ring)")
 
 
 if __name__ == "__main__":
