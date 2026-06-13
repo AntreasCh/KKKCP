@@ -151,8 +151,17 @@ def detect_circular(graph, accounts, transactions) -> list[dict]:
     return findings
 
 
+PASS_WINDOW_H = 24  # receive then forward within this many hours to count as a relay
+
+
 def detect_passthrough(graph, accounts, transactions) -> list[dict]:
-    """#3: account receives X then forwards >=0.8X within 24h (mule relay / layering)."""
+    """#3: account receives X then forwards >=0.8X within 24h (mule relay / layering).
+
+    Score by ratio AND speed (REQUIREMENTS §9 #3) instead of a flat constant: a relay
+    that forwards the full amount within minutes is a far stronger mule signal than one
+    that forwards 80% a day later. Flat-scoring pinned every layering relay at the same
+    0.30 risk — just under the flag threshold — so genuine relay mules went uncaught.
+    """
     findings = []
     ins, outs = defaultdict(list), defaultdict(list)
     for t in transactions:
@@ -172,11 +181,20 @@ def detect_passthrough(graph, accounts, transactions) -> list[dict]:
                 break
         if hit:
             ti, to, dt = hit
+            hours = dt.total_seconds() / 3600
+            # completeness: how much of the inflow was forwarded (capped at 1.0 — forwarding
+            # MORE than came in is consolidation, still relay-like but not extra-suspicious).
+            completeness = min(1.0, to["amount"] / ti["amount"]) if ti["amount"] else 0.0
+            # speed: faster relay = more suspicious. 0h → 1.0, full 24h window → 0.0.
+            speed = max(0.0, 1.0 - hours / PASS_WINDOW_H)
+            # floor 0.55 (the pattern itself is suspicious) up to 1.0 for a fast, full relay.
+            score = round(min(1.0, 0.55 + 0.25 * completeness + 0.20 * speed), 2)
             findings.append({
                 "detector": "passthrough", "subject_type": "account",
-                "subject_ids": [acc], "score": 0.6,
+                "subject_ids": [acc], "score": score,
                 "evidence": {"in": round(ti["amount"], 2), "out": round(to["amount"], 2),
-                             "hours": round(dt.total_seconds() / 3600, 1)},
+                             "hours": round(hours, 1),
+                             "completeness": round(completeness, 2), "speed": round(speed, 2)},
                 "window": {"start": ti["timestamp"], "end": to["timestamp"]},
             })
     return findings

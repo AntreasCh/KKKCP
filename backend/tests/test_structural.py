@@ -66,3 +66,14 @@ def test_passthrough_is_bounded():
     # passthrough feeds account risk, not rings; just guard it stays specific, not spammy
     findings = structural.detect_passthrough(None, ACCOUNTS, TXS)
     assert len(findings) <= 30, f"passthrough over-firing: {len(findings)}"
+
+
+def test_passthrough_score_scales_with_ratio_and_speed():
+    # REQUIREMENTS §9 #3: score by ratio and speed, not a flat constant. A flat score
+    # pinned every relay mule at the same sub-threshold risk; scores must now vary.
+    findings = structural.detect_passthrough(None, ACCOUNTS, TXS)
+    scores = {f["score"] for f in findings}
+    assert len(scores) > 1, f"passthrough score is still flat: {scores}"
+    for f in findings:
+        assert 0.0 <= f["score"] <= 1.0
+        assert "completeness" in f["evidence"] and "speed" in f["evidence"]
