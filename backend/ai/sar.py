@@ -32,7 +32,9 @@ def _openrouter_text(messages: list[dict], max_tokens: int = 800) -> str:
 
     r = httpx.post(
         f"{OPENROUTER_BASE}/chat/completions",
-        headers={"Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}"},
+        headers={"Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY', '')}",
+                 "Content-Type": "application/json",
+                 "HTTP-Referer": "http://localhost:8000", "X-Title": "MuleNet"},
         json={"model": _openrouter_model(), "messages": messages, "max_tokens": max_tokens},
         timeout=120,
     )
