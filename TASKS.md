@@ -31,7 +31,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Notes for the team:** —
 - **Updated:** —
 
-### P3 — savvas — Network Detection & Scoring
+### P3 — Andreas — Network Detection & Scoring
 - **Status:** 🔲 not started
 - **Right now:** —
 - **Files I'm touching:** `backend/detect/network.py`, `backend/detect/scoring.py`, `backend/detect/pipeline.py`
@@ -39,7 +39,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Notes for the team:** —
 - **Updated:** —
 
-### P4 — BOSS — API & Frontend
+### P4 — savvas — API & Frontend
 - **Status:** 🔲 not started
 - **Right now:** —
 - **Files I'm touching:** `backend/api/main.py`, `frontend/`
@@ -47,7 +47,7 @@ Status legend: 🔲 not started · 🟡 in progress · 🔵 in review · ✅ don
 - **Notes for the team:** —
 - **Updated:** —
 
-### P5 — scriptkiddie — AI, Eval & Demo
+### P5 — Alexandros — AI, Eval & Demo
 - **Status:** 🔲 not started
 - **Right now:** —
 - **Files I'm touching:** `backend/ai/copilot.py`, `backend/ai/sar.py`, `backend/eval/evaluate.py`

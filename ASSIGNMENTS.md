@@ -8,9 +8,9 @@ Full detail per role in [REQUIREMENTS.md](./REQUIREMENTS.md) §13. Roles are swa
 |---|---|---|---|
 | **kiriakos** | **P1 — Data & Schemas** | `backend/schemas.py`, `backend/data/generator.py`, `sample_data/` | realistic data: 2–3 instances per pattern, AMLSim-shaped, varied noise |
 | **panagiotis** | **P2 — Graph & Structural** | `backend/graph/build.py`, `backend/detect/structural.py` | precision: timestamp+amount filters on circular; tighten structuring/passthrough |
-| **savvas** | **P3 — Network & Scoring** | `backend/detect/network.py`, `backend/detect/scoring.py`, `backend/detect/pipeline.py` | precision: temporal fan window; community scoring; calibration |
-| **BOSS** | **P4 — API & Frontend (+integration)** | `backend/api/main.py`, `frontend/` | graph polish, ring detail panel, wire copilot chat, eval/SAR display, coordinate integration |
-| **scriptkiddie** | **P5 — AI + Eval + Demo** | `backend/ai/copilot.py`, `backend/ai/sar.py`, `backend/eval/evaluate.py` | flesh out the tool-using copilot; eval numbers; fixed demo seed + script |
+| **Andreas** | **P3 — Network & Scoring** | `backend/detect/network.py`, `backend/detect/scoring.py`, `backend/detect/pipeline.py` | precision: temporal fan window; community scoring; calibration |
+| **savvas** | **P4 — API & Frontend (+integration)** | `backend/api/main.py`, `frontend/` | graph polish, ring detail panel, wire copilot chat, eval/SAR display, coordinate integration |
+| **Alexandros** | **P5 — AI + Eval + Demo** | `backend/ai/copilot.py`, `backend/ai/sar.py`, `backend/eval/evaluate.py` | flesh out the tool-using copilot; eval numbers; fixed demo seed + script |
 
 **Shared rules (everyone):**
 - AI = **Anthropic API** (`ANTHROPIC_API_KEY`), no AWS. App runs **locally only** (`localhost:8000`).
@@ -70,12 +70,12 @@ commits; test against sample_data/. Done when my detectors flag planted patterns
 Work autonomously; only ask me if blocked on a decision.
 ```
 
-### P3 — savvas (Network Detection & Scoring)
+### P3 — Andreas (Network Detection & Scoring)
 ```text
 We're at iFX Hack building MuleNet — a money-laundering network detector (Python + FastAPI +
 networkx). The repo is scaffolded and runs. This is the biggest precision lever.
 
-I'm savvas, owner of P3 — Network Detection & Scoring. Read REQUIREMENTS.md (§7 contracts, §9 #4–#5,
+I'm Andreas, owner of P3 — Network Detection & Scoring. Read REQUIREMENTS.md (§7 contracts, §9 #4–#5,
 §10 scoring, §13 P3), TASKS.md (my section + conflict rules), CLAUDE.md (git workflow).
 
 Touch ONLY: backend/detect/network.py, backend/detect/scoring.py, backend/detect/pipeline.py. Don't
@@ -93,12 +93,12 @@ commits; test against sample_data/. Done when the eval shows high ring-recall wi
 Work autonomously; only ask me if blocked on a decision.
 ```
 
-### P4 — BOSS (API & Frontend + integration)
+### P4 — savvas (API & Frontend + integration)
 ```text
 We're at iFX Hack building MuleNet — a money-laundering network detector (Python + FastAPI backend,
 vis-network frontend, Anthropic API). The repo is scaffolded and runs end-to-end on localhost:8000.
 
-I'm BOSS, owner of P4 — API & Frontend, and I coordinate integration. Read REQUIREMENTS.md (§8 API
+I'm savvas, owner of P4 — API & Frontend, and I coordinate integration. Read REQUIREMENTS.md (§8 API
 contract, §13 P4, §17 demo), TASKS.md, CLAUDE.md (git workflow).
 
 Touch mainly: backend/api/main.py, frontend/. The API + UI already work against the pipeline — make
@@ -117,12 +117,12 @@ commits. Done when clicking a ring tells the laundering story and the copilot ch
 Work autonomously; flag me on integration blockers.
 ```
 
-### P5 — scriptkiddie (AI + Eval + Demo)
+### P5 — Alexandros (AI + Eval + Demo)
 ```text
 We're at iFX Hack building MuleNet — a money-laundering network detector. AI is via the Anthropic API
 (Claude), NOT Bedrock. The repo is scaffolded and runs on localhost:8000.
 
-I'm scriptkiddie, owner of P5 — AI + Eval + Demo. Read REQUIREMENTS.md (§11 AI layer, §12 eval, §17
+I'm Alexandros, owner of P5 — AI + Eval + Demo. Read REQUIREMENTS.md (§11 AI layer, §12 eval, §17
 demo, §13 P5), TASKS.md, CLAUDE.md (git workflow).
 
 Touch ONLY: backend/ai/copilot.py, backend/ai/sar.py, backend/eval/evaluate.py (+ demo notes). Don't
