@@ -10,6 +10,7 @@ from __future__ import annotations
 import itertools
 from collections import defaultdict
 from datetime import datetime, timedelta
+from functools import lru_cache
 
 import networkx as nx
 
@@ -18,7 +19,11 @@ from backend.schemas import REPORTING_THRESHOLD as T
 TS_FMT = "%Y-%m-%dT%H:%M:%SZ"
 
 
+@lru_cache(maxsize=500_000)
 def _ts(s: str) -> datetime:
+    # datetime.strptime is expensive and the same timestamps are parsed many times across the
+    # detectors (and re-parsed every tick of the live stream). Memoising makes timestamp handling
+    # effectively free at scale — the cache is keyed on the ISO string, so it's always correct.
     return datetime.strptime(s, TS_FMT)
 
 
@@ -70,6 +75,13 @@ CIRC_WINDOW_H = 72        # whole loop must close within this many hours
 # so a 4-hop loop lands around 0.78 end-to-end — 0.7 catches those without admitting noise.
 CIRC_MIN_RETENTION = 0.7
 CIRC_MAX_RETENTION = 1.25  # laundering skims value; it doesn't grow. Above this = coincidence.
+# A value-retaining laundering loop carries real money on every hop, so the cycle search only
+# needs the "money edges" of the graph. Pruning the cycle-topology graph to directed pairs that
+# carry at least one transfer this large keeps every real loop while dropping the mass of small
+# legit/noise edges that simple_cycles would otherwise explore — the search then scales with the
+# (small, slow-growing) set of large transfers, not total transaction count. This is what lets
+# detection keep up with a live stream of hundreds of thousands of transactions.
+CIRC_MONEY_EDGE = 1000.0
 
 
 def _trace_money_loop(cyc, tx_by_pair):
@@ -125,12 +137,21 @@ def detect_circular(graph, accounts, transactions) -> list[dict]:
     sequence of transactions proves the loop happened in time with the value retained —
     not just because the accounts form a topological cycle. Score = retention × tightness.
     """
-    # one directed edge per (src,dst) for cycle topology; keep the real txs for the proof
-    dg = nx.DiGraph()
+    # Keep every real tx per pair for the proof step, but track the largest transfer per pair so
+    # we can build the cycle-search graph from MONEY EDGES only (see CIRC_MONEY_EDGE) — exact for
+    # value-retaining loops, and the key to scaling cycle detection to very large transaction sets.
     tx_by_pair = defaultdict(list)
+    pair_max = defaultdict(float)
     for t in transactions:
-        dg.add_edge(t["src"], t["dst"])
-        tx_by_pair[(t["src"], t["dst"])].append(t)
+        p = (t["src"], t["dst"])
+        tx_by_pair[p].append(t)
+        amt = float(t["amount"])
+        if amt > pair_max[p]:
+            pair_max[p] = amt
+    dg = nx.DiGraph()
+    for (s, d), mx in pair_max.items():
+        if mx >= CIRC_MONEY_EDGE:
+            dg.add_edge(s, d)
 
     # Established-business / low-KYC accounts run legitimate inter-company SETTLEMENT loops
     # (money cycles back, value retained, fast) that are structurally identical to laundering.
