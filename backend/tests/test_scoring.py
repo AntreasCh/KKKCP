@@ -37,10 +37,10 @@ def test_account_recall_recovers_single_signal_mules():
 def test_ring_metrics_hold():
     # Ring recall is the headline — it must stay perfect.
     assert METRICS["ring_recall"] == 1.0, f"ring recall regressed: {METRICS}"
-    # The profile down-weight removed the structuring FP ring; the remaining FP rings are legit
-    # business *settlement/invoice loops* whose detector-source fix is P2's lane (require >=1
-    # fresh/elevated-KYC account in the loop). Guardrail: must not exceed the known 2.
-    assert METRICS["false_positive_rings"] <= 2, f"new false-positive rings appeared: {METRICS}"
+    # With P3's profile down-weight (structuring FP ring) + P2's settlement-loop skip (the 2
+    # circular FP rings), the decoy fixture now yields ZERO false-positive rings — earned against
+    # planted hard-negatives. Lock it in.
+    assert METRICS["false_positive_rings"] == 0, f"false-positive rings appeared: {METRICS}"
 
 
 def test_no_legit_account_outscores_a_true_mule_floor():
