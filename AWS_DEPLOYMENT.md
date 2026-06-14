@@ -6,7 +6,7 @@
 > Bedrock**.
 >
 > **What's true today:** detection is 100% deterministic graph maths (no cloud needed); the AI
-> layer (SAR + copilot) currently calls an OpenRouter model through the OpenAI SDK. Swapping it
+> layer (per-account analysis + copilot) currently calls an OpenRouter model through the OpenAI SDK. Swapping it
 > to **Bedrock** is a single provider adapter (`backend/ai/llm.py`) — same `complete()` interface,
 > Bedrock Converse API + tool-use underneath.
 
@@ -33,7 +33,7 @@ assumes a single box.
                  ▼                              │ API Gateway → Lambda /  │
         ┌──────────────────┐                    │ ECS Fargate (FastAPI)   │
         │  Detection jobs  │   read/write       │  pipeline.run()         │
-        │  Lambda / Fargate│◀──────────────────▶│  + /api/ask, /sar       │
+        │  Lambda / Fargate│◀──────────────────▶│  + /api/ask, /analyze   │
         │  (networkx +     │                    └───────┬────────────┬───┘
         │   Louvain)       │                            │            │
         └───┬──────────┬───┘                            │            │
@@ -42,7 +42,8 @@ assumes a single box.
    ┌──────────────┐ ┌──────────────┐           │ Amazon       │ │ Amazon       │
    │ Amazon S3    │ │ Amazon       │           │ Bedrock      │ │ Neptune      │
    │ (datasets,   │ │ Neptune      │           │ (Claude:     │ │ (graph store,│
-   │  SAR PDFs)   │ │ (tx graph)   │           │  SAR+copilot)│ │  Gremlin)    │
+   │  audit logs) │ │ (tx graph)   │           │ analysis+    │ │  Gremlin)    │
+   │              │ │              │           │  copilot)    │ │              │
    └──────────────┘ └──────────────┘           └──────────────┘ └──────────────┘
 ```
 
@@ -52,12 +53,11 @@ assumes a single box.
 |---|---|---|
 | `pipeline.run()` detection (networkx/Louvain) | **AWS Lambda** (small banks) or **ECS Fargate** (large graphs) | Stateless, bursty, scales to zero; no servers to manage |
 | Transaction graph | **Amazon Neptune** | Managed graph DB; Gremlin queries replace in-memory networkx at scale; fan-in/out & cycles are native graph traversals |
-| `dataset.json`, generated SARs | **Amazon S3** | Durable object storage; SAR PDFs, audit trail |
+| `dataset.json`, audit artifacts | **Amazon S3** | Durable object storage; audit trail |
 | Streaming ingestion | **Amazon Kinesis / MSK** | Real-time transaction feed → near-real-time scoring |
 | FastAPI (`api/main.py`) | **API Gateway + Lambda** or **Fargate** | Same code; the app is already ASGI |
 | Frontend (static `index.html`/vis-network) | **S3 + CloudFront** | No build step; CDN-served |
-| **SAR generator + "Ask MuleNet" copilot** | **Amazon Bedrock (Claude)** | Managed, in-VPC, no data leaves AWS — critical for bank data; tool-use loop maps to Bedrock Converse `toolConfig` |
-| KYC document ingestion (roadmap) | **Amazon Textract + Rekognition** | Extract/verify identity docs to enrich account risk |
+| **"Ask MuleNet" copilot + per-account AI analysis** | **Amazon Bedrock (Claude)** | Managed, in-VPC, no data leaves AWS — critical for bank data; tool-use loop maps to Bedrock Converse `toolConfig` |
 | Secrets (model keys) | **AWS Secrets Manager** | No keys in code/env |
 | Eval / monitoring | **CloudWatch** | Track precision/recall/FP-rate as live SLOs |
 

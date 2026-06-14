@@ -161,7 +161,6 @@ We don't just claim accuracy — we measure it.
 - **Layering** — passing money through many hops to hide its origin.
 - **KYC** — "Know Your Customer": the identity info a bank collects at sign-up.
 - **PEP** — Politically Exposed Person (higher-risk customer category).
-- **SAR** — Suspicious Activity Report, the filing a bank sends regulators.
 - **Mixer / tumbler** — a crypto service that scrambles coins to hide their trail.
 - **Precision** — of the accounts we flagged, how many were actually bad.
 - **Recall** — of all the bad accounts, how many we caught.
@@ -174,7 +173,7 @@ We don't just claim accuracy — we measure it.
 2. Point at the top of the list → "These are auto-flagged. Notice the evidence chips — *structuring, sanctions hit, device linkage*."
 3. Open a flagged account → "Every flag is explained. This one shares a device with 5 other accounts — one operator."
 4. Show the scoreboard → "**100% precision** — we never falsely accuse. We catch **85%** of mules and **every** ring, with **zero** false rings — and that's against decoys built to fool us."
-5. (Optional) Ask the **Ask MuleNet** assistant a question / show the generated SAR.
+5. (Optional) Run the per-account **AI analysis**, or ask the **Ask MuleNet** copilot a question.
 
 *MuleNet is a hackathon prototype running locally on synthetic-but-realistic data. The
 detection engine is real; the dataset is generated so we can measure accuracy against a
