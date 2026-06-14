@@ -28,10 +28,17 @@ SYSTEM = (
     "You are MuleNet's AML analyst copilot. Investigate WITH THE TOOLS before answering — list and "
     "inspect rings, look up accounts, trace money between accounts, compare rings. "
     "Ground every conclusion in what the tools return: the detector findings and the risk scores are "
-    "authoritative. Be objective, not alarmist — if an account or ring has a low risk score or no "
-    "findings, say it looks legitimate rather than implying guilt, and don't invent patterns the data "
-    "doesn't show. High transaction volume alone is not suspicious. When you do flag something, cite "
-    "the specific ring ids, account ids, patterns, amounts and risk scores that justify it. "
+    "authoritative. `get_account` returns a full six-layer KYC/fraud profile — identity (KYC, "
+    "verification, PEP/sanctions/watchlist), device (emulator/rooted, device count), network "
+    "(signup IP, IP country/reputation, proxy, VPN/Tor), behaviour (failed logins, automation, night "
+    "activity), history (prior fraud, blacklist, account-takeover, chargebacks, linked accounts) — plus "
+    "`top_signals`, the scored reasons behind the risk number. Use these layered signals to explain WHY "
+    "an account is risky (e.g. 'unverified, IP reputation 0.9, prior fraud, links 6 accounts by shared "
+    "email'), and weigh them in proportion to the risk score. "
+    "Be objective, not alarmist — if an account or ring has a low risk score or no findings, say it "
+    "looks legitimate rather than implying guilt, and don't invent patterns the data doesn't show. "
+    "High transaction volume alone is not suspicious. When you flag something, cite the specific ring "
+    "ids, account ids, patterns, amounts, risk scores and profile signals that justify it. "
     "Answer concisely in plain language; if you can't verify something with the tools, say so."
 )
 
@@ -40,7 +47,10 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {}}},
     {"name": "get_ring", "description": "Full detail for one ring by id, e.g. DET_001.",
      "input_schema": {"type": "object", "properties": {"ring_id": {"type": "string"}}, "required": ["ring_id"]}},
-    {"name": "get_account", "description": "An account's risk score and findings by id, e.g. ACC00042.",
+    {"name": "get_account",
+     "description": "Full profile for one account by id (e.g. ACC00042): risk score + scored top_signals, "
+                    "plus the six KYC/fraud layers — identity, device, network/IP, behaviour, history, "
+                    "contact — and detector findings.",
      "input_schema": {"type": "object", "properties": {"account_id": {"type": "string"}}, "required": ["account_id"]}},
     {"name": "trace_path",
      "description": "Follow the money: find the shortest chain of transactions from one account to "
@@ -88,7 +98,42 @@ def _tools_impl(result, dataset):
         if not a:
             return {"error": "account not found"}
         f = [x for x in result["findings"] if account_id in x["subject_ids"]]
-        return {"account": a, "risk": rmap.get(account_id, {}).get("risk"), "findings": f[:10]}
+        rr = rmap.get(account_id, {})
+        risk = rr.get("risk") or 0
+        return {
+            "account_id": account_id, "owner": a.get("owner_name"),
+            "account_type": a.get("account_type"),
+            "risk": risk,
+            "risk_band": "high" if risk >= 0.6 else ("medium" if risk >= 0.3 else "low"),
+            "top_signals": rr.get("top_signals", []),     # scored reasons behind the risk number
+            # ── the full six-layer KYC/fraud profile ──
+            "identity": {"country": a.get("country"), "city": a.get("city"),
+                         "kyc_risk": a.get("kyc_risk"), "verification_level": a.get("verification_level"),
+                         "opened_at": a.get("opened_at"), "date_of_birth": a.get("date_of_birth"),
+                         "occupation": a.get("occupation"), "business_category": a.get("business_category"),
+                         "pep": a.get("pep"), "sanctioned": a.get("sanctioned"),
+                         "watchlist": a.get("watchlist"), "adverse_media": a.get("adverse_media"),
+                         "nominee_owner": a.get("nominee_owner")},
+            "device": {"device_id": a.get("device_id"), "type": a.get("device_type"),
+                       "os": a.get("device_os"), "device_count": a.get("device_count"),
+                       "emulator": a.get("emulator"), "rooted_jailbroken": a.get("rooted_jailbroken")},
+            "network": {"signup_ip": a.get("signup_ip"), "ip_country": a.get("ip_country"),
+                        "ip_isp": a.get("ip_isp"), "proxy": a.get("proxy"), "vpn_tor": a.get("vpn_tor"),
+                        "ip_risk_score": a.get("ip_risk_score"), "distinct_ips": a.get("distinct_ips")},
+            "behaviour": {"logins_30d": a.get("logins_30d"), "failed_logins_30d": a.get("failed_logins_30d"),
+                          "password_resets_30d": a.get("password_resets_30d"),
+                          "night_activity_ratio": a.get("night_activity_ratio"),
+                          "automation_score": a.get("automation_score"),
+                          "avg_session_seconds": a.get("avg_session_seconds")},
+            "history": {"prior_sars": a.get("prior_sars"), "prior_fraud": a.get("prior_fraud"),
+                        "account_takeover": a.get("account_takeover"), "blacklisted": a.get("blacklisted"),
+                        "chargeback_count": a.get("chargeback_count"), "disputes_count": a.get("disputes_count"),
+                        "linked_accounts": a.get("linked_accounts"),
+                        "historical_risk_score": a.get("historical_risk_score")},
+            "contact": {"email": a.get("email"), "phone": a.get("phone")},
+            "status": a.get("status", "active"),
+            "findings": f[:10],
+        }
 
     def trace_path(src_account, dst_account, max_hops=6):
         if src_account not in amap or dst_account not in amap:
