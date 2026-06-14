@@ -44,7 +44,7 @@ the laundering rings** they belong to.
 
 1. **Data in** — a list of accounts (with KYC details, country, device, etc.) and their
    transactions (amount, type, channel, origin country, etc.).
-2. **Build the money graph** — every account is a dot, every payment is an arrow between dots.
+2. **Build the money graph** — every account is a node, every payment is an arrow between node whether it is outwards/inwards.
 3. **Run ~25 detectors** — each looks for one tell-tale sign of laundering (listed below).
 4. **Score every account** — combine the signals into one risk number, the smart way (see §6).
 5. **Assemble the rings** — group the connected high-risk accounts into named laundering
@@ -79,11 +79,11 @@ every major angle a real anti-money-laundering team uses.
 - **Watchlist / adverse media** — internal watchlist or negative news.
 - **Prior SARs** — has been reported before.
 - **High-risk country**, **freshly-opened account**, **elevated KYC risk**.
-- **Activity vs declared profile** — moves *far* more money than they said they would at sign-up.
+- **Activity vs declared profile** — moves *far* more money than they said they would at sign-up. px student moving 10's of thousands when assigned unemployed w/income <20,000
 - **Shell company**, **high-risk business type** (e.g. crypto exchange, gambling).
 
 **D. Identity & device intelligence**
-- **Device / IP linkage** — several "different" customers are actually run from **one device** (one operator).
+- **Device / IP linkage** — several "different" customers are actually run from **one device** (one operator). diff accounts same IP addr3
 - **VPN / TOR use**, **repeated failed identity checks**, **geography mismatch** (transacting from a different country than they live in).
 
 **E. Network effects**
