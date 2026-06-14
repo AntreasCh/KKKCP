@@ -10,6 +10,7 @@ laundering moves real money, so legit low-amount clusters fall below the volume 
 """
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from datetime import datetime
 
@@ -64,8 +65,30 @@ def _legit_profile_factor(acc_rec: dict | None) -> float:
 TAU = 0.5                     # flag line (matches eval τ)
 ASSOC_HIGH_RISK = 0.5         # a counterparty at/above this base risk counts as "high-risk"
 ASSOC_WEIGHT = 0.5            # how strongly the association signal contributes
-ASSOC_ELEVATED_CAP = 0.40     # max risk an un-flagged account can reach via association alone (< TAU)
-SANCTIONS_RISK = 0.97         # C1: a confirmed sanctions hit is escalated on its own (screening)
+# An account NO behavioural detector flagged can still carry soft profile/association evidence. Rather
+# than clamp every such account to one flat number (which bunched them all at 0.40), we grade them
+# across [0, ELEVATED_MAX] by how much evidence they actually have — so the dashboard separates "one
+# minor flag" from "a dozen red flags". Still strictly < TAU, so soft signals never create a false
+# positive; only CONFIRMED-bad screening hits (below) cross the flag line.
+ELEVATED_MAX = 0.49           # ceiling for soft-evidence-only accounts (just under TAU)
+ASSOC_ELEVATED_CAP = 0.40     # (kept for tests/back-compat) legacy flat elevated cap
+
+# ── Risk curve (replaces the additive-and-clamp that saturated every mule to 100) ──
+# We sum weighted EVIDENCE POINTS (behavioural findings + screening points + soft profile/association)
+# WITHOUT clamping, then squash through a smooth, non-saturating exponential. This spreads the
+# flagged band across 50-99 by how much evidence each account carries (a multi-typology kingpin scores
+# higher than a single-role mule) instead of bunching them all at exactly 100.
+#   flagged  (behavioural points >= BP_TAU):  risk = TAU + (1-TAU)*(1 - exp(-(evidence-BP_TAU)/SCALE_HI))
+#   unflagged(behavioural points <  BP_TAU):  risk = ELEVATED_MAX*(1 - exp(-evidence/SCALE_LO))  (< TAU)
+# BP_TAU = TAU*NORMALIZER reproduces the EXACT old flag gate (base = points/NORMALIZER >= TAU), so the
+# set of accounts that cross τ — hence eval precision/recall — is unchanged; only the values spread.
+BP_TAU = TAU * NORMALIZER      # behavioural-points flag line (== old base>=TAU gate)
+SCALE_HI = 1.8                 # spread of the flagged band (larger = gentler climb → wider 50-99 spread)
+SCALE_LO = 0.8                 # spread of the elevated (sub-τ) band
+# Confirmed-bad screening as EVIDENCE POINTS (only true bad actors carry these → precision-safe). Big
+# enough to clear BP_TAU alone (so a lone sanctions/blacklist hit still flags) and to land high on the
+# curve, but still additive so a bad actor with MORE signals outscores one with fewer.
+SCREENING_POINTS = {"sanctioned": 4.5, "blacklisted": 2.5, "prior_fraud": 1.8, "account_takeover": 1.4}
 
 # ── customer-risk-profile amplifier (Tier A — A1 country, A2 fresh, A3 KYC, A4 channel) ──
 # Classic AML "customer risk rating": KYC/profile factors don't *prove* laundering, they
@@ -87,7 +110,18 @@ PROFILE_WEIGHTS = {"high_risk_country": 0.45, "fresh_account": 0.30,
                    # Tier C attribute signals (all capped — they amplify, never flag alone):
                    "pep": 0.40, "watchlist": 0.40, "prior_sars": 0.40, "adverse_media": 0.45,
                    "shell_company": 0.50, "geo_mismatch": 0.35, "high_risk_mcc": 0.30,
-                   "vpn_tor": 0.30, "failed_verifications": 0.25, "activity_vs_profile": 0.45}
+                   "vpn_tor": 0.30, "failed_verifications": 0.25, "activity_vs_profile": 0.45,
+                   "chargeback_history": 0.30,  # C8 dispute/chargeback history (capped amplifier)
+                   # ── Tier D layered amplifiers (device / network / behaviour / history) ──
+                   "device_integrity": 0.40,    # D emulator / rooted device (fraud farm)
+                   "ip_risk": 0.35,             # D bad-reputation / proxy / hosting IP
+                   "automation": 0.35,          # D bot-like behaviour
+                   "auth_anomaly": 0.30,        # D failed-login / reset bursts
+                   "prior_fraud": 0.50,         # D confirmed prior fraud
+                   "account_takeover": 0.40,    # D prior ATO incident
+                   "blacklisted": 0.50,         # D internal blacklist hit
+                   "unverified": 0.25,          # D unverified identity
+                   "historical_risk": 0.35}     # D trailing customer risk score
 HIGH_RISK_MCC = frozenset({"crypto_exchange", "money_services", "gambling", "precious_metals"})  # C7
 # C3 activity-vs-declared-profile is a capped AMPLIFIER (not a solo flag): a declared/actual gap
 # raises suspicion but isn't proof — legit accounts legitimately exceed their estimate sometimes.
@@ -95,6 +129,11 @@ PROFILE_RATIO = 4.0            # actual throughput this many× the declared expe
 PROFILE_MIN_ACTUAL = 10_000.0  # only material accounts (ignore tiny over-runs of a low estimate)
 GEO_MISMATCH_FLOOR = 0.3       # share of an account's outbound value originating abroad to flag (C7)
 FAILED_VERIF_FLOOR = 2         # this many failed identity checks before it counts (C4)
+# ── Tier D amplifier floors (only material signals count; legit noisy-tail stays below) ──
+IP_RISK_FLOOR = 0.5            # IP reputation this high before it amplifies
+AUTOMATION_FLOOR = 0.5        # bot-likeness this high before it amplifies
+FAILED_LOGIN_FLOOR = 3        # failed logins in 30d before it amplifies
+HIST_RISK_FLOOR = 0.5         # trailing customer risk this high before it amplifies
 TS_FMT = "%Y-%m-%dT%H:%M:%SZ"
 
 
@@ -220,6 +259,34 @@ def _profile_signals(accounts: list[dict] | None, transactions: list[dict] | Non
         fv = int(acc.get("failed_verifications") or 0)        # C4 attribute
         if fv >= FAILED_VERIF_FLOOR:
             comps["failed_verifications"] = round(min(1.0, fv / 5), 2)
+        cb = int(acc.get("chargeback_count") or 0)            # C8 dispute/chargeback history
+        if cb > 0:
+            comps["chargeback_history"] = round(min(1.0, cb / 4), 2)
+        # ── Tier D layered components (all capped amplifiers; only material values count) ──
+        if acc.get("emulator"):                               # D device integrity
+            comps["device_integrity"] = 1.0
+        elif acc.get("rooted_jailbroken"):
+            comps["device_integrity"] = 0.6
+        ip_r = float(acc.get("ip_risk_score") or 0.0)         # D network IP reputation
+        if ip_r >= IP_RISK_FLOOR or acc.get("proxy"):
+            comps["ip_risk"] = round(max(ip_r, 0.6 if acc.get("proxy") else 0.0), 2)
+        autom = float(acc.get("automation_score") or 0.0)     # D behavioural automation
+        if autom >= AUTOMATION_FLOOR:
+            comps["automation"] = round(autom, 2)
+        fl = int(acc.get("failed_logins_30d") or 0)           # D auth anomaly
+        if fl >= FAILED_LOGIN_FLOOR:
+            comps["auth_anomaly"] = round(min(1.0, fl / 10), 2)
+        if acc.get("prior_fraud"):                            # D history
+            comps["prior_fraud"] = 1.0
+        if acc.get("account_takeover"):
+            comps["account_takeover"] = 1.0
+        if acc.get("blacklisted"):
+            comps["blacklisted"] = 1.0
+        if acc.get("verification_level") == "unverified":     # D identity
+            comps["unverified"] = 1.0
+        hr = float(acc.get("historical_risk_score") or 0.0)   # D trailing customer risk
+        if hr >= HIST_RISK_FLOOR:
+            comps["historical_risk"] = round(hr, 2)
         expected = acc.get("expected_monthly_volume")         # C3 activity vs declared profile
         actual = throughput.get(aid, 0.0)
         if expected and expected > 0 and actual >= PROFILE_MIN_ACTUAL and actual / expected >= PROFILE_RATIO:
@@ -297,52 +364,65 @@ def score_accounts(findings: list[dict], accounts: list[dict] | None = None,
             agg[acc]["sum"] += contrib
             agg[acc]["signals"].append({"detector": f["detector"], "score": round(f["score"], 2)})
 
-    # pass 1 — behavioural base risk
-    base = {}
+    # pass 1 — behavioural POINTS (weighted findings, established-business suppressed). Kept as raw
+    # un-clamped points; `base01` is the 0..1 behavioural risk used only to spot high-risk neighbours.
+    bp: dict = {}        # behavioural + screening evidence points (drives the flag gate + the curve)
+    base01: dict = {}    # 0..1 behavioural risk, for the association high-risk test only
     for acc, a in agg.items():
-        base[acc] = min(1.0, a["sum"] * _legit_profile_factor(acc_by_id.get(acc)) / NORMALIZER)
-    behavioural = dict(base)  # snapshot: the "flagged?" gate for the precision-safe lift passes
+        pts = a["sum"] * _legit_profile_factor(acc_by_id.get(acc))
+        bp[acc] = pts
+        base01[acc] = min(1.0, pts / NORMALIZER)
 
-    # pass 2 — network association ("guilt by association"), precision-safe
+    # confirmed-bad screening contributes EVIDENCE POINTS (precision-safe; only bad actors carry these)
+    for acc, rec in acc_by_id.items():
+        for flag, sig in (("sanctioned", "sanctions_hit"), ("blacklisted", "blacklisted"),
+                          ("prior_fraud", "prior_fraud"), ("account_takeover", "account_takeover")):
+            if rec.get(flag):
+                bp[acc] = bp.get(acc, 0.0) + SCREENING_POINTS[flag]
+                agg[acc]["signals"].append({"detector": sig, "score": 1.0})
+
+    # pass 2 — SOFT evidence streams (network association + customer/identity/device/history profile)
+    # as raw 0..1 scores, each also surfaced as an analyst-visible signal.
+    assoc_raw: dict = {}
     if transactions:
-        assoc = _association(base, transactions, acc_by_id)
-        for acc, raw in assoc.items():
-            b0 = base.get(acc, 0.0)
-            lifted = b0 + ASSOC_WEIGHT * raw
-            cap = 1.0 if b0 >= TAU else ASSOC_ELEVATED_CAP   # un-flagged accounts stay below the flag line
-            final = max(b0, min(cap, lifted))
-            if final > b0 + 1e-9:
-                base[acc] = final
+        assoc_raw = _association(base01, transactions, acc_by_id)
+        for acc, raw in assoc_raw.items():
+            if raw > 0:
                 agg[acc]["signals"].append({"detector": "network_association", "score": round(raw, 2)})
 
-    # pass 3 — customer-risk-profile amplifier (Tier A), precision-safe like pass 2: an account
-    # NOT behaviourally flagged (snapshot base < TAU) is capped at ASSOC_ELEVATED_CAP (< TAU), so
-    # profile alone surfaces "elevated" risk but never creates a false positive.
     profile = _profile_signals(accounts, transactions)
+    profile_raw: dict = {}
     for acc, comps in profile.items():
         raw = min(1.0, sum(PROFILE_WEIGHTS.get(name, 0.0) * val for name, val in comps.items()))
         raw *= _legit_profile_factor(acc_by_id.get(acc))   # suppress the legit established-business profile
-        if raw <= 0:
-            continue
-        cur = base.get(acc, 0.0)
-        lifted = cur + PROFILE_WEIGHT * raw
-        cap = 1.0 if behavioural.get(acc, 0.0) >= TAU else ASSOC_ELEVATED_CAP
-        final = max(cur, min(cap, lifted))
-        if final > cur + 1e-9:
-            base[acc] = final
+        profile_raw[acc] = raw
         for name, val in comps.items():     # expose each factor as its own analyst-visible signal
             agg[acc]["signals"].append({"detector": name, "score": round(val, 2)})
 
-    # pass 4 — sanctions screening (C1): a CONFIRMED sanctions hit is escalated on its own, the way a
-    # real screening engine works. Safe because only confirmed-bad accounts carry the flag.
-    for acc, rec in acc_by_id.items():
-        if rec.get("sanctioned"):
-            base[acc] = max(base.get(acc, 0.0), SANCTIONS_RISK)
-            agg[acc]["signals"].append({"detector": "sanctions_hit", "score": 1.0})
+    # pass 3 — COMBINE all evidence and squash through the non-saturating curve. The behavioural-points
+    # gate (bp >= BP_TAU) reproduces the old flag line exactly, so WHO crosses τ is unchanged; the curve
+    # only spreads the VALUES so the flagged band ranks 50→99 by total evidence instead of all at 100.
+    base: dict = {}
+    for acc in set(bp) | set(assoc_raw) | set(profile_raw):
+        bp_acc = bp.get(acc, 0.0)
+        soft = ASSOC_WEIGHT * assoc_raw.get(acc, 0.0) + PROFILE_WEIGHT * profile_raw.get(acc, 0.0)
+        evidence = bp_acc + soft
+        if bp_acc >= BP_TAU:                                   # flagged → spread across (TAU, 1)
+            risk = TAU + (1.0 - TAU) * (1.0 - math.exp(-(evidence - BP_TAU) / SCALE_HI))
+        else:                                                  # elevated only → graded, strictly < TAU
+            risk = ELEVATED_MAX * (1.0 - math.exp(-evidence / SCALE_LO))
+        base[acc] = round(min(1.0, risk), 3)
 
     out = []
     for acc in base:
-        top = sorted(agg[acc]["signals"], key=lambda s: -s["score"])[:4]
+        # de-duplicate by detector (keep the strongest occurrence) so the analyst sees each distinct
+        # reason once, then surface up to 12 — enough to explain the whole multi-factor score, not
+        # just the top 4. The frontend groups these into risk categories.
+        best: dict = {}
+        for s in agg[acc]["signals"]:
+            if s["detector"] not in best or s["score"] > best[s["detector"]]["score"]:
+                best[s["detector"]] = s
+        top = sorted(best.values(), key=lambda s: -s["score"])[:12]
         out.append({"account_id": acc, "risk": round(base[acc], 3), "top_signals": top})
     out.sort(key=lambda x: -x["risk"])
     return out

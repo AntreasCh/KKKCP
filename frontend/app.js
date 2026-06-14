@@ -115,8 +115,9 @@ function renderGraph() {
   clearTimeout(stabilizeTimer);
   stabilizeTimer = setTimeout(settle, 4000);   // safety net: reveal even if the event never fires
   network.on("click", (p) => {
-    if (p.nodes.length) showAccount(p.nodes[0]);
-    else if (activeMembers) clearSelection();   // click empty canvas to deselect
+    if (p.nodes.length) showAccount(p.nodes[0]);            // node = account → inspector
+    else if (p.edges.length) showTransaction(p.edges[0]);  // edge = transaction → detail modal
+    else if (activeMembers) clearSelection();              // click empty canvas to deselect
   });
   updateViewCount();
   if (activeMembers) highlightGraph([...activeMembers], false);   // style only; settle() does the fit
@@ -313,10 +314,88 @@ function evidenceText(f) {
         `distinct recipients within ${ev.window_hours}h.`;
     case "community":
       return `Dense sub-network of <b>${ev.size}</b> accounts (density ${ev.density}).`;
+    case "device_linkage": {
+      const shared = (ev.shared || []).map((s) => `<code>${esc(s)}</code>`).join(", ");
+      const linked = (ev.linked_accounts || []).map((a) =>
+        `<a href="#" onclick="event.preventDefault();showAccount('${esc(a)}')">${esc(a)}</a>`).join(", ");
+      return `Shares an identifier with <b>${(ev.cluster_size || 1) - 1}</b> other account(s) — same ${shared || "device/contact"}. ` +
+        `One operator controlling a fleet.${linked ? ` Linked: ${linked}.` : ""}`;
+    }
+    case "mixer_exposure":
+      return `Crypto leg touches a <b>${esc(ev.wallet_label || "flagged")}</b> wallet${ev.asset ? " (" + esc(ev.asset) + ")" : ""} — near-conclusive laundering exposure.`;
+    case "high_risk_wallet":
+      return `Transacts with a high-risk external wallet${ev.wallet_label ? " (" + esc(ev.wallet_label) + ")" : ""}.`;
+    case "wallet_consolidation":
+      return `Consolidates funds from <b>${ev.feeders || ev.count || "several"}</b> external wallets — crypto collection point.`;
+    case "chain_hopping":
+      return `Hops value across <b>${(ev.assets || []).join(" → ") || "multiple assets"}</b> to obscure the trail.`;
+    case "round_amounts":
+      return `Repeated suspiciously round amounts (${ev.count || "several"} transfers).`;
+    case "dormant_reactivation":
+      return `Dormant account suddenly reactivated and relayed a lump sum${win}.`;
+    case "activity_spike":
+      return `Sudden activity spike — a normally-quiet account erupted in a burst${win}.`;
+    case "fiat_to_crypto":
+      return `Converts fiat to crypto at scale — a common placement/layering step.`;
     default:
-      return `<code>${esc(JSON.stringify(ev))}</code>`;
+      return ev && Object.keys(ev).length
+        ? Object.entries(ev).map(([k, v]) => `${esc(k)}: <b>${esc(String(v))}</b>`).join(" · ")
+        : "Contributing risk signal.";
   }
 }
+
+// Human labels + category + plain-English meaning for every scored risk signal. Drives the grouped
+// "Why this risk" panel so the analyst reads reasons, not detector codenames.
+const SIGNAL_META = {
+  // structural / behavioural typologies
+  structuring: ["Structuring / smurfing", "Behavioural", "Sub-threshold deposits to dodge reporting"],
+  circular: ["Circular flow", "Behavioural", "Money loops back to its origin"],
+  passthrough: ["Pass-through relay", "Behavioural", "Receives then quickly forwards funds"],
+  fan_in: ["Fan-in collector", "Behavioural", "Many senders feed one hub"],
+  fan_out: ["Fan-out distributor", "Behavioural", "One hub sprays funds to many"],
+  round_amounts: ["Round amounts", "Behavioural", "Repeated suspiciously round sums"],
+  dormant_reactivation: ["Dormant reactivation", "Behavioural", "Quiet account woke up to relay a lump"],
+  activity_spike: ["Activity spike", "Behavioural", "Sudden burst of activity"],
+  fiat_to_crypto: ["Fiat→crypto", "Crypto", "Large fiat-to-crypto conversion"],
+  mixer_exposure: ["Mixer exposure", "Crypto", "Touches a mixer/darknet wallet"],
+  high_risk_wallet: ["High-risk wallet", "Crypto", "Deals with a flagged wallet"],
+  wallet_consolidation: ["Wallet consolidation", "Crypto", "Collects from many wallets"],
+  chain_hopping: ["Chain-hopping", "Crypto", "Switches assets to obscure the trail"],
+  // network
+  network_association: ["Network association", "Network", "Money flows mostly to/from high-risk accounts"],
+  device_linkage: ["Shared device/contact", "Network", "Linked to a fleet by device, IP, email or phone"],
+  community: ["Dense community", "Network", "Sits in a tight-knit sub-network"],
+  // customer / identity profile
+  high_risk_country: ["High-risk country", "Identity", "Domiciled in a high-risk jurisdiction"],
+  fresh_account: ["Freshly opened", "Identity", "Account opened very recently"],
+  kyc_risk: ["Elevated KYC risk", "Identity", "KYC rated medium/high"],
+  unverified: ["Unverified identity", "Identity", "Identity not fully verified"],
+  pep: ["PEP", "Identity", "Politically exposed person"],
+  watchlist: ["Watchlist", "Screening", "On an internal/regulatory watchlist"],
+  sanctions_hit: ["Sanctions hit", "Screening", "Confirmed sanctions match"],
+  geo_mismatch: ["Geo mismatch", "Network", "Transacts from outside its home country"],
+  high_risk_mcc: ["High-risk MCC", "Identity", "High-risk merchant category"],
+  crypto_channel: ["Crypto/cash channel", "Crypto", "Most value moves via crypto/cash"],
+  activity_vs_profile: ["Activity vs profile", "Identity", "Throughput far exceeds declared expectation"],
+  shell_company: ["Shell-company shape", "Identity", "Nominee-owned, fresh, high-risk jurisdiction"],
+  // device / network integrity
+  device_integrity: ["Device integrity", "Device", "Emulator / rooted device (fraud farm)"],
+  ip_risk: ["IP reputation", "Network", "Bad-reputation / proxy / hosting IP"],
+  automation: ["Automation", "Behavioural", "Bot-like interaction pattern"],
+  auth_anomaly: ["Auth anomaly", "Behavioural", "Failed-login / reset bursts"],
+  vpn_tor: ["VPN / Tor", "Network", "Connects via VPN/Tor/proxy"],
+  failed_verifications: ["Failed verifications", "Identity", "Multiple failed identity checks"],
+  // history
+  prior_sars: ["Prior SARs", "History", "Prior suspicious-activity reports"],
+  adverse_media: ["Adverse media", "History", "Negative news / adverse-media hit"],
+  chargeback_history: ["Chargebacks", "History", "History of chargebacks/disputes"],
+  prior_fraud: ["Prior fraud", "History", "Confirmed prior fraud case"],
+  account_takeover: ["Account takeover", "History", "Prior account-takeover incident"],
+  blacklisted: ["Blacklisted", "History", "On an internal blacklist"],
+  historical_risk: ["Historical risk", "History", "Elevated trailing customer risk"],
+};
+const CAT_ORDER = ["Behavioural", "Network", "Crypto", "Identity", "Screening", "Device", "History"];
+function signalMeta(name) { return SIGNAL_META[name] || [name.replace(/_/g, " "), "Other", ""]; }
 
 // ── inspector: account detail ───────────────────────────────────────────────
 async function showAccount(id) {
@@ -347,36 +426,166 @@ async function showAccount(id) {
       `🕸️ Visual Review</button></div>` +
     `<div class="ai-block"><button class="ai-btn" onclick="runAccountAnalysis('${esc(id)}')">` +
       `🔍 AI analysis</button><div id="ai-analysis" class="ai-analysis"></div></div>` +
-    // risk signals — explains the score, incl. network association on accounts no detector flagged
-    (() => {
-      const sig = a.top_signals || [];
-      if (!sig.length) return "";
-      const label = (s) => s.detector === "network_association"
-        ? "🔗 network association (transacts with high-risk accounts)"
-        : esc(s.detector);
-      return `<div class="section-label">Risk signals</div><div class="sig-list">` +
-        sig.map((s) => `<div class="sig"><span class="sig-name">${label(s)}</span>` +
-          `<span class="sig-score">${Math.round(s.score * 100)}</span></div>`).join("") + `</div>`;
-    })() +
+    riskBreakdown(a) +
+    profileSection(acc) +
     `<div class="section-label">Findings (${findings.length})</div>` +
     (findings.length
-      ? `<div class="evidence">${findings.map((f) =>
-          `<div class="ev"><div class="ev-head"><span class="ev-tag">${esc(f.detector)}</span>` +
+      ? `<div class="evidence">${findings.map((f) => {
+          const meta = signalMeta(f.detector);
+          return `<div class="ev"><div class="ev-head"><span class="ev-tag">${esc(meta[0])}</span>` +
           `<span class="ev-score">score ${(f.score * 100).toFixed(0)}</span></div>` +
-          `<div class="ev-body">${evidenceText(f)}</div></div>`).join("")}</div>`
+          `<div class="ev-body">${evidenceText(f)}</div></div>`; }).join("")}</div>`
       : ((a.top_signals || []).some((s) => s.detector === "network_association")
           ? `<span class="subtle">No detector flagged this account directly — its risk comes from <b>network association</b> (its money flows mostly to/from high-risk accounts).</span>`
           : `<span class="subtle">No detector flagged this account.</span>`)) +
-    `<div class="section-label">Recent transactions (${(a.transactions || []).length})</div>` +
+    `<div class="section-label">Recent transactions (${(a.transactions || []).length}) · click a row for detail</div>` +
     `<div class="tx-scroll"><table class="tx-table">` +
-      `<thead><tr><th>When</th><th>Flow</th><th class="amt">Amount</th><th>Channel</th></tr></thead><tbody>` +
+      `<thead><tr><th></th><th>When</th><th>Flow</th><th class="amt">Amount</th><th>Channel</th><th>Status</th></tr></thead><tbody>` +
       (a.transactions || []).slice(0, 60).map((t) =>
-        `<tr><td>${fmtDate(t.timestamp)}</td><td class="mono">${esc(t.src)} → ${esc(t.dst)}</td>` +
-        `<td class="amt">${eur2(t.amount)}</td><td>${esc(t.channel)}</td></tr>`).join("") +
+        `<tr class="tx-row" onclick="showTransaction('${esc(t.tx_id)}')">` +
+        `<td><span class="tx-risk" style="background:${riskColor(t.risk_score || 0)}" title="tx risk ${Math.round((t.risk_score||0)*100)}"></span></td>` +
+        `<td>${fmtDate(t.timestamp)}</td><td class="mono">${esc(t.src)} → ${esc(t.dst)}</td>` +
+        `<td class="amt">${eur2(t.amount)}</td><td>${esc(t.channel)}</td>` +
+        `<td><span class="tx-st tx-st-${esc(t.status || "completed")}">${esc(t.status || "completed")}</span></td></tr>`).join("") +
       `</tbody></table></div>`;
   $("tab-inspector").scrollTop = 0;
 }
 window.showAccount = showAccount;
+
+// ── explainable risk breakdown: groups every scored signal into categories with sub-totals, so the
+// analyst sees WHY the score is what it is (not just a cryptic "device_linkage 100"). ──
+function riskBreakdown(a) {
+  const sigs = (a.top_signals || []).filter((s) => (s.score || 0) > 0);
+  const tier = riskTier(a.risk);
+  const verdict = a.risk >= 0.66 ? "High risk — likely mule / relay"
+    : a.risk >= 0.33 ? "Medium risk — review recommended"
+    : (sigs.length ? "Low risk — minor signals only" : "Low risk — no flags");
+  if (!sigs.length) {
+    return `<div class="rb-head"><span class="risk-chip ${tier}">risk ${(a.risk*100).toFixed(0)}/100</span>` +
+      `<span class="rb-verdict">${verdict}</span></div>` +
+      `<p class="subtle" style="margin:6px 0 2px">No risk signals — activity looks consistent with normal behaviour.</p>`;
+  }
+  const byCat = {};
+  sigs.forEach((s) => { const m = signalMeta(s.detector); (byCat[m[1]] ||= []).push({ s, m }); });
+  const cats = Object.keys(byCat).sort((x, y) => CAT_ORDER.indexOf(x) - CAT_ORDER.indexOf(y));
+  const body = cats.map((cat) => {
+    const items = byCat[cat].sort((p, q) => q.s.score - p.s.score);
+    const peak = Math.max(...items.map((i) => i.s.score));
+    return `<div class="rb-cat"><div class="rb-cat-head"><span class="rb-cat-name">${esc(cat)}</span>` +
+      `<span class="rb-cat-bar"><span style="width:${Math.round(peak*100)}%;background:${riskColor(peak)}"></span></span></div>` +
+      items.map(({ s, m }) => {
+        // binary "present/absent" flags (pep, vpn_tor, sanctions…) score ~1.0 — show "yes", not a
+        // misleading "100". Graded signals (IP reputation, automation, association) keep their %.
+        const isFlag = s.score >= 0.99;
+        const disp = isFlag ? "yes" : Math.round(s.score * 100);
+        return `<div class="rb-sig" title="${esc(m[2] || "")}"><span class="rb-dot" style="background:${riskColor(s.score)}"></span>` +
+        `<span class="rb-text"><span class="rb-name">${esc(m[0])}</span>` +
+        (m[2] ? `<span class="rb-desc">${esc(m[2])}</span>` : "") + `</span>` +
+        `<span class="rb-score${isFlag ? " rb-flag" : ""}">${disp}</span></div>`; }).join("") + `</div>`;
+  }).join("");
+  return `<div class="rb-head"><span class="risk-chip ${tier}">risk ${(a.risk*100).toFixed(0)}/100</span>` +
+    `<span class="rb-verdict">${verdict}</span></div>` +
+    `<div class="section-label">Why this risk — ${sigs.length} signal(s) across ${cats.length} categor${cats.length===1?"y":"ies"}</div>` +
+    `<div class="rb-list">${body}</div>`;
+}
+
+// ── layered account profile (Tier D: identity / device / network / behaviour / history) ──
+function profileSection(acc) {
+  const yn = (v) => v ? "yes" : "no";
+  const has = (v) => v !== undefined && v !== null && v !== "" && !(Array.isArray(v) && !v.length);
+  // [label, value, isRisk?] — isRisk highlights the cell red when truthy/elevated
+  const groups = {
+    "👤 Identity": [
+      ["Owner", acc.owner_name], ["Date of birth", acc.date_of_birth],
+      ["Address", acc.address], ["City", acc.city], ["Country", acc.country],
+      ["National ID", acc.national_id], ["KYC risk", acc.kyc_risk, acc.kyc_risk === "high"],
+      ["Verification", acc.verification_level, acc.verification_level === "unverified"],
+      ["Aliases", (acc.aliases || []).join(", "), (acc.aliases || []).length > 0],
+      ["Account opened", acc.opened_at], ["Occupation", acc.occupation],
+      ["Business cat.", acc.business_category], ["Purpose", acc.account_purpose],
+      ["PEP", has(acc.pep) ? yn(acc.pep) : null, acc.pep],
+      ["Sanctioned", has(acc.sanctioned) ? yn(acc.sanctioned) : null, acc.sanctioned],
+      ["Watchlist", has(acc.watchlist) ? yn(acc.watchlist) : null, acc.watchlist],
+    ],
+    "📱 Device": [
+      ["Device ID", acc.device_id], ["Type", acc.device_type], ["OS", acc.device_os],
+      ["Devices used", acc.device_count, (acc.device_count || 1) >= 3],
+      ["Emulator", has(acc.emulator) ? yn(acc.emulator) : null, acc.emulator],
+      ["Rooted/Jailbroken", has(acc.rooted_jailbroken) ? yn(acc.rooted_jailbroken) : null, acc.rooted_jailbroken],
+    ],
+    "🌐 Network / IP": [
+      ["Signup IP", acc.signup_ip], ["IP country", acc.ip_country, acc.ip_country && acc.country && acc.ip_country !== acc.country],
+      ["ISP", acc.ip_isp], ["Distinct IPs", acc.distinct_ips, (acc.distinct_ips || 1) >= 3],
+      ["Proxy/Hosting", has(acc.proxy) ? yn(acc.proxy) : null, acc.proxy],
+      ["VPN/Tor", has(acc.vpn_tor) ? yn(acc.vpn_tor) : null, acc.vpn_tor],
+      ["IP reputation", has(acc.ip_risk_score) ? pct(acc.ip_risk_score) : null, (acc.ip_risk_score || 0) >= 0.5],
+    ],
+    "🧭 Behaviour": [
+      ["Avg session", has(acc.avg_session_seconds) ? acc.avg_session_seconds + "s" : null, (acc.avg_session_seconds || 999) < 60],
+      ["Logins (30d)", acc.logins_30d], ["Failed logins (30d)", acc.failed_logins_30d, (acc.failed_logins_30d || 0) >= 3],
+      ["Password resets (30d)", acc.password_resets_30d, (acc.password_resets_30d || 0) >= 2],
+      ["Night activity", has(acc.night_activity_ratio) ? pct(acc.night_activity_ratio) : null, (acc.night_activity_ratio || 0) >= 0.4],
+      ["Automation", has(acc.automation_score) ? pct(acc.automation_score) : null, (acc.automation_score || 0) >= 0.5],
+    ],
+    "📜 History": [
+      ["Prior SARs", acc.prior_sars, (acc.prior_sars || 0) > 0],
+      ["Adverse media", has(acc.adverse_media) ? yn(acc.adverse_media) : null, acc.adverse_media],
+      ["Prior fraud", has(acc.prior_fraud) ? yn(acc.prior_fraud) : null, acc.prior_fraud],
+      ["Account takeover", has(acc.account_takeover) ? yn(acc.account_takeover) : null, acc.account_takeover],
+      ["Chargebacks", acc.chargeback_count, (acc.chargeback_count || 0) > 0],
+      ["Disputes", acc.disputes_count, (acc.disputes_count || 0) >= 3],
+      ["Blacklisted", has(acc.blacklisted) ? yn(acc.blacklisted) : null, acc.blacklisted],
+      ["Linked accounts", acc.linked_accounts, (acc.linked_accounts || 0) >= 2],
+      ["Historical risk", has(acc.historical_risk_score) ? pct(acc.historical_risk_score) : null, (acc.historical_risk_score || 0) >= 0.5],
+    ],
+  };
+  const blocks = Object.entries(groups).map(([title, rows]) => {
+    const cells = rows.filter((r) => has(r[1])).map((r) =>
+      `<div class="pf-row${r[2] ? " pf-risk" : ""}"><span class="pf-k">${esc(r[0])}</span>` +
+      `<span class="pf-v">${esc(String(r[1]))}</span></div>`).join("");
+    return cells ? `<div class="pf-group"><div class="pf-title">${title}</div>${cells}</div>` : "";
+  }).join("");
+  return `<details class="profile-block" open><summary>Account profile</summary>` +
+    `<div class="pf-grid">${blocks}</div></details>`;
+}
+
+// ── transaction detail modal (Tier D drill-down) ────────────────────────────
+async function showTransaction(txId) {
+  const m = $("tx-modal");
+  if (!m) return;
+  $("tx-modal-body").innerHTML = `<p class="subtle">Loading ${esc(txId)}…</p>`;
+  m.classList.remove("hidden");
+  let d;
+  try { d = await fetch(`/api/transactions/${encodeURIComponent(txId)}`).then((r) => r.json()); }
+  catch (e) { $("tx-modal-body").innerHTML = `<p class="subtle">Could not load transaction.</p>`; return; }
+  const t = d.transaction || {};
+  const party = (p, role) => `<div class="tx-party"><div class="tx-party-role">${role}</div>` +
+    `<a href="#" onclick="event.preventDefault();$('tx-modal').classList.add('hidden');showAccount('${esc(p.account_id)}')" class="mono">${esc(p.account_id)}</a>` +
+    `<div class="subtle">${esc(p.owner_name || "")} · ${esc(p.country || "")}</div>` +
+    `<span class="risk-chip ${riskTier(p.risk)}">risk ${Math.round((p.risk || 0) * 100)}</span></div>`;
+  const row = (k, v, risk) => has2(v) ? `<div class="pf-row${risk ? " pf-risk" : ""}"><span class="pf-k">${esc(k)}</span><span class="pf-v">${esc(String(v))}</span></div>` : "";
+  const has2 = (v) => v !== undefined && v !== null && v !== "";
+  $("tx-modal-body").innerHTML =
+    `<div class="tx-modal-head"><h3>${esc(t.tx_id)}</h3>` +
+      `<span class="risk-chip ${riskTier(t.risk_score)}">tx risk ${Math.round((t.risk_score || 0) * 100)}</span>` +
+      (d.ring_id ? `<span class="ring-chip" onclick="$('tx-modal').classList.add('hidden');showRing&&showRing('${esc(d.ring_id)}')">${esc(d.ring_id)}</span>` : "") +
+    `</div>` +
+    `<div class="tx-parties">${party(d.src, "From")}<div class="tx-arrow">→ ${eur2(t.amount)}</div>${party(d.dst, "To")}</div>` +
+    `<div class="pf-grid">` +
+      `<div class="pf-group"><div class="pf-title">💸 Payment</div>` +
+        row("Amount", eur2(t.amount)) + row("Currency", t.currency) + row("Channel", t.channel) +
+        row("Type", t.tx_type) + row("Status", t.status, t.status && t.status !== "completed") +
+        row("When", fmtDate(t.timestamp)) + row("Reference", t.reference) +
+        row("Recipient name", t.recipient_name) + row("Merchant cat.", t.merchant_category) + `</div>` +
+      `<div class="pf-group"><div class="pf-title">🌐 Origin</div>` +
+        row("Device", t.device_id) + row("IP address", t.ip_address) +
+        row("IP country", t.ip_country) + row("International", t.is_international ? "yes" : "no", t.is_international) + `</div>` +
+      ((t.crypto_asset || t.wallet_label) ? `<div class="pf-group"><div class="pf-title">🪙 Crypto</div>` +
+        row("Asset", t.crypto_asset) + row("Wallet", t.counterparty_wallet) +
+        row("Wallet label", t.wallet_label, ["mixer", "darknet", "high_risk"].includes(t.wallet_label)) + `</div>` : "") +
+    `</div>`;
+}
+window.showTransaction = showTransaction;
 
 // Deselect: clear any graph highlight, reset the inspector to the empty state.
 function clearSelection() {
@@ -553,38 +762,63 @@ async function acctDecision(id, action) {
 }
 window.acctDecision = acctDecision;
 
-// review modal: account info + the reason it's under review + the decision actions
-function openReview(id) {
-  const a = FZ_QUEUE[id];
-  if (!a) { showAccount(id); return; }   // not in the frozen set → just open the inspector
-  const m = a.reason || {};
+// review modal: FULL account dossier for manual review — identity/IP/country/device + the reason it's
+// under review + risk breakdown + recent transactions + the enforcement decision actions.
+async function openReview(id) {
+  const q = FZ_QUEUE[id] || {};
+  const m = q.reason || {};
   $("rv-title").textContent = id;
-  const st = $("rv-status"); st.textContent = a.status; st.className = `fz-status st-${a.status}`;
+  $("rv-body").innerHTML = `<p class="subtle">Loading ${esc(id)}…</p>`;
+  $("review-modal").classList.remove("hidden");
+  let a = null;
+  try { a = await fetch(`/api/accounts/${id}`).then((r) => (r.ok ? r.json() : null)); } catch (e) {}
+  const acc = (a && a.account) || q || {};
+  const risk = (a && typeof a.risk === "number") ? a.risk : (q.risk || 0);
+  const status = acc.status || q.status || "frozen";
+  const st = $("rv-status"); st.textContent = status; st.className = `fz-status st-${status}`;
+  const txs = (a && a.transactions) || [];
+
+  // quick-glance review header — the fields an analyst checks first
+  const quick = [
+    ["Owner", acc.owner_name], ["Type", acc.account_type], ["Country", acc.country],
+    ["City", acc.city], ["KYC", acc.kyc_risk], ["Verification", acc.verification_level],
+    ["Signup IP", acc.signup_ip], ["IP country", acc.ip_country], ["ISP", acc.ip_isp],
+    ["Device", acc.device_id], ["Email", acc.email], ["Phone", acc.phone],
+    ["Opened", acc.opened_at], ["DOB", acc.date_of_birth],
+  ].filter((r) => r[1] !== undefined && r[1] !== null && r[1] !== "");
+
   $("rv-body").innerHTML =
-    `<div class="rv-grid">` +
-      `<div><span class="rv-k">Owner</span><span class="rv-v">${esc(a.owner_name || "—")}</span></div>` +
-      `<div><span class="rv-k">Type</span><span class="rv-v">${esc(a.account_type || "—")}</span></div>` +
-      `<div><span class="rv-k">Risk</span><span class="rv-v"><span class="risk-chip ${riskTier(a.risk)}">${(a.risk * 100).toFixed(0)}</span></span></div>` +
+    `<div class="rv-headline"><span class="risk-chip ${riskTier(risk)}">risk ${(risk * 100).toFixed(0)}/100</span>` +
+      `<span class="rv-id mono">${esc(id)}</span></div>` +
+    `<div class="rv-quick">` +
+      quick.map((r) => `<div class="rvq"><span class="rvq-k">${esc(r[0])}</span>` +
+        `<span class="rvq-v">${esc(String(r[1]))}</span></div>`).join("") +
     `</div>` +
     `<div class="rv-reason"><div class="rv-reason-head">🔒 Why this account is under review</div>` +
-      `<p>${esc(m.summary || "Frozen for manual review.")}</p>` +
+      `<p>${esc(m.summary || "Frozen on its aggregate risk score for manual review.")}</p>` +
       ((m.patterns && m.patterns.length)
         ? `<div class="rv-pats">${m.patterns.map((p) => `<span class="pill">${esc(p)}</span>`).join("")}</div>` : "") +
     `</div>` +
-    ((m.findings && m.findings.length)
-      ? `<div class="section-label">Detector triggers (${m.findings.length})</div>` +
-        `<div class="evidence">${m.findings.map((f) =>
-          `<div class="ev"><div class="ev-head"><span class="ev-tag">${esc(f.detector)}</span>` +
-          `<span class="ev-score">score ${(f.score * 100).toFixed(0)}</span></div>` +
-          `<div class="ev-body">${evidenceText(f)}</div></div>`).join("")}</div>`
-      : `<p class="subtle">No detector findings — frozen on the aggregate risk score alone.</p>`) +
+    (a ? riskBreakdown(a) : "") +
+    (a ? profileSection(acc) : "") +
+    (txs.length
+      ? `<div class="section-label">Recent transactions (${txs.length}) · click for detail</div>` +
+        `<div class="tx-scroll"><table class="tx-table"><thead><tr><th></th><th>When</th><th>Flow</th>` +
+        `<th class="amt">Amount</th><th>Channel</th><th>Status</th></tr></thead><tbody>` +
+        txs.slice(0, 40).map((t) =>
+          `<tr class="tx-row" onclick="$('review-modal').classList.add('hidden');showTransaction('${esc(t.tx_id)}')">` +
+          `<td><span class="tx-risk" style="background:${riskColor(t.risk_score || 0)}"></span></td>` +
+          `<td>${fmtDate(t.timestamp)}</td><td class="mono">${esc(t.src)} → ${esc(t.dst)}</td>` +
+          `<td class="amt">${eur2(t.amount)}</td><td>${esc(t.channel)}</td>` +
+          `<td><span class="tx-st tx-st-${esc(t.status || "completed")}">${esc(t.status || "completed")}</span></td></tr>`).join("") +
+        `</tbody></table></div>`
+      : "") +
     `<div class="rv-actions">` +
       `<button class="fz-act block" onclick="acctDecision('${esc(id)}','block')">Block</button>` +
       `<button class="fz-act ban" onclick="acctDecision('${esc(id)}','ban')">Ban</button>` +
       `<button class="fz-act clear" onclick="acctDecision('${esc(id)}','clear')">Clear (unfreeze)</button>` +
       `<button class="btn-ghost" onclick="$('review-modal').classList.add('hidden');showAccount('${esc(id)}')">Open full inspector →</button>` +
     `</div>`;
-  $("review-modal").classList.remove("hidden");
 }
 window.openReview = openReview;
 

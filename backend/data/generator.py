@@ -62,6 +62,22 @@ BIZ_CATEGORIES = ["retail", "telecom", "utilities", "logistics", "construction",
 HIGH_RISK_MCC = ["crypto_exchange", "money_services", "gambling", "precious_metals"]
 PURPOSES = ["salary", "savings", "business_ops", "personal_use", "investment"]
 
+# ── Tier D enrichment vocabularies (identity / device / network / behaviour) ──
+CITIES = {"CY": ["Nicosia", "Limassol", "Larnaca", "Paphos"], "GR": ["Athens", "Thessaloniki", "Patras"],
+          "GB": ["London", "Manchester", "Leeds"], "DE": ["Berlin", "Munich", "Hamburg"],
+          "BG": ["Sofia", "Plovdiv"], "RU": ["Moscow", "St Petersburg"], "AE": ["Dubai", "Abu Dhabi"]}
+STREETS = ["Makariou Ave", "Ledra St", "Stasinou St", "Griva Digeni", "Spyrou Kyprianou",
+           "High St", "Akropoleos", "Arch. Kyprianou", "Themistokli Dervi"]
+MOBILE_OS = ["Android 13", "Android 14", "iOS 17", "iOS 16"]
+DESKTOP_OS = ["Windows 11", "Windows 10", "macOS 14", "Ubuntu 22.04"]
+DEVICE_TYPES = ["mobile", "mobile", "mobile", "desktop", "tablet"]   # mobile-weighted
+CLEAN_ISPS = ["CYTA", "Cablenet", "PrimeTel", "Cosmote", "Vodafone", "OTE", "BT", "Deutsche Telekom"]
+HOSTING_ISPS = ["DigitalOcean", "OVH SAS", "M247", "Hostwinds", "Choopa LLC", "Datacamp"]  # datacenter/proxy
+
+
+def _mask_id(rng) -> str:
+    return f"{rng.choice('ABCDEFGHKMP')}{rng.randint(100000, 999999)}***"
+
 
 def _iso(dt: datetime) -> str:
     return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -495,9 +511,25 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
         aid = a["account_id"]
         a["device_id"] = f"dev-{rng.randrange(16 ** 8):08x}"
         a["signup_ip"] = f"{rng.randint(2, 223)}.{rng.randint(0, 255)}.{rng.randint(0, 255)}.{rng.randint(1, 254)}"
+        # C8 contact identifiers — unique per account by construction (derived from the id), so NO
+        # legit account ever shares one. Operator fleets overwrite these with a reused value below.
+        a["email"] = f"{aid.lower()}@mail.example"
+        a["phone"] = f"+3579{int(aid[3:]):07d}"
         a["occupation"] = rng.choice(OCCUPATIONS) if a["account_type"] == "personal" else None
         a["business_category"] = rng.choice(BIZ_CATEGORIES) if a["account_type"] == "business" else None
         a["account_purpose"] = rng.choice(PURPOSES)
+        # ── Tier D common profile (identity / device / network) — same shape for everyone; the
+        # risk-bearing values diverge by role in the mule/legit branches below. ──
+        cc = a["country"]
+        a["city"] = rng.choice(CITIES.get(cc, ["Nicosia"]))
+        a["address"] = f"{rng.randint(1, 240)} {rng.choice(STREETS)}, {a['city']}"
+        a["national_id"] = _mask_id(rng)
+        age = rng.randint(19, 74)
+        a["date_of_birth"] = _iso(BASE - timedelta(days=age * 365 + rng.randint(0, 364)))[:10]
+        dtype = rng.choice(DEVICE_TYPES)
+        a["device_type"] = dtype
+        a["device_os"] = rng.choice(MOBILE_OS if dtype != "desktop" else DESKTOP_OS)
+        a["aliases"] = []
         actual = throughput.get(aid, 0.0)
         if aid in mules:
             # mules declare a small throwaway expected volume while actually moving large sums (C3)
@@ -509,6 +541,35 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
             a["sanctioned"] = rng.random() < 0.18                       # C1 a minority are sanctions hits
             a["watchlist"] = rng.random() < 0.30                        # C1
             a["adverse_media"] = rng.random() < 0.25                    # C5
+            a["chargeback_count"] = rng.choices([0, 1, 2, 3, 4],        # C8 fraud/dispute history
+                                                weights=[0.3, 0.3, 0.2, 0.13, 0.07])[0]
+            # ── Tier D mule profile: throwaway identity, fraud-farm device, dirty IP, bot-like
+            # behaviour, dirty history. Recruited mules skew young; values are RANGES (overlapping
+            # the legit tail) so no single attribute is a perfect separator — they amplify. ──
+            a["verification_level"] = rng.choices(["unverified", "basic", "full"], weights=[0.5, 0.4, 0.1])[0]
+            a["date_of_birth"] = _iso(BASE - timedelta(days=rng.randint(19, 30) * 365))[:10]  # skew young
+            if rng.random() < 0.25:
+                a["aliases"] = [f"{rng.choice(FIRST)} {rng.choice(LAST)}"]  # known alias
+            a["device_count"] = rng.randint(2, 6)                        # juggles many devices
+            a["emulator"] = rng.random() < 0.35                          # fraud-farm emulator
+            a["rooted_jailbroken"] = rng.random() < 0.4
+            a["ip_country"] = rng.choice(HIGH_RISK_CC)                   # connects from elsewhere
+            a["ip_isp"] = rng.choice(HOSTING_ISPS) if rng.random() < 0.55 else rng.choice(CLEAN_ISPS)
+            a["proxy"] = rng.random() < 0.5
+            a["ip_risk_score"] = round(rng.uniform(0.55, 0.98), 2)
+            a["distinct_ips"] = rng.randint(3, 12)
+            a["avg_session_seconds"] = rng.randint(20, 90)              # quick in-and-out
+            a["logins_30d"] = rng.randint(20, 120)
+            a["failed_logins_30d"] = rng.randint(3, 25)
+            a["password_resets_30d"] = rng.randint(1, 6)
+            a["night_activity_ratio"] = round(rng.uniform(0.35, 0.85), 2)
+            a["automation_score"] = round(rng.uniform(0.45, 0.95), 2)
+            a["prior_fraud"] = rng.random() < 0.3
+            a["account_takeover"] = rng.random() < 0.22
+            a["disputes_count"] = rng.randint(0, 6)
+            a["blacklisted"] = rng.random() < 0.25
+            a["linked_accounts"] = rng.randint(2, 9)
+            a["historical_risk_score"] = round(rng.uniform(0.5, 0.95), 2)
             if a["account_type"] == "business":
                 a["nominee_owner"] = rng.random() < 0.6                 # C5 shell-company indicator
                 if rng.random() < 0.4:
@@ -527,6 +588,33 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
             a["watchlist"] = aid in wl_legit
             a["adverse_media"] = aid in am_legit
             a["nominee_owner"] = False
+            # ~8% of legit accounts carry one historic chargeback (a disputed purchase) — so a single
+            # chargeback is NOT a separator; chargeback_history must stay a capped amplifier (C8).
+            a["chargeback_count"] = 1 if rng.random() < 0.08 else 0
+            # ── Tier D legit profile: mostly verified, own device, home IP, human behaviour, clean
+            # history — but with a realistic NOISY TAIL (a few use a VPN, travel, reset a password)
+            # so the new signals stay capped amplifiers, never solo flags. ──
+            a["verification_level"] = rng.choices(["full", "basic", "unverified"], weights=[0.8, 0.17, 0.03])[0]
+            a["device_count"] = rng.choices([1, 1, 2, 3], weights=[0.6, 0.2, 0.15, 0.05])[0]
+            a["emulator"] = False
+            a["rooted_jailbroken"] = rng.random() < 0.02
+            a["ip_country"] = cc if rng.random() < 0.9 else rng.choice(COUNTRIES)  # occasional travel
+            a["ip_isp"] = rng.choice(CLEAN_ISPS) if rng.random() < 0.97 else rng.choice(HOSTING_ISPS)
+            a["proxy"] = rng.random() < 0.03
+            a["ip_risk_score"] = round(rng.uniform(0.0, 0.3), 2)
+            a["distinct_ips"] = rng.choices([1, 2, 3], weights=[0.6, 0.3, 0.1])[0]
+            a["avg_session_seconds"] = rng.randint(120, 900)
+            a["logins_30d"] = rng.randint(2, 40)
+            a["failed_logins_30d"] = rng.choices([0, 1, 2], weights=[0.8, 0.15, 0.05])[0]
+            a["password_resets_30d"] = rng.choices([0, 1], weights=[0.92, 0.08])[0]
+            a["night_activity_ratio"] = round(rng.uniform(0.0, 0.25), 2)
+            a["automation_score"] = round(rng.uniform(0.0, 0.25), 2)
+            a["prior_fraud"] = False
+            a["account_takeover"] = False
+            a["disputes_count"] = a["chargeback_count"]
+            a["blacklisted"] = False
+            a["linked_accounts"] = rng.choices([0, 1, 2], weights=[0.75, 0.18, 0.07])[0]
+            a["historical_risk_score"] = round(rng.uniform(0.0, 0.3), 2)
 
     # C4 device linkage: the operator runs the whole fleet from ONE device/IP (shared fingerprint).
     # Only the labelled fleet mules share it, so the linkage cluster is all-bad → precision-safe.
@@ -536,8 +624,28 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
         acc_by_id[mid]["device_id"] = op_device
         acc_by_id[mid]["signup_ip"] = op_ip
 
+    # C8 shared-contact operator fleets: a single operator reuses ONE email + phone across the several
+    # mule accounts they control — even when each account runs on its OWN device/VPN (so device/IP
+    # linkage misses them). Only labelled mules share, so every linkage cluster is all-bad → precision
+    # stays earned. This is what catches the thin relay/one-shot mules that trip no transaction-pattern
+    # detector. Fleets are kept >= 4 so the linkage finding alone clears τ (entity resolution).
+    mule_list = sorted(mules)
+    rng.shuffle(mule_list)
+    fleets = [mule_list[i:i + 5] for i in range(0, len(mule_list), 5)]
+    if len(fleets) > 1 and len(fleets[-1]) < 4:    # fold a too-small tail into earlier fleets
+        for j, mid in enumerate(fleets.pop()):
+            fleets[j % len(fleets)].append(mid)
+    for fi, fleet in enumerate(fleets):
+        op_email = f"operator{fi:02d}@protonmail.example"
+        op_phone = f"+35799{fi:06d}"
+        for mid in fleet:
+            acc_by_id[mid]["email"] = op_email
+            acc_by_id[mid]["phone"] = op_phone
+
     # C7 transaction enrichment: origin geography + card payment / refund / chargeback types.
     cc_of = {a["account_id"]: a["country"] for a in accounts}
+    dev_of = {a["account_id"]: a.get("device_id") for a in accounts}
+    name_of = {a["account_id"]: a.get("owner_name") for a in accounts}
     for t in txs:
         src_cc = cc_of.get(t["src"])
         if t["src"] in mules and rng.random() < 0.5:                    # mules transact from elsewhere (geo mismatch)
@@ -551,6 +659,40 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
             t["merchant_category"] = rng.choice(BIZ_CATEGORIES)
         else:
             t["tx_type"] = "transfer"
+
+        # ── Tier D per-transaction enrichment: device / IP / status / reference + per-tx risk. ──
+        bad_leg = t["src"] in mules or t["dst"] in mules
+        t["device_id"] = dev_of.get(t["src"])
+        t["ip_country"] = t["tx_country"]
+        t["ip_address"] = (f"{rng.randint(2, 223)}.{rng.randint(0, 255)}."
+                           f"{rng.randint(0, 255)}.{rng.randint(1, 254)}")
+        t["recipient_name"] = name_of.get(t["dst"])
+        t["is_international"] = bool(t["tx_country"] and src_cc and t["tx_country"] != cc_of.get(t["dst"]))
+        # most payments settle; mule legs fail / reverse more often (declines, recalled funds)
+        if t["tx_type"] in ("refund", "chargeback"):
+            t["status"] = "reversed"
+        elif bad_leg and rng.random() < 0.12:
+            t["status"] = rng.choice(["failed", "reversed"])
+        else:
+            t["status"] = "completed"
+        ref_pool = (["transfer", "invoice", "loan repayment", "gift", "services", "urgent"]
+                    if bad_leg else ["salary", "invoice", "rent", "groceries", "subscription", "transfer"])
+        t["reference"] = rng.choice(ref_pool)
+        # per-tx risk: large + cross-border + high-risk channel + dirty wallet, on a mule leg
+        rk = 0.0
+        if bad_leg:
+            rk += 0.35
+        if t["amount"] >= 9_000:
+            rk += 0.2
+        if t["is_international"]:
+            rk += 0.15
+        if t["channel"] in ("crypto", "cash_deposit"):
+            rk += 0.15
+        if t.get("wallet_label") in ("mixer", "darknet", "high_risk"):
+            rk += 0.3
+        if t["status"] != "completed":
+            rk += 0.1
+        t["risk_score"] = round(min(1.0, rk), 2)
 
     rng.shuffle(txs)  # so planted txns aren't clustered at the end of the stream
     dataset = {"accounts": accounts, "transactions": txs}

@@ -28,16 +28,49 @@ Decision rules (follow them):
 - Scale your language to the score: low → reassuring; medium → cautious, note what to watch;
   high → flag clearly with the proof.
 
-Using ONLY the JSON evidence, write ~100-170 words of natural prose covering:
+You also get `risk_signals` (the scored reasons behind the number) and `kyc_profile` (ELEVATED
+identity/device/network/history flags only — e.g. unverified KYC, emulator/rooted device, bad-
+reputation IP, prior fraud, blacklist, shared-device/contact linkage). Treat these as CORROBORATING
+context that explains *why* the score is what it is — they raise priority but, on their own, are not
+proof of laundering. Weigh them in proportion to `risk`.
+
+Using ONLY the JSON evidence, write ~110-180 words of natural prose covering:
 1. A verdict that matches `risk`/`findings`, with a confidence level and the account's role
    (mule, relay, aggregator, or legitimate <type>).
-2. The concrete reasons — cite account ids, EUR amounts, KYC, account age, the in/out balance — or,
-   if legitimate, why the activity is consistent with normal behaviour.
-3. A proportionate recommendation.
+2. The concrete reasons — cite account ids, EUR amounts, KYC, account age, the in/out balance, and
+   the most telling `risk_signals` / `kyc_profile` flags (e.g. "links 6 accounts via one device",
+   "unverified, IP reputation 0.85, prior fraud") — or, if legitimate, why the activity is normal.
+3. A proportionate recommendation (monitor / review / freeze).
 Vary your phrasing; don't reuse boilerplate.
 
 ACCOUNT & NETWORK EVIDENCE (JSON):
 {ctx}"""
+
+
+def _risk_profile(acct: dict) -> dict:
+    """Pull only the ELEVATED layered (Tier C/D) attributes worth mentioning — so the model cites
+    real KYC/device/network/history flags, not the whole record. Clean attributes are omitted."""
+    p: dict = {}
+    # screening / identity
+    for k in ("pep", "sanctioned", "watchlist", "adverse_media", "nominee_owner",
+              "prior_fraud", "account_takeover", "blacklisted", "emulator", "rooted_jailbroken",
+              "proxy", "vpn_tor"):
+        if acct.get(k):
+            p[k] = True
+    if acct.get("verification_level") == "unverified":
+        p["unverified"] = True
+    for k in ("prior_sars", "chargeback_count", "disputes_count", "failed_logins_30d",
+              "device_count", "distinct_ips", "linked_accounts"):
+        v = acct.get(k) or 0
+        if v and v > (1 if k in ("device_count", "distinct_ips") else 0):
+            p[k] = v
+    for k in ("ip_risk_score", "automation_score", "historical_risk_score", "night_activity_ratio"):
+        v = float(acct.get(k) or 0)
+        if v >= 0.5:
+            p[k] = round(v, 2)
+    if acct.get("ip_country") and acct.get("country") and acct["ip_country"] != acct["country"]:
+        p["ip_country_mismatch"] = f"{acct['ip_country']} vs home {acct['country']}"
+    return p
 
 
 def _context(account_id: str, result: dict, dataset: dict) -> dict | None:
@@ -70,12 +103,16 @@ def _context(account_id: str, result: dict, dataset: dict) -> dict | None:
                     if t["src"] == account_id or t["dst"] == account_id)
     risk = rmap.get(account_id, {}).get("risk") or 0
     risk_band = "high" if risk >= 0.6 else ("medium" if risk >= 0.3 else "low")
+    top_signals = rmap.get(account_id, {}).get("top_signals", [])
     return {
         "subject": {"account_id": account_id, "owner": acct.get("owner_name"),
                     "account_type": acct.get("account_type"), "country": acct.get("country"),
                     "kyc_risk": acct.get("kyc_risk"), "opened_at": acct.get("opened_at"),
                     "risk": risk, "risk_band": risk_band, "n_findings": len(findings),
                     "flagged_by_detectors": bool(findings)},
+        "risk_signals": top_signals,                       # scored reasons behind the risk number
+        "kyc_profile": _risk_profile(acct),                # layered identity/device/network/history flags
+        "verification_level": acct.get("verification_level"),
         "flow_summary": {
             "total_in": total_in, "total_out": total_out,
             "retained": round(total_in - total_out, 2),
@@ -96,17 +133,52 @@ def _result(ctx: dict, analysis: str, source: str) -> dict:
             "findings": ctx["findings"]}
 
 
+_PROFILE_LABELS = {
+    "pep": "politically exposed", "sanctioned": "sanctions hit", "watchlist": "on a watchlist",
+    "adverse_media": "adverse media", "nominee_owner": "nominee owner", "prior_fraud": "prior fraud",
+    "account_takeover": "prior account takeover", "blacklisted": "blacklisted", "emulator": "emulator device",
+    "rooted_jailbroken": "rooted device", "proxy": "proxy/hosting IP", "vpn_tor": "VPN/Tor",
+    "unverified": "unverified identity", "ip_country_mismatch": "IP-country mismatch",
+}
+
+
+def _profile_phrases(prof: dict) -> list[str]:
+    out = []
+    for k, label in _PROFILE_LABELS.items():
+        if prof.get(k):
+            out.append(label if prof[k] is True else f"{label} ({prof[k]})")
+    if prof.get("prior_sars"):
+        out.append(f"{prof['prior_sars']} prior SAR(s)")
+    if prof.get("chargeback_count"):
+        out.append(f"{prof['chargeback_count']} chargeback(s)")
+    if prof.get("ip_risk_score"):
+        out.append(f"IP reputation {prof['ip_risk_score']}")
+    if prof.get("automation_score"):
+        out.append(f"automation {prof['automation_score']}")
+    if prof.get("linked_accounts"):
+        out.append(f"{prof['linked_accounts']} linked account(s)")
+    return out
+
+
 def _template(ctx: dict) -> dict:
     s = ctx["subject"]
     n_in, n_out = len(ctx["senders_into_subject"]), len(ctx["recipients_from_subject"])
     risk = s.get("risk") or 0
+    fs = ctx.get("flow_summary", {})
     verdict = "likely mule" if risk >= 0.5 else ("suspicious" if risk >= 0.3 else "probably legitimate")
+    sig = ", ".join(f"{x['detector']} ({int(x['score']*100)})" for x in ctx.get("risk_signals", [])[:4])
+    prof = ", ".join(_profile_phrases(ctx.get("kyc_profile", {}))[:5])
     detail = ("High fan-in/out with elevated risk is consistent with relaying funds; recommend "
               "review and consider a freeze." if risk >= 0.5
               else "Some network activity but no strong laundering signal; routine monitoring suffices.")
+    pr = round(fs.get("passthrough_ratio") or 0, 2)
     text = (f"Account {s['account_id']} ({s.get('owner') or 'unknown'}, {s.get('account_type')}, "
-            f"KYC {s.get('kyc_risk')}, risk {risk}) transacts with {n_in} senders and {n_out} "
-            f"recipients. Verdict: {verdict}. {detail}")
+            f"KYC {s.get('kyc_risk')}, risk {int(risk*100)}/100) took €{fs.get('total_in', 0):,.0f} "
+            f"from {n_in} senders and sent €{fs.get('total_out', 0):,.0f} to {n_out} recipients "
+            f"(pass-through ratio {pr}). "
+            + (f"Top risk signals: {sig}. " if sig else "")
+            + (f"Profile flags: {prof}. " if prof else "")
+            + f"Verdict: {verdict}. {detail}")
     return _result(ctx, text, "template")
 
 

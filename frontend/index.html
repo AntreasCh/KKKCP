@@ -118,6 +118,17 @@
     </div>
   </div>
 
+  <!-- transaction detail modal — full Tier D drill-down for one payment -->
+  <div id="tx-modal" class="review-modal hidden">
+    <div class="review-card">
+      <div class="rv-head">
+        <div class="rv-title-wrap"><h2>Transaction detail</h2></div>
+        <button class="pb-btn close" title="Close" onclick="document.getElementById('tx-modal').classList.add('hidden')">✕</button>
+      </div>
+      <div id="tx-modal-body" class="rv-body"></div>
+    </div>
+  </div>
+
   <!-- transient notification toasts -->
   <div id="toasts" class="toasts"></div>
 

@@ -26,6 +26,17 @@ FRONTEND = ROOT / "frontend"
 FREEZE_THRESHOLD = 0.90
 
 app = FastAPI(title="MuleNet API")
+
+
+@app.middleware("http")
+async def _no_cache_frontend(request, call_next):
+    """Serve the static frontend with no-cache so a returning browser always picks up the latest
+    app.js / style.css (no stale UI after we ship a change). API responses are unaffected."""
+    resp = await call_next(request)
+    path = request.url.path
+    if not path.startswith("/api/") and (path == "/" or path.endswith((".js", ".css", ".html"))):
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return resp
 # manual: account ids whose status was set by a human reviewer (block/ban/clear) — these are
 # sticky and ignore the auto-freeze.
 STATE: dict = {"dataset": None, "labels": None, "result": None, "manual": set()}
@@ -214,6 +225,31 @@ def account(acc_id: str):
     return {"account": amap[acc_id], "risk": acc_risk,
             "top_signals": rmap.get(acc_id, {}).get("top_signals", []),
             "findings": findings, "transactions": txs}
+
+
+@app.get("/api/transactions/{tx_id}")
+def transaction(tx_id: str):
+    """Full transaction detail for the inspector's transaction drill-down (Tier D). Returns the raw
+    payment plus the risk + status of both endpoints and any ring it belongs to."""
+    tx = next((t for t in STATE["dataset"]["transactions"] if t["tx_id"] == tx_id), None)
+    if tx is None:
+        raise HTTPException(404, "transaction not found")
+    amap = {a["account_id"]: a for a in STATE["dataset"]["accounts"]}
+    rmap = {a["account_id"]: a["risk"] for a in STATE["result"]["account_risk"]}
+    ring_id = None
+    for ring in STATE["result"]["rings"]:
+        if tx_id in ring["tx_ids"]:
+            ring_id = ring["ring_id"]
+            break
+
+    def _party(aid: str) -> dict:
+        a = amap.get(aid, {})
+        return {"account_id": aid, "owner_name": a.get("owner_name"), "country": a.get("country"),
+                "account_type": a.get("account_type"), "status": a.get("status", "active"),
+                "risk": round(rmap.get(aid, 0.0), 3)}
+
+    return {"transaction": tx, "ring_id": ring_id,
+            "src": _party(tx["src"]), "dst": _party(tx["dst"])}
 
 
 @app.post("/api/accounts/{acc_id}/analyze")

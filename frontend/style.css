@@ -484,3 +484,67 @@ div.vis-tooltip {
   .chat-panel { right: 8px; left: 8px; bottom: 8px; width: auto; height: calc(100vh - 16px); max-height: none; }
   .chat-fab { right: 14px; bottom: 14px; }
 }
+
+/* ── review modal: manual-review dossier ────────────────────────────────────── */
+.rv-headline { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.rv-id { font-weight: 700; color: var(--text-2); }
+.rv-quick { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px 14px;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); margin-bottom: 12px; }
+.rvq { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 2px 0; }
+.rvq-k { color: var(--muted); }
+.rvq-v { color: var(--text); font-weight: 600; text-align: right; word-break: break-word; }
+.rb-flag { color: #15803d !important; font-weight: 700; }
+
+/* ── explainable risk breakdown ─────────────────────────────────────────────── */
+.rb-head { display: flex; align-items: center; gap: 10px; margin: 14px 0 4px; }
+.rb-verdict { font-weight: 700; font-size: 13px; color: var(--text-2); }
+.rb-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.rb-cat { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; background: var(--surface); }
+.rb-cat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.rb-cat-name { font-size: 11.5px; font-weight: 750; color: var(--text-2); flex: none; min-width: 92px; }
+.rb-cat-bar { flex: 1; height: 6px; border-radius: 999px; background: var(--surface-3, #eef1f9); overflow: hidden; }
+.rb-cat-bar > span { display: block; height: 100%; border-radius: 999px; }
+.rb-sig { display: flex; align-items: center; gap: 9px; padding: 5px 0; border-top: 1px dashed var(--border); }
+.rb-sig:first-of-type { border-top: none; }
+.rb-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.rb-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.rb-name { font-size: 12.5px; font-weight: 650; color: var(--text); }
+.rb-desc { font-size: 11px; color: var(--muted); }
+.rb-score { flex: none; font-weight: 750; font-size: 12px; color: var(--text-2); min-width: 30px; text-align: right; }
+
+/* ── layered account profile (Tier D) + transaction detail ─────────────────── */
+.profile-block { margin: 14px 0 4px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; }
+.profile-block > summary { cursor: pointer; padding: 10px 14px; font-weight: 700; font-size: 12.5px; color: var(--text-2);
+  list-style: none; user-select: none; background: var(--surface-3, #f4f6fc); }
+.profile-block > summary::-webkit-details-marker { display: none; }
+.profile-block > summary::before { content: "▸ "; color: var(--muted); }
+.profile-block[open] > summary::before { content: "▾ "; }
+.pf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; padding: 12px 14px; }
+.pf-group { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; background: #fff; }
+.pf-title { font-size: 11.5px; font-weight: 750; color: var(--text-2); margin-bottom: 6px; }
+.pf-row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; font-size: 12px; border-top: 1px dashed var(--border); }
+.pf-row:first-of-type { border-top: none; }
+.pf-k { color: var(--muted); flex: none; }
+.pf-v { color: var(--text); font-weight: 600; text-align: right; word-break: break-word; }
+.pf-row.pf-risk .pf-v { color: var(--danger); }
+.pf-row.pf-risk { background: var(--danger-weak); margin: 0 -10px; padding-left: 10px; padding-right: 10px; }
+
+/* clickable transaction rows + per-tx risk dot + status chip */
+.tx-row { cursor: pointer; }
+.tx-row:hover td { background: var(--accent-weak); }
+.tx-risk { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
+.tx-st { font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--surface-3, #f4f6fc); color: var(--muted); }
+.tx-st-completed { background: #e9f7ef; color: #15803d; }
+.tx-st-failed { background: var(--warn-weak); color: var(--warn); }
+.tx-st-reversed, .tx-st-pending { background: var(--danger-weak); color: var(--danger); }
+
+/* transaction modal layout (reuses .review-modal / .review-card) */
+.tx-modal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.tx-modal-head h3 { margin: 0; font-family: ui-monospace, Consolas, monospace; font-size: 15px; }
+.tx-parties { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.tx-party { flex: 1; min-width: 150px; border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; background: var(--surface); }
+.tx-party-role { font-size: 10.5px; font-weight: 750; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.tx-party a { font-weight: 700; color: var(--accent); text-decoration: none; }
+.tx-arrow { font-weight: 750; color: var(--text-2); white-space: nowrap; }
+.ring-chip { cursor: pointer; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px;
+  background: var(--accent-weak); color: var(--accent); }
