@@ -46,14 +46,34 @@ const inFocus = (n) => !!n.ring || n.risk >= 0.5;
 let ALL_ACCOUNTS = [];
 let curView = "accounts", showNames = false;
 let acctSort = { key: "risk", dir: -1 };
-const FILTERS = { underReview: false };
+const FILTERS = { underReview: false, q: "" };
 
 function nodePasses(n) { return true; }
 function edgePasses(e) { return true; }
 function acctPasses(a) {
   if (focusMembers && !focusMembers.has(a.account_id)) return false;   // account-focus: only the ego set
   if (FILTERS.underReview && (a.status || "active") === "active") return false;
+  if (FILTERS.q && !acctMatches(a, FILTERS.q)) return false;           // top search box
   return true;
+}
+
+// Dynamic free-text search: every query word must appear somewhere in the account's
+// fields (name, id, type, country, status, KYC, risk %, ring ids). Space-separated
+// terms are AND-ed, so "cyprus business" narrows to Cypriot business accounts.
+function acctMatches(a, q) {
+  const hay = [
+    a.account_id, a.owner_name, a.account_type, a.country, a.status, a.kyc_risk,
+    Math.round((a.risk || 0) * 100) + "%", (a.rings || []).join(" "),
+  ].join(" ").toLowerCase();
+  return q.split(/\s+/).every((term) => !term || hay.includes(term));
+}
+
+// Wired from the top search box (oninput). Filters the accounts list live; if the user
+// is looking at the Visual Review graph, drop back to the accounts table so results show.
+function onSearch(v) {
+  FILTERS.q = (v || "").trim().toLowerCase();
+  if (curView !== "accounts" && typeof setView === "function") setView("accounts");
+  renderAccountsTable();
 }
 
 // ── account ego-graph renderer (Visual Review backend) ──────────────────────
