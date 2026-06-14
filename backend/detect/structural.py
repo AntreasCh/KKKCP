@@ -197,6 +197,97 @@ def detect_circular(graph, accounts, transactions) -> list[dict]:
     return findings
 
 
+ROUND_STEP = 1000.0      # "clean" amounts are whole multiples of €1,000
+ROUND_MIN = 1000.0       # ignore tiny round payments (a €50 transfer isn't a laundering tell)
+MIN_ROUND_COUNT = 3      # need a habit of round transfers, not one coincidence
+
+
+def _is_round(amt: float) -> bool:
+    return amt >= ROUND_MIN and abs(amt / ROUND_STEP - round(amt / ROUND_STEP)) < 1e-9
+
+
+def detect_round_amounts(graph, accounts, transactions) -> list[dict]:
+    """A5: accounts that transact in suspiciously CLEAN round numbers (whole multiples of
+    €1,000). Genuine commerce produces messy amounts (€4,137.22); deliberately round transfers
+    are a weak laundering tell. This is a LOW-WEIGHT amplifier (never seeds a ring) — it nudges
+    an account already under suspicion, it does not flag on its own. Score scales with how many
+    round transfers the account makes and what share of its activity they represent."""
+    round_by_acc = defaultdict(list)
+    total_by_acc = defaultdict(int)
+    for t in transactions:
+        amt = float(t["amount"])
+        is_round = _is_round(amt)
+        for acc in (t["src"], t["dst"]):
+            total_by_acc[acc] += 1
+            if is_round:
+                round_by_acc[acc].append(t["tx_id"])
+    findings = []
+    for acc, rtx in round_by_acc.items():
+        if len(rtx) < MIN_ROUND_COUNT:
+            continue
+        share = len(rtx) / total_by_acc[acc] if total_by_acc[acc] else 0.0
+        score = round(min(1.0, 0.3 + 0.08 * (len(rtx) - MIN_ROUND_COUNT) + 0.3 * share), 2)
+        findings.append({
+            "detector": "round_amounts", "subject_type": "account", "subject_ids": [acc],
+            "score": score,
+            "evidence": {"round_tx_count": len(rtx), "round_share": round(share, 2),
+                         "step": ROUND_STEP, "tx_ids": rtx[:10]},
+        })
+    return findings
+
+
+# ── B3: rapid fiat → crypto conversion ────────────────────────────────────────
+FIAT_CHANNELS = frozenset({"sepa", "wire", "card", "cash_deposit"})
+FC_WINDOW_H = 24        # crypto-out must follow the fiat-in within this many hours
+FC_MIN_IN = 5_000.0     # material value — pocket-change conversions aren't a laundering tell
+FC_MIN_RATIO = 0.5      # crypto-out must carry at least this fraction of the fiat-in (a cut may be skimmed)
+
+
+def detect_fiat_to_crypto(graph, accounts, transactions) -> list[dict]:
+    """B3: an account takes in FIAT (sepa/wire/card/cash) and pushes it straight back out via
+    CRYPTO within FC_WINDOW_H — the placement→crypto-layering hop. A channel-typed specialisation
+    of pass-through: same receive-then-forward shape, but it specifically catches the moment dirty
+    fiat is converted into crypto (looser ratio than pass-through, since a cut is often skimmed).
+    Score reflects how completely the inflow was converted and how fast."""
+    ins, outs = defaultdict(list), defaultdict(list)
+    for t in transactions:
+        if t.get("channel") in FIAT_CHANNELS:
+            ins[t["dst"]].append(t)
+        elif t.get("channel") == "crypto":
+            outs[t["src"]].append(t)
+    findings = []
+    for acc in set(ins) & set(outs):
+        hit = None
+        for ti in ins.get(acc, []):
+            if ti["amount"] < FC_MIN_IN:
+                continue
+            for to in outs.get(acc, []):
+                dt = _ts(to["timestamp"]) - _ts(ti["timestamp"])
+                if (timedelta(0) <= dt <= timedelta(hours=FC_WINDOW_H)
+                        and to["amount"] >= FC_MIN_RATIO * ti["amount"]
+                        and to["dst"] != ti["src"]):
+                    hit = (ti, to, dt)
+                    break
+            if hit:
+                break
+        if not hit:
+            continue
+        ti, to, dt = hit
+        hours = dt.total_seconds() / 3600
+        completeness = min(1.0, to["amount"] / ti["amount"]) if ti["amount"] else 0.0
+        speed = max(0.0, 1.0 - hours / FC_WINDOW_H)
+        score = round(min(1.0, 0.55 + 0.25 * completeness + 0.20 * speed), 2)
+        findings.append({
+            "detector": "fiat_to_crypto", "subject_type": "account", "subject_ids": [acc],
+            "score": score,
+            "evidence": {"fiat_in": round(ti["amount"], 2), "fiat_channel": ti["channel"],
+                         "crypto_out": round(to["amount"], 2), "hours": round(hours, 1),
+                         "completeness": round(completeness, 2), "speed": round(speed, 2)},
+            "window": {"start": ti["timestamp"], "end": to["timestamp"]},
+        })
+    return findings
+
+
 PASS_WINDOW_H = 24  # receive then forward within this many hours to count as a relay
 
 

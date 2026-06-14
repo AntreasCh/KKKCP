@@ -22,6 +22,8 @@ AccountStatus = Literal["active", "frozen", "blocked", "banned"]
 Channel = Literal["wire", "sepa", "card", "crypto", "cash_deposit"]
 SubjectType = Literal["account", "edge", "subgraph"]
 PatternType = Literal["structuring", "layering", "mule_fanin", "mule_fanout", "circular"]
+# Tier C transaction type (placement/movement vs reversals). Optional + defaulted so old data stays valid.
+TxType = Literal["transfer", "payment", "refund", "chargeback"]
 
 
 # ── core data ─────────────────────────────────────────────────────────────--
@@ -34,6 +36,22 @@ class Account(BaseModel):
     kyc_risk: KYCRisk
     status: AccountStatus = "active"  # enforcement state; defaulted so older data stays valid
 
+    # ── Tier C enrichment (all optional + defaulted so pre-Tier-C data stays valid) ──
+    pep: bool = False                              # C1 politically exposed person
+    sanctioned: bool = False                       # C1 sanctions-list hit (near auto-flag)
+    watchlist: bool = False                        # C1 internal/regulatory watchlist
+    prior_sars: int = 0                            # C2 count of prior suspicious-activity reports
+    occupation: Optional[str] = None               # C3 declared occupation
+    business_category: Optional[str] = None        # C3 merchant/business category (MCC-style)
+    expected_monthly_volume: Optional[float] = None  # C3 declared expected throughput (EUR/month)
+    account_purpose: Optional[str] = None          # C3 declared account purpose
+    device_id: Optional[str] = None                # C4 primary device fingerprint
+    signup_ip: Optional[str] = None                # C4 signup / primary IP
+    vpn_tor: bool = False                          # C4 connects via VPN / TOR / proxy
+    failed_verifications: int = 0                  # C4 failed identity-verification attempts
+    adverse_media: bool = False                    # C5 negative news / adverse-media hit
+    nominee_owner: bool = False                    # C5 nominee director / hidden beneficial owner
+
 
 class Transaction(BaseModel):
     tx_id: str
@@ -43,6 +61,9 @@ class Transaction(BaseModel):
     amount: float
     currency: str = "EUR"
     channel: Channel
+    tx_type: TxType = "transfer"                   # C7 transfer/payment vs refund/chargeback
+    merchant_category: Optional[str] = None        # C7 MCC for card payments
+    tx_country: Optional[str] = None               # C7 country where the transaction originated
 
 
 class Dataset(BaseModel):

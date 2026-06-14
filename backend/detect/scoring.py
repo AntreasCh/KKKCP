@@ -11,10 +11,14 @@ laundering moves real money, so legit low-amount clusters fall below the volume 
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import datetime
 
 # How much each detector contributes to an ACCOUNT's risk.
 WEIGHTS = {"structuring": 0.9, "circular": 0.9, "passthrough": 0.8,
-           "fan_in": 0.8, "fan_out": 0.8, "community": 0.15}
+           "fan_in": 0.8, "fan_out": 0.8, "fiat_to_crypto": 0.7,
+           "community": 0.15, "round_amounts": 0.25,
+           "dormant_reactivation": 0.3, "activity_spike": 0.3,
+           "device_linkage": 0.6}
 
 # Detectors strong enough to seed a ring (community is context only).
 STRONG = {"structuring", "circular", "passthrough", "fan_in", "fan_out"}
@@ -61,6 +65,168 @@ TAU = 0.5                     # flag line (matches eval τ)
 ASSOC_HIGH_RISK = 0.5         # a counterparty at/above this base risk counts as "high-risk"
 ASSOC_WEIGHT = 0.5            # how strongly the association signal contributes
 ASSOC_ELEVATED_CAP = 0.40     # max risk an un-flagged account can reach via association alone (< TAU)
+SANCTIONS_RISK = 0.97         # C1: a confirmed sanctions hit is escalated on its own (screening)
+
+# ── customer-risk-profile amplifier (Tier A — A1 country, A2 fresh, A3 KYC, A4 channel) ──
+# Classic AML "customer risk rating": KYC/profile factors don't *prove* laundering, they
+# AMPLIFY a transaction-monitoring alert and raise an account's review priority. We mirror the
+# association pass's safety contract — profile can lift risk, but a behaviourally-unflagged
+# account (behavioural base < TAU) is capped at ASSOC_ELEVATED_CAP (< TAU), so profile alone can
+# surface an account as "elevated" for the analyst yet can NEVER create a false positive. The
+# established-business factor suppresses the whole profile signal for the legit decoy profile.
+HIGH_RISK_COUNTRIES = frozenset({"RU", "AE"})  # foreign high-risk jurisdictions (A1)
+FRESH_ACCOUNT_DAYS = 90        # accounts opened within this many days of the data window are "fresh" (A2)
+KYC_RISK_SCORE = {"high": 1.0, "medium": 0.5, "low": 0.0}  # elevated-KYC contribution (A3)
+HIGH_RISK_CHANNELS = frozenset({"crypto", "cash_deposit"})  # cash placement / crypto layering (A4)
+CHANNEL_RISK_FLOOR = 0.5       # only emit when MOST of an account's value moves this way
+CHANNEL_MIN_VALUE = 10_000     # AND a laundering-scale sum moves this way (ignores small P2P noise)
+PROFILE_WEIGHT = 0.5           # how strongly the combined profile signal lifts risk
+# Per-component weights into the combined profile signal (summed, then capped at 1.0).
+PROFILE_WEIGHTS = {"high_risk_country": 0.45, "fresh_account": 0.30,
+                   "kyc_risk": 0.30, "crypto_channel": 0.25,
+                   # Tier C attribute signals (all capped — they amplify, never flag alone):
+                   "pep": 0.40, "watchlist": 0.40, "prior_sars": 0.40, "adverse_media": 0.45,
+                   "shell_company": 0.50, "geo_mismatch": 0.35, "high_risk_mcc": 0.30,
+                   "vpn_tor": 0.30, "failed_verifications": 0.25, "activity_vs_profile": 0.45}
+HIGH_RISK_MCC = frozenset({"crypto_exchange", "money_services", "gambling", "precious_metals"})  # C7
+# C3 activity-vs-declared-profile is a capped AMPLIFIER (not a solo flag): a declared/actual gap
+# raises suspicion but isn't proof — legit accounts legitimately exceed their estimate sometimes.
+PROFILE_RATIO = 4.0            # actual throughput this many× the declared expected = inconsistent
+PROFILE_MIN_ACTUAL = 10_000.0  # only material accounts (ignore tiny over-runs of a low estimate)
+GEO_MISMATCH_FLOOR = 0.3       # share of an account's outbound value originating abroad to flag (C7)
+FAILED_VERIF_FLOOR = 2         # this many failed identity checks before it counts (C4)
+TS_FMT = "%Y-%m-%dT%H:%M:%SZ"
+
+
+def _country_risk(acc_rec: dict | None) -> float:
+    """A1: 1.0 if the account is domiciled in a high-risk jurisdiction, else 0.0."""
+    if not acc_rec:
+        return 0.0
+    return 1.0 if acc_rec.get("country") in HIGH_RISK_COUNTRIES else 0.0
+
+
+def _latest_date(transactions: list[dict] | None):
+    """Reference 'now' for account-age: the most recent transaction timestamp in the data."""
+    latest = None
+    for t in (transactions or []):
+        try:
+            d = datetime.strptime(t["timestamp"], TS_FMT)
+        except (ValueError, KeyError, TypeError):
+            continue
+        if latest is None or d > latest:
+            latest = d
+    return latest
+
+
+def _fresh_risk(acc_rec: dict | None, ref) -> float:
+    """A2: graded 'newly opened' signal — 1.0 for a brand-new account, fading to 0.0 at
+    FRESH_ACCOUNT_DAYS. Mules use throwaway accounts opened just before the activity."""
+    if not acc_rec or ref is None:
+        return 0.0
+    try:
+        opened = datetime.strptime(str(acc_rec.get("opened_at"))[:10], "%Y-%m-%d")
+    except (ValueError, TypeError):
+        return 0.0
+    age = (ref - opened).days
+    if age >= FRESH_ACCOUNT_DAYS:
+        return 0.0
+    return round(max(0.0, (FRESH_ACCOUNT_DAYS - age) / FRESH_ACCOUNT_DAYS), 2)
+
+
+def _channel_shares(transactions: list[dict] | None) -> dict:
+    """A4: per-account share of total transacted VALUE (in + out) that moves through a
+    high-risk channel (crypto / cash deposit). Cash placement and crypto layering are the
+    channels launderers reach for; a flow that's mostly crypto/cash is a risk amplifier."""
+    total: dict = defaultdict(float)
+    hr: dict = defaultdict(float)
+    for t in (transactions or []):
+        amt = float(t.get("amount", 0.0))
+        high = t.get("channel") in HIGH_RISK_CHANNELS
+        for acc in (t.get("src"), t.get("dst")):
+            if acc is None:
+                continue
+            total[acc] += amt
+            if high:
+                hr[acc] += amt
+    # (share, high-risk-channel value) per account
+    return {a: (hr[a] / total[a], hr[a]) for a in total if total[a] > 0}
+
+
+def _geo_mismatch_shares(transactions: list[dict] | None, acc_by_id: dict) -> dict:
+    """C7: per-account share of outbound VALUE that originates in a country other than the
+    account's residence (tx_country != account.country) — transacting from abroad."""
+    total: dict = defaultdict(float)
+    away: dict = defaultdict(float)
+    for t in (transactions or []):
+        s = t.get("src")
+        if s is None:
+            continue
+        amt = float(t.get("amount", 0.0))
+        total[s] += amt
+        home = (acc_by_id.get(s) or {}).get("country")
+        origin = t.get("tx_country")
+        if origin is not None and home is not None and origin != home:
+            away[s] += amt
+    return {a: away[a] / total[a] for a in total if total[a] > 0 and away[a] > 0}
+
+
+def _profile_signals(accounts: list[dict] | None, transactions: list[dict] | None) -> dict:
+    """Per-account profile components in [0,1]: {acc_id: {component_name: value}}.
+    Only non-zero components are returned, so each shows up as its own analyst-visible signal."""
+    acc_by_id = {a["account_id"]: a for a in (accounts or [])}
+    ref = _latest_date(transactions)
+    chan = _channel_shares(transactions)
+    geo = _geo_mismatch_shares(transactions, acc_by_id)
+    throughput: dict = defaultdict(float)            # C3: actual EUR moved per account (in + out)
+    for t in (transactions or []):
+        amt = float(t.get("amount", 0.0))
+        throughput[t.get("src")] += amt
+        throughput[t.get("dst")] += amt
+    out: dict = {}
+    for aid, acc in acc_by_id.items():
+        comps: dict = {}
+        c = _country_risk(acc)
+        if c > 0:
+            comps["high_risk_country"] = round(c, 2)
+        fr = _fresh_risk(acc, ref)
+        if fr > 0:
+            comps["fresh_account"] = fr
+        kyc = KYC_RISK_SCORE.get(acc.get("kyc_risk"), 0.0)   # A3: elevated KYC raises risk on its own
+        if kyc > 0:
+            comps["kyc_risk"] = round(kyc, 2)
+        share, hr_value = chan.get(aid, (0.0, 0.0))           # A4: crypto / cash placement channel
+        if share >= CHANNEL_RISK_FLOOR and hr_value >= CHANNEL_MIN_VALUE:
+            comps["crypto_channel"] = round(share, 2)
+        # ── Tier C attribute components ──
+        if acc.get("pep"):                                    # C1
+            comps["pep"] = 1.0
+        if acc.get("watchlist"):                              # C1
+            comps["watchlist"] = 1.0
+        sars = int(acc.get("prior_sars") or 0)                # C2
+        if sars > 0:
+            comps["prior_sars"] = round(min(1.0, sars / 3), 2)
+        if acc.get("adverse_media"):                          # C5
+            comps["adverse_media"] = 1.0
+        if (acc.get("account_type") == "business" and acc.get("nominee_owner")   # C5 shell company
+                and fr > 0 and acc.get("country") in HIGH_RISK_COUNTRIES):
+            comps["shell_company"] = 1.0
+        gm = geo.get(aid, 0.0)                                # C7 geo mismatch
+        if gm >= GEO_MISMATCH_FLOOR:
+            comps["geo_mismatch"] = round(gm, 2)
+        if acc.get("business_category") in HIGH_RISK_MCC:     # C7 high-risk merchant category
+            comps["high_risk_mcc"] = 1.0
+        if acc.get("vpn_tor"):                                # C4 attribute
+            comps["vpn_tor"] = 1.0
+        fv = int(acc.get("failed_verifications") or 0)        # C4 attribute
+        if fv >= FAILED_VERIF_FLOOR:
+            comps["failed_verifications"] = round(min(1.0, fv / 5), 2)
+        expected = acc.get("expected_monthly_volume")         # C3 activity vs declared profile
+        actual = throughput.get(aid, 0.0)
+        if expected and expected > 0 and actual >= PROFILE_MIN_ACTUAL and actual / expected >= PROFILE_RATIO:
+            comps["activity_vs_profile"] = round(min(1.0, (actual / expected) / (PROFILE_RATIO * 5)), 2)
+        if comps:
+            out[aid] = comps
+    return out
 
 
 def _association(base: dict, transactions: list[dict], acc_by_id: dict) -> dict:
@@ -135,6 +301,7 @@ def score_accounts(findings: list[dict], accounts: list[dict] | None = None,
     base = {}
     for acc, a in agg.items():
         base[acc] = min(1.0, a["sum"] * _legit_profile_factor(acc_by_id.get(acc)) / NORMALIZER)
+    behavioural = dict(base)  # snapshot: the "flagged?" gate for the precision-safe lift passes
 
     # pass 2 — network association ("guilt by association"), precision-safe
     if transactions:
@@ -147,6 +314,31 @@ def score_accounts(findings: list[dict], accounts: list[dict] | None = None,
             if final > b0 + 1e-9:
                 base[acc] = final
                 agg[acc]["signals"].append({"detector": "network_association", "score": round(raw, 2)})
+
+    # pass 3 — customer-risk-profile amplifier (Tier A), precision-safe like pass 2: an account
+    # NOT behaviourally flagged (snapshot base < TAU) is capped at ASSOC_ELEVATED_CAP (< TAU), so
+    # profile alone surfaces "elevated" risk but never creates a false positive.
+    profile = _profile_signals(accounts, transactions)
+    for acc, comps in profile.items():
+        raw = min(1.0, sum(PROFILE_WEIGHTS.get(name, 0.0) * val for name, val in comps.items()))
+        raw *= _legit_profile_factor(acc_by_id.get(acc))   # suppress the legit established-business profile
+        if raw <= 0:
+            continue
+        cur = base.get(acc, 0.0)
+        lifted = cur + PROFILE_WEIGHT * raw
+        cap = 1.0 if behavioural.get(acc, 0.0) >= TAU else ASSOC_ELEVATED_CAP
+        final = max(cur, min(cap, lifted))
+        if final > cur + 1e-9:
+            base[acc] = final
+        for name, val in comps.items():     # expose each factor as its own analyst-visible signal
+            agg[acc]["signals"].append({"detector": name, "score": round(val, 2)})
+
+    # pass 4 — sanctions screening (C1): a CONFIRMED sanctions hit is escalated on its own, the way a
+    # real screening engine works. Safe because only confirmed-bad accounts carry the flag.
+    for acc, rec in acc_by_id.items():
+        if rec.get("sanctioned"):
+            base[acc] = max(base.get(acc, 0.0), SANCTIONS_RISK)
+            agg[acc]["signals"].append({"detector": "sanctions_hit", "score": 1.0})
 
     out = []
     for acc in base:

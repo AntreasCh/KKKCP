@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -52,6 +53,14 @@ BASE = datetime(2026, 6, 1, 8, 0, 0, tzinfo=timezone.utc)
 
 # The five typologies we plant; round-robined across the requested ring count.
 PATTERNS = ["structuring", "circular", "mule_fanin", "mule_fanout", "layering"]
+
+# ── Tier C enrichment vocabularies ───────────────────────────────────────────
+OCCUPATIONS = ["teacher", "engineer", "nurse", "driver", "retired", "student",
+               "clerk", "chef", "electrician", "accountant", "waiter", "mechanic"]
+BIZ_CATEGORIES = ["retail", "telecom", "utilities", "logistics", "construction",
+                  "food_service", "healthcare", "energy", "wholesale"]
+HIGH_RISK_MCC = ["crypto_exchange", "money_services", "gambling", "precious_metals"]
+PURPOSES = ["salary", "savings", "business_ops", "personal_use", "investment"]
 
 
 def _iso(dt: datetime) -> str:
@@ -387,6 +396,161 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
         a["kyc_risk"] = "low"
         a["opened_at"] = _iso(BASE - timedelta(days=rng.randint(500, 1500)))[:10]
         a["country"] = rng.choice(["CY", "CY", "GR", "GB", "DE"])
+
+    # ── Tier B typologies (B1 activity spike, B2 dormant reactivation) ──────────
+    # Appended with FRESH account ids (ACC{n_accounts+1}…) so the rest of the fixture is byte-for-
+    # byte unchanged. Each ALSO carries a pass-through / fan-in shape, so the structural detectors
+    # flag the mule and assemble the ring (recall + ring-recall preserved), while the temporal
+    # detectors (detect/temporal.py) add the named velocity/dormancy evidence on top.
+    next_idx = [n_accounts]
+
+    def new_account(atype: str, kyc: str, age_days: int, country: str | None = None) -> str:
+        next_idx[0] += 1
+        aid = f"ACC{next_idx[0]:05d}"
+        rec = {"account_id": aid,
+               "owner_name": (rng.choice(BIZ) if atype == "business"
+                              else f"{rng.choice(FIRST)} {rng.choice(LAST)[0]}."),
+               "account_type": atype, "country": country or rng.choice(COUNTRIES),
+               "opened_at": _iso(BASE - timedelta(days=age_days))[:10],
+               "kyc_risk": kyc, "status": "active"}
+        accounts.append(rec)
+        acc_by_id[aid] = rec
+        acc_ids.append(aid)
+        return aid
+
+    # B2 — dormant reactivation: an AGED, clean-history account wakes up and relays a lump in <24h.
+    dr_t0 = BASE + timedelta(days=window_days - 4, hours=rng.randint(0, 6))
+    dr_src = new_account("personal", "low", rng.randint(200, 800))
+    dr_mule = new_account("personal", rng.choice(["medium", "high"]), rng.randint(1100, 2400),
+                          country=rng.choice(HIGH_RISK_CC))
+    dr_dst = new_account("personal", "low", rng.randint(200, 800))
+    dr_amt = rng.uniform(40_000, 70_000)
+    dr_txs = [new_tx(dr_src, dr_mule, dr_amt, dr_t0, "wire"),
+              new_tx(dr_mule, dr_dst, dr_amt * rng.uniform(0.90, 0.96),
+                     jitter(dr_t0, rng.uniform(2, 8)), "wire")]
+    mules.add(dr_mule)
+    labels_rings.append({"ring_id": f"TRUE_{len(labels_rings) + 1:03d}",
+                         "account_ids": [dr_src, dr_mule, dr_dst], "tx_ids": dr_txs,
+                         "patterns": ["layering"]})
+
+    # B1 — activity spike: a normally-quiet account suddenly erupts in a fan-in burst.
+    sp_mule = new_account("personal", rng.choice(["medium", "high"]), rng.randint(150, 600),
+                          country=rng.choice(HIGH_RISK_CC))
+    sp_dst = new_account("personal", "low", rng.randint(200, 800))
+    sp_txs = []
+    for d in rng.sample(range(1, max(4, window_days - 6)), 3):  # quiet baseline: 3 small, spread
+        sp_txs.append(new_tx(sp_mule, sp_dst, rng.uniform(50, 300),
+                             BASE + timedelta(days=d, hours=rng.uniform(0, 12)), "card"))
+    sp_t0 = BASE + timedelta(days=window_days - 3, hours=rng.randint(0, 4))
+    sp_srcs = [new_account("personal", "low", rng.randint(200, 900)) for _ in range(8)]
+    burst_total = 0.0
+    for j, s in enumerate(sp_srcs):                            # sudden burst: 8 senders in <24h
+        amt = rng.uniform(4_000, 8_000)
+        burst_total += amt
+        sp_txs.append(new_tx(s, sp_mule, amt, jitter(sp_t0, j * 2 + rng.uniform(0, 1)),
+                             rng.choice(["wire", "sepa"])))
+    sp_txs.append(new_tx(sp_mule, sp_dst, burst_total * rng.uniform(0.90, 0.95),
+                         jitter(sp_t0, 20 + rng.uniform(0, 3)), "wire"))
+    mules.add(sp_mule)
+    labels_rings.append({"ring_id": f"TRUE_{len(labels_rings) + 1:03d}",
+                         "account_ids": [sp_mule, sp_dst] + sp_srcs, "tx_ids": sp_txs,
+                         "patterns": ["mule_fanin"]})
+
+    # C4 device-linked mule fleet: one operator runs several THIN accounts from a single device.
+    # Each only receives a chunk and forwards a small partial cut slowly — so NO structural typology
+    # fires (not pass-through: ratio too low; not fan: degree 1; not a burst). Behavioural detection
+    # misses them entirely; ONLY the shared-device linkage (C4) catches the fleet. Labelled as mules
+    # but NOT as a ring (device linkage doesn't seed rings), so ring metrics are untouched.
+    device_fleet: list[str] = []
+    fl_t0 = BASE + timedelta(days=window_days - 5, hours=rng.randint(0, 6))
+    for k in range(5):
+        m = new_account("personal", rng.choice(["medium", "high"]), rng.randint(20, 120),
+                        country=rng.choice(HIGH_RISK_CC))
+        src = new_account("personal", "low", rng.randint(200, 800))
+        dst = new_account("personal", "low", rng.randint(200, 800))
+        recv = rng.uniform(6_000, 9_000)
+        new_tx(src, m, recv, jitter(fl_t0, k * 5 + rng.uniform(0, 3)), rng.choice(["wire", "sepa"]))
+        new_tx(m, dst, recv * rng.uniform(0.30, 0.45),                 # partial cut, low ratio
+               jitter(fl_t0, k * 5 + 48 + rng.uniform(0, 12)), "card")  # forwarded days later (slow)
+        device_fleet.append(m)
+        mules.add(m)
+
+    # ── Tier C enrichment: KYC / identity / screening / device / channel fields ──
+    # Computed AFTER all planting so the core fixture stays byte-for-byte identical — we only ADD
+    # fields. Risk attributes correlate with mule role; a few are planted on LEGIT actors as
+    # hard-negatives (a legit PEP, a legit watchlisted business) so the new signals stay precision-
+    # earned. Detectors read these in scoring.py / detect/*; nothing here flags on its own.
+    throughput: dict = defaultdict(float)          # actual EUR moved per account (in + out)
+    for t in txs:
+        throughput[t["src"]] += t["amount"]
+        throughput[t["dst"]] += t["amount"]
+
+    legit_pool = [a for a in acc_ids if a not in mules]
+    pep_legit = set(rng.sample(legit_pool, min(4, len(legit_pool))))     # C1 legit PEPs (hard neg)
+    wl_legit = set(rng.sample(legit_pool, min(3, len(legit_pool))))      # C1 legit watchlist (hard neg)
+    sar_legit = set(rng.sample(legit_pool, min(3, len(legit_pool))))     # C2 legit prior-SAR (hard neg)
+    am_legit = set(rng.sample(legit_pool, min(3, len(legit_pool))))      # C5 legit adverse-media (hard neg)
+
+    for a in accounts:
+        aid = a["account_id"]
+        a["device_id"] = f"dev-{rng.randrange(16 ** 8):08x}"
+        a["signup_ip"] = f"{rng.randint(2, 223)}.{rng.randint(0, 255)}.{rng.randint(0, 255)}.{rng.randint(1, 254)}"
+        a["occupation"] = rng.choice(OCCUPATIONS) if a["account_type"] == "personal" else None
+        a["business_category"] = rng.choice(BIZ_CATEGORIES) if a["account_type"] == "business" else None
+        a["account_purpose"] = rng.choice(PURPOSES)
+        actual = throughput.get(aid, 0.0)
+        if aid in mules:
+            # mules declare a small throwaway expected volume while actually moving large sums (C3)
+            a["expected_monthly_volume"] = round(rng.uniform(1_000, 3_000), 2)
+            a["vpn_tor"] = rng.random() < 0.55                           # C4
+            a["failed_verifications"] = rng.randint(1, 5)               # C4
+            a["prior_sars"] = rng.choices([0, 1, 2, 3], weights=[0.4, 0.3, 0.2, 0.1])[0]  # C2
+            a["pep"] = rng.random() < 0.15                              # C1
+            a["sanctioned"] = rng.random() < 0.18                       # C1 a minority are sanctions hits
+            a["watchlist"] = rng.random() < 0.30                        # C1
+            a["adverse_media"] = rng.random() < 0.25                    # C5
+            if a["account_type"] == "business":
+                a["nominee_owner"] = rng.random() < 0.6                 # C5 shell-company indicator
+                if rng.random() < 0.4:
+                    a["business_category"] = rng.choice(HIGH_RISK_MCC)  # C7 high-risk MCC
+        else:
+            # ~12% of legit accounts legitimately exceed their declared estimate (a seasonal
+            # business, a bonus, a house sale) — so activity-vs-profile is NOT a perfect separator.
+            # This is deliberate realism: C3 must stay a capped amplifier, never a solo flag.
+            under = rng.uniform(0.15, 0.45) if rng.random() < 0.12 else rng.uniform(0.8, 1.4)
+            a["expected_monthly_volume"] = round(max(500.0, actual) * under, 2)
+            a["vpn_tor"] = rng.random() < 0.03
+            a["failed_verifications"] = rng.choices([0, 1], weights=[0.9, 0.1])[0]
+            a["prior_sars"] = 1 if aid in sar_legit else 0
+            a["pep"] = aid in pep_legit
+            a["sanctioned"] = False                                     # sanctions hits are confirmed-bad only
+            a["watchlist"] = aid in wl_legit
+            a["adverse_media"] = aid in am_legit
+            a["nominee_owner"] = False
+
+    # C4 device linkage: the operator runs the whole fleet from ONE device/IP (shared fingerprint).
+    # Only the labelled fleet mules share it, so the linkage cluster is all-bad → precision-safe.
+    op_device = f"dev-{rng.randrange(16 ** 8):08x}"
+    op_ip = f"{rng.randint(2, 223)}.{rng.randint(0, 255)}.{rng.randint(0, 255)}.{rng.randint(1, 254)}"
+    for mid in device_fleet:
+        acc_by_id[mid]["device_id"] = op_device
+        acc_by_id[mid]["signup_ip"] = op_ip
+
+    # C7 transaction enrichment: origin geography + card payment / refund / chargeback types.
+    cc_of = {a["account_id"]: a["country"] for a in accounts}
+    for t in txs:
+        src_cc = cc_of.get(t["src"])
+        if t["src"] in mules and rng.random() < 0.5:                    # mules transact from elsewhere (geo mismatch)
+            alts = [c for c in HIGH_RISK_CC if c != src_cc]
+            t["tx_country"] = rng.choice(alts) if alts else src_cc
+        else:
+            t["tx_country"] = src_cc
+        if t["channel"] == "card":
+            r = rng.random()
+            t["tx_type"] = "refund" if r < 0.04 else ("chargeback" if r < 0.055 else "payment")
+            t["merchant_category"] = rng.choice(BIZ_CATEGORIES)
+        else:
+            t["tx_type"] = "transfer"
 
     rng.shuffle(txs)  # so planted txns aren't clustered at the end of the stream
     dataset = {"accounts": accounts, "transactions": txs}
