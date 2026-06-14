@@ -244,25 +244,6 @@ button:active { transform: translateY(1px); }
 }
 .ai-meta { margin-top: 6px; font-size: 11.5px; color: var(--muted); }
 
-/* SAR (Suspicious Activity Report) generator (P5) */
-.sar-block { margin: 8px 0 4px; display: flex; flex-direction: column; gap: 8px; }
-.sar-btn { background: linear-gradient(135deg, #0f766e, #0891b2); box-shadow: 0 4px 12px rgba(8,145,178,.28); align-self: flex-start; }
-.sar-btn:hover { box-shadow: 0 6px 16px rgba(8,145,178,.38); }
-.sar-ring { font-family: ui-monospace, Consolas, monospace; font-weight: 700; opacity: .9;
-  background: rgba(255,255,255,.18); padding: 1px 7px; border-radius: 999px; font-size: 11px; }
-.sar-out { display: none; }
-.sar-out.show { display: block; }
-.sar-doc { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);
-  background: var(--surface); animation: msg-in .22s ease both; }
-.sar-doc-head { display: flex; align-items: center; gap: 8px; padding: 9px 12px; font-weight: 700; font-size: 12.5px;
-  color: #0e7490; background: linear-gradient(180deg, #ecfeff, #f0fdfa); border-bottom: 1px solid var(--border); }
-.sar-copy { margin-left: auto; background: var(--surface); border: 1px solid var(--border); color: var(--text-2);
-  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 7px; }
-.sar-copy:hover { border-color: var(--accent); color: var(--accent); }
-.sar-body { margin: 0; padding: 12px 13px; font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-  font-size: 11.5px; line-height: 1.6; color: var(--text-2); white-space: pre-wrap; word-wrap: break-word;
-  max-height: 320px; overflow: auto; }
-
 /* ── account-focus (ego-network) banner + accounts note ──────────────────── */
 .focus-bar {
   position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 6;

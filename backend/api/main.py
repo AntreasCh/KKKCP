@@ -14,7 +14,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from backend.ai.sar import generate_sar
 from backend.data.generator import generate_dataset
 from backend.detect import pipeline
 from backend.eval.evaluate import evaluate
@@ -212,12 +211,8 @@ def account(acc_id: str):
     findings = [f for f in STATE["result"]["findings"] if acc_id in f["subject_ids"]]
     txs = [t for t in STATE["dataset"]["transactions"] if t["src"] == acc_id or t["dst"] == acc_id][:200]
     acc_risk = rmap.get(acc_id, {}).get("risk", 0)
-    # rings this account belongs to — drives the "Generate SAR" action in the inspector
-    rings = [{"ring_id": r["ring_id"], "score": r["score"], "patterns": r["patterns"],
-              "n_accounts": len(r["account_ids"])}
-             for r in STATE["result"]["rings"] if acc_id in r["account_ids"]]
     return {"account": amap[acc_id], "risk": acc_risk,
-            "findings": findings, "transactions": txs, "rings": rings}
+            "findings": findings, "transactions": txs}
 
 
 @app.post("/api/accounts/{acc_id}/analyze")
@@ -323,19 +318,6 @@ def ask(req: AskReq):
     and findings, runs a bounded tool-use loop, then answers. Returns {answer, tool_calls, source}."""
     from backend.ai.copilot import ask as copilot_ask
     return copilot_ask(req.question, STATE["result"], STATE["dataset"], STATE["labels"])
-
-
-@app.post("/api/rings/{ring_id}/sar")
-def sar(ring_id: str):
-    """Draft a Suspicious Activity Report for a detected ring (P5). Claude/LLM writes it from the
-    ring's accounts + transactions + findings; deterministic template fallback so it always works."""
-    r = next((x for x in STATE["result"]["rings"] if x["ring_id"] == ring_id), None)
-    if not r:
-        raise HTTPException(404, "ring not found")
-    out = generate_sar(r, STATE["dataset"]["accounts"], STATE["dataset"]["transactions"],
-                       STATE["result"]["findings"])
-    r["narrative"] = out["narrative"]  # cache on the ring for reuse
-    return out
 
 
 # Mount the static frontend LAST so /api/* routes win.
