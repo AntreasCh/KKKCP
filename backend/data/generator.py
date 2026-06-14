@@ -61,6 +61,8 @@ BIZ_CATEGORIES = ["retail", "telecom", "utilities", "logistics", "construction",
                   "food_service", "healthcare", "energy", "wholesale"]
 HIGH_RISK_MCC = ["crypto_exchange", "money_services", "gambling", "precious_metals"]
 PURPOSES = ["salary", "savings", "business_ops", "personal_use", "investment"]
+CRYPTO_ASSETS = ["BTC", "ETH", "USDT", "XMR"]                       # C6
+SUSPICIOUS_WALLET_LABELS = ["mixer", "darknet", "high_risk"]        # C6 (bad wallet reputations)
 
 
 def _iso(dt: datetime) -> str:
@@ -475,6 +477,42 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
         device_fleet.append(m)
         mules.add(m)
 
+    # C6 crypto-laundering cell: feeders push crypto from many external wallets into a collector
+    # (consolidation), which then chain-hops the funds out across assets (BTC->ETH->USDT) to a
+    # cash-out. All legs touch flagged wallets (mixer/darknet/high_risk). Every account here is a
+    # mule, so wallet-exposure (attributed to both endpoints) never implicates a legit account.
+    def _wallet() -> str:
+        return f"0x{rng.randrange(16 ** 10):010x}"
+
+    def _annotate_last_crypto(asset: str, label: str) -> None:
+        txs[-1]["crypto_asset"] = asset
+        txs[-1]["counterparty_wallet"] = _wallet()
+        txs[-1]["wallet_label"] = label
+
+    cc_t0 = BASE + timedelta(days=window_days - 4, hours=rng.randint(0, 6))
+    cc_collector = new_account("personal", rng.choice(["medium", "high"]), rng.randint(20, 150),
+                               country=rng.choice(HIGH_RISK_CC))
+    cc_accounts = [cc_collector]
+    cc_txs = []
+    for k in range(4):                                          # consolidation: 4 wallets -> collector
+        feeder = new_account("personal", rng.choice(["medium", "high"]), rng.randint(15, 120),
+                             country=rng.choice(HIGH_RISK_CC))
+        cc_txs.append(new_tx(feeder, cc_collector, rng.uniform(4_000, 12_000),
+                             jitter(cc_t0, k * 2 + rng.uniform(0, 1)), "crypto"))
+        _annotate_last_crypto(rng.choice(CRYPTO_ASSETS), rng.choice(SUSPICIOUS_WALLET_LABELS))
+        cc_accounts.append(feeder)
+        mules.add(feeder)
+    cc_cashout = new_account("personal", rng.choice(["medium", "high"]), rng.randint(15, 120),
+                             country=rng.choice(HIGH_RISK_CC))
+    for k, asset in enumerate(["BTC", "ETH", "USDT"]):          # chain-hop: switch assets on the way out
+        cc_txs.append(new_tx(cc_collector, cc_cashout, rng.uniform(6_000, 12_000),
+                             jitter(cc_t0, 12 + k * 3 + rng.uniform(0, 1)), "crypto"))
+        _annotate_last_crypto(asset, rng.choice(["mixer", "high_risk"]))
+    cc_accounts.append(cc_cashout)
+    mules.update({cc_collector, cc_cashout})
+    labels_rings.append({"ring_id": f"TRUE_{len(labels_rings) + 1:03d}",
+                         "account_ids": cc_accounts, "tx_ids": cc_txs, "patterns": ["layering"]})
+
     # ── Tier C enrichment: KYC / identity / screening / device / channel fields ──
     # Computed AFTER all planting so the core fixture stays byte-for-byte identical — we only ADD
     # fields. Risk attributes correlate with mule role; a few are planted on LEGIT actors as
@@ -549,6 +587,15 @@ def generate_dataset(n_accounts: int = 800, n_legit_tx: int = 4000,
             r = rng.random()
             t["tx_type"] = "refund" if r < 0.04 else ("chargeback" if r < 0.055 else "payment")
             t["merchant_category"] = rng.choice(BIZ_CATEGORIES)
+        elif t["channel"] == "crypto" and t.get("wallet_label") is None:  # C6: tag crypto legs
+            t["tx_type"] = "transfer"
+            t["crypto_asset"] = rng.choice(CRYPTO_ASSETS)
+            if t["src"] in mules and t["dst"] in mules:        # suspicious ONLY on all-mule legs
+                t["wallet_label"] = rng.choices(["mixer", "darknet", "high_risk", "exchange"],
+                                                weights=[0.3, 0.2, 0.35, 0.15])[0]
+            else:
+                t["wallet_label"] = rng.choice(["exchange", "clean"])
+            t["counterparty_wallet"] = f"0x{rng.randrange(16 ** 10):010x}"
         else:
             t["tx_type"] = "transfer"
 

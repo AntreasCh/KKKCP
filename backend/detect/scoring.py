@@ -18,7 +18,10 @@ WEIGHTS = {"structuring": 0.9, "circular": 0.9, "passthrough": 0.8,
            "fan_in": 0.8, "fan_out": 0.8, "fiat_to_crypto": 0.7,
            "community": 0.15, "round_amounts": 0.25,
            "dormant_reactivation": 0.3, "activity_spike": 0.3,
-           "device_linkage": 0.6}
+           "device_linkage": 0.6,
+           # C6 crypto: mixer/darknet exposure is near-conclusive (auto-flag weight); rest contribute
+           "mixer_exposure": 0.95, "high_risk_wallet": 0.6,
+           "wallet_consolidation": 0.6, "chain_hopping": 0.3}
 
 # Detectors strong enough to seed a ring (community is context only).
 STRONG = {"structuring", "circular", "passthrough", "fan_in", "fan_out"}
@@ -412,6 +415,11 @@ def build_rings(findings: list[dict], account_risk: list[dict], transactions: li
         mrisk = [risk_map.get(a, 0.0) for a in members]
         avg_risk = sum(mrisk) / len(mrisk) if mrisk else 0.0
         max_risk = max(mrisk) if mrisk else 0.0
+        # A real ring always contains at least one FLAGGED account (its hub/relay). A cluster whose
+        # every member is below τ is a high-volume-but-legit pass-through cluster, not a ring — drop
+        # it. (Precision-safe: every planted ring has a flagged hub, so true rings are unaffected.)
+        if max_risk < TAU:
+            continue
         # A real ring is ONE strong hub + many low-risk spokes (classic mule fan-out).
         # Pure mean risk dilutes the hub to ~0, so blend in the peak member risk.
         risk_term = 0.6 * max_risk + 0.4 * avg_risk
