@@ -24,8 +24,6 @@ SubjectType = Literal["account", "edge", "subgraph"]
 PatternType = Literal["structuring", "layering", "mule_fanin", "mule_fanout", "circular"]
 # Tier C transaction type (placement/movement vs reversals). Optional + defaulted so old data stays valid.
 TxType = Literal["transfer", "payment", "refund", "chargeback"]
-# C6 crypto wallet reputation (Option A: tag the external wallet on a crypto leg, no on-chain graph).
-WalletLabel = Literal["mixer", "darknet", "high_risk", "exchange", "clean"]
 
 
 # ── core data ─────────────────────────────────────────────────────────────--
@@ -66,9 +64,6 @@ class Transaction(BaseModel):
     tx_type: TxType = "transfer"                   # C7 transfer/payment vs refund/chargeback
     merchant_category: Optional[str] = None        # C7 MCC for card payments
     tx_country: Optional[str] = None               # C7 country where the transaction originated
-    crypto_asset: Optional[str] = None             # C6 asset for crypto legs (BTC/ETH/USDT)
-    counterparty_wallet: Optional[str] = None      # C6 external wallet address on a crypto leg
-    wallet_label: Optional[WalletLabel] = None     # C6 reputation of that wallet (screening list)
 
 
 class Dataset(BaseModel):

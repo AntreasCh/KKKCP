@@ -5,7 +5,7 @@ This is the single integration point: detectors + scoring compose here.
 """
 from __future__ import annotations
 
-from backend.detect import crypto, kyc, network, scoring, structural, temporal
+from backend.detect import kyc, network, scoring, structural, temporal
 from backend.graph.build import build_graph
 
 
@@ -23,10 +23,6 @@ def run(dataset: dict) -> dict:
     findings += temporal.detect_dormant_reactivation(graph, accounts, transactions)
     findings += temporal.detect_activity_spike(graph, accounts, transactions)
     findings += kyc.detect_device_linkage(graph, accounts, transactions)
-    findings += crypto.detect_mixer_exposure(graph, accounts, transactions)
-    findings += crypto.detect_high_risk_wallet(graph, accounts, transactions)
-    findings += crypto.detect_wallet_consolidation(graph, accounts, transactions)
-    findings += crypto.detect_chain_hopping(graph, accounts, transactions)
     findings += network.detect_fan(graph, accounts, transactions)
     findings += network.detect_communities(graph, accounts, transactions)
 

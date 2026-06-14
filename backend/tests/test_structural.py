@@ -81,7 +81,7 @@ def test_circular_skips_legit_settlement_loops():
 def test_passthrough_is_bounded():
     # passthrough feeds account risk, not rings; just guard it stays specific, not spammy.
     # Bound raised 30->36 as the fixture grew with the Tier B/C planted typologies (dormant
-    # reactivation, device fleet, crypto cell) — each adds a relay-shaped account or two.
+    # reactivation, device fleet) — each adds a relay-shaped account or two.
     findings = structural.detect_passthrough(None, ACCOUNTS, TXS)
     assert len(findings) <= 36, f"passthrough over-firing: {len(findings)}"
 

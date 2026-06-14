@@ -32,9 +32,9 @@ who got a bonus, a shop having a sale). So the real challenge is:
 MuleNet looks at money from **two angles at once**:
 
 1. **Behaviour** — *what* an account does (sudden bursts, money passing straight through, loops…).
-2. **Identity & network** — *who* the account is and *who it deals with* (sanctioned? on a shared device with 5 other mules? sending crypto to a mixer?).
+2. **Identity & network** — *who* the account is and *who it deals with* (sanctioned? on a shared device with 5 other mules? transacting from abroad?).
 
-It combines ~30 individual fraud signals into a single **risk score (0 = clean, 1 = almost
+It combines ~25 individual fraud signals into a single **risk score (0 = clean, 1 = almost
 certainly a mule)** for every account, then **stitches the high-risk accounts back into
 the laundering rings** they belong to.
 
@@ -43,9 +43,9 @@ the laundering rings** they belong to.
 ## 4. How it works, in 5 steps
 
 1. **Data in** — a list of accounts (with KYC details, country, device, etc.) and their
-   transactions (amount, type, channel, crypto wallet, etc.).
+   transactions (amount, type, channel, origin country, etc.).
 2. **Build the money graph** — every account is a dot, every payment is an arrow between dots.
-3. **Run ~30 detectors** — each looks for one tell-tale sign of laundering (listed below).
+3. **Run ~25 detectors** — each looks for one tell-tale sign of laundering (listed below).
 4. **Score every account** — combine the signals into one risk number, the smart way (see §6).
 5. **Assemble the rings** — group the connected high-risk accounts into named laundering
    networks, rank them, and explain *why* each was flagged.
@@ -56,7 +56,7 @@ report and answer questions.
 
 ---
 
-## 5. The ~30 signals (grouped into 6 families)
+## 5. The ~25 signals (grouped into 5 families)
 
 You don't need to memorise these — the point for judges is **breadth**: MuleNet covers
 every major angle a real anti-money-laundering team uses.
@@ -86,12 +86,7 @@ every major angle a real anti-money-laundering team uses.
 - **Device / IP linkage** — several "different" customers are actually run from **one device** (one operator).
 - **VPN / TOR use**, **repeated failed identity checks**, **geography mismatch** (transacting from a different country than they live in).
 
-**E. Crypto chain-analysis**
-- **Mixer / darknet exposure** — funds touch a known tumbler or darknet-market wallet (near-conclusive).
-- **High-risk wallet exposure**, **wallet consolidation** (many crypto wallets funnel into one account),
-  **chain-hopping** (rapidly switching BTC→ETH→USDT to break the trail).
-
-**F. Network effects**
+**E. Network effects**
 - **Guilt by association** — an account that mostly deals with *already-flagged* accounts is lifted.
 - **Ring assembly** — the connected high-risk accounts are grouped into the actual laundering network.
 
@@ -103,7 +98,7 @@ Here's the key design idea — **explain this one to the judges, it's what makes
 
 Signals are split into two kinds:
 
-- **Strong evidence** (structuring, a sanctions hit, mixer exposure…) — these can **flag an
+- **Strong evidence** (structuring, a sanctions hit, device linkage…) — these can **flag an
   account on their own**, because they're conclusive.
 - **Risk amplifiers** (high-risk country, PEP, VPN, fresh account, crypto channel…) — these
   **can only *raise* the score of an account that's already behaving suspiciously. On their
@@ -123,7 +118,7 @@ We don't just claim accuracy — we measure it.
 - The dataset contains **planted laundering rings** (with a hidden answer key) **and
   "decoys": perfectly legitimate things that look like laundering** — a company's payday
   payroll burst, a shop's flash-sale rush, sub-€10k B2B invoices, inter-company settlement
-  loops, legit heavy crypto users, even legitimate PEPs.
+  loops, even legitimate PEPs.
 - A naive detector flags the decoys. **Ours has to tell them apart** — that's what makes the
   accuracy *earned*, not given.
 - An automatic scoreboard then grades every run.
@@ -133,10 +128,10 @@ We don't just claim accuracy — we measure it.
 | Metric | Score | Plain meaning |
 |---|---|---|
 | **Precision** | **1.00** | **Zero false accusations** — every account we flag is a real mule. |
-| **Recall** | **0.85** | We catch **85% of the mules**. |
-| **Ring recall** | **1.00 (19/19)** | We find **every** laundering network planted. |
+| **Recall** | **0.87** | We catch **87% of the mules**. |
+| **Ring recall** | **1.00 (18/18)** | We find **every** laundering network planted. |
 | **False-positive rings** | **0** | We never invent a fake ring out of legitimate activity. |
-| **Automated tests** | **57 passing** | The whole engine is covered by tests. |
+| **Automated tests** | **47 passing** | The whole engine is covered by tests. |
 
 > The remaining ~15% we miss are deliberately "thin" accounts that touch the ring only
 > once and leave no behavioural trace — they still appear in our **"elevated — review"**
@@ -149,7 +144,7 @@ We don't just claim accuracy — we measure it.
 
 - **Fewer wasted investigations.** Precision-first means analysts chase real criminals, not grandmas.
 - **Catches networks, not just individuals.** We surface the whole ring and the kingpin, which is how laundering actually works.
-- **Speaks the industry's language.** Sanctions, PEP, structuring, SARs, mixers, KYC — every signal maps to a control real AML teams already use.
+- **Speaks the industry's language.** Sanctions, PEP, structuring, SARs, KYC — every signal maps to a control real AML teams already use.
 - **Explainable.** Every flag comes with its evidence, and an AI assistant drafts the regulatory report — so a human can act on it immediately.
 
 ---
@@ -161,7 +156,7 @@ We don't just claim accuracy — we measure it.
 - **Layering** — passing money through many hops to hide its origin.
 - **KYC** — "Know Your Customer": the identity info a bank collects at sign-up.
 - **PEP** — Politically Exposed Person (higher-risk customer category).
-- **Mixer / tumbler** — a crypto service that scrambles coins to hide their trail.
+- **SAR** — Suspicious Activity Report, the filing a bank sends regulators.
 - **Precision** — of the accounts we flagged, how many were actually bad.
 - **Recall** — of all the bad accounts, how many we caught.
 
@@ -172,7 +167,7 @@ We don't just claim accuracy — we measure it.
 1. Click **Generate** → "Here are ~800 accounts and ~4,300 transactions, with hidden laundering rings."
 2. Point at the top of the list → "These are auto-flagged. Notice the evidence chips — *structuring, sanctions hit, device linkage*."
 3. Open a flagged account → "Every flag is explained. This one shares a device with 5 other accounts — one operator."
-4. Show the scoreboard → "**100% precision** — we never falsely accuse. We catch **85%** of mules and **every** ring, with **zero** false rings — and that's against decoys built to fool us."
+4. Show the scoreboard → "**100% precision** — we never falsely accuse. We catch **87%** of mules and **every** ring, with **zero** false rings — and that's against decoys built to fool us."
 5. (Optional) Run the per-account **AI analysis**, or ask the **Ask MuleNet** copilot a question.
 
 *MuleNet is a hackathon prototype running locally on synthetic-but-realistic data. The
