@@ -47,6 +47,50 @@ def _legit_profile_factor(acc_rec: dict | None) -> float:
     if acc_rec.get("account_type") == "business" and acc_rec.get("kyc_risk") == "low":
         return ESTABLISHED_BUSINESS_FACTOR
     return 1.0
+
+
+# ── network-association parameter ("guilt by association") ────────────────────
+# An account is more suspicious when its money flows mostly to/from already-high-risk accounts —
+# mules cluster with mules. We add this as a SECOND pass after base scoring. It is provably
+# precision-safe: association can RAISE an account's risk, but an account the behavioural detectors
+# have NOT already flagged (base < TAU) is capped at ASSOC_ELEVATED_CAP, strictly below the flag
+# line — so it can surface as "elevated" for the analyst but can never become a false positive,
+# and the legit-max guardrail (<0.45) cannot regress. Already-flagged accounts (base >= TAU, which
+# are mules at precision 1.0) get the full boost, sharpening the analyst queue.
+TAU = 0.5                     # flag line (matches eval τ)
+ASSOC_HIGH_RISK = 0.5         # a counterparty at/above this base risk counts as "high-risk"
+ASSOC_WEIGHT = 0.5            # how strongly the association signal contributes
+ASSOC_ELEVATED_CAP = 0.40     # max risk an un-flagged account can reach via association alone (< TAU)
+
+
+def _association(base: dict, transactions: list[dict], acc_by_id: dict) -> dict:
+    """Per-account association signal in [0,1]: (share of the account's transaction VALUE that
+    touches high-risk counterparties) × (mean risk of those high-risk counterparties). Symmetric
+    over in+out flows. Suppressed by the same established-business factor so legit hubs that happen
+    to pay a flagged account don't inherit risk."""
+    val: dict = defaultdict(float)            # (a,b) -> total value a→b
+    neigh: dict = defaultdict(set)
+    for t in transactions:
+        s, d, amt = t["src"], t["dst"], float(t["amount"])
+        val[(s, d)] += amt
+        neigh[s].add(d)
+        neigh[d].add(s)
+
+    assoc: dict = {}
+    for acc, ns in neigh.items():
+        total_v, hr_v, hr_risks = 0.0, 0.0, []
+        for b in ns:
+            w = val.get((acc, b), 0.0) + val.get((b, acc), 0.0)
+            total_v += w
+            rb = base.get(b, 0.0)
+            if rb >= ASSOC_HIGH_RISK:
+                hr_v += w
+                hr_risks.append(rb)
+        if total_v <= 0 or not hr_risks:
+            continue
+        raw = (hr_v / total_v) * (sum(hr_risks) / len(hr_risks))   # share × strength
+        assoc[acc] = round(raw * _legit_profile_factor(acc_by_id.get(acc)), 3)
+    return assoc
 MIN_RING_VOLUME = 15_000  # EUR of transactions among members — laundering moves real money
 MIN_RING_SCORE = 0.45
 MIN_RING_SIZE = 3
@@ -69,9 +113,16 @@ def _has_money_edge(members: set[str], pair_amt: dict) -> bool:
     return False
 
 
-def score_accounts(findings: list[dict], accounts: list[dict] | None = None) -> list[dict]:
-    """Per-account risk. `accounts` (optional) enables the established-business down-weight that
-    keeps aged business/low-KYC hard-negatives (payroll, merchants, B2B settlement) below τ."""
+def score_accounts(findings: list[dict], accounts: list[dict] | None = None,
+                   transactions: list[dict] | None = None) -> list[dict]:
+    """Per-account risk.
+
+    Pass 1 — BEHAVIOURAL: weighted sum of the detector findings on the account, suppressed for the
+    established-business profile (keeps aged business/low-KYC hard-negatives below τ).
+    Pass 2 — NETWORK ASSOCIATION (only when `transactions` are given): an account whose money flows
+    mostly to/from already-high-risk accounts is lifted toward their risk. Precision-safe — an
+    un-flagged account (base < TAU) is capped at ASSOC_ELEVATED_CAP (< TAU), so association alone
+    can surface "elevated" risk for the analyst but never creates a false positive."""
     acc_by_id = {a["account_id"]: a for a in (accounts or [])}
     agg = defaultdict(lambda: {"sum": 0.0, "signals": []})
     for f in findings:
@@ -79,12 +130,28 @@ def score_accounts(findings: list[dict], accounts: list[dict] | None = None) -> 
         for acc in f["subject_ids"]:
             agg[acc]["sum"] += contrib
             agg[acc]["signals"].append({"detector": f["detector"], "score": round(f["score"], 2)})
-    out = []
+
+    # pass 1 — behavioural base risk
+    base = {}
     for acc, a in agg.items():
-        factor = _legit_profile_factor(acc_by_id.get(acc))
-        risk = min(1.0, a["sum"] * factor / NORMALIZER)
-        top = sorted(a["signals"], key=lambda s: -s["score"])[:4]
-        out.append({"account_id": acc, "risk": round(risk, 3), "top_signals": top})
+        base[acc] = min(1.0, a["sum"] * _legit_profile_factor(acc_by_id.get(acc)) / NORMALIZER)
+
+    # pass 2 — network association ("guilt by association"), precision-safe
+    if transactions:
+        assoc = _association(base, transactions, acc_by_id)
+        for acc, raw in assoc.items():
+            b0 = base.get(acc, 0.0)
+            lifted = b0 + ASSOC_WEIGHT * raw
+            cap = 1.0 if b0 >= TAU else ASSOC_ELEVATED_CAP   # un-flagged accounts stay below the flag line
+            final = max(b0, min(cap, lifted))
+            if final > b0 + 1e-9:
+                base[acc] = final
+                agg[acc]["signals"].append({"detector": "network_association", "score": round(raw, 2)})
+
+    out = []
+    for acc in base:
+        top = sorted(agg[acc]["signals"], key=lambda s: -s["score"])[:4]
+        out.append({"account_id": acc, "risk": round(base[acc], 3), "top_signals": top})
     out.sort(key=lambda x: -x["risk"])
     return out
 

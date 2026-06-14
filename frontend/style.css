@@ -255,6 +255,14 @@ button:active { transform: translateY(1px); }
 }
 .ai-meta { margin-top: 6px; font-size: 11.5px; color: var(--muted); }
 
+/* risk signals list (per-account "why") */
+.sig-list { display: flex; flex-direction: column; gap: 5px; }
+.sig { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid var(--border);
+  border-radius: 8px; background: var(--surface-2); font-size: 12px; }
+.sig-name { color: var(--text-2); }
+.sig-score { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent);
+  background: var(--accent-weak); border-radius: 999px; padding: 1px 9px; min-width: 34px; text-align: center; }
+
 /* ── account-focus (ego-network) banner + accounts note ──────────────────── */
 .focus-bar {
   position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 6;

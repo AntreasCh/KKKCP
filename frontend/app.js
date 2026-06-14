@@ -347,13 +347,26 @@ async function showAccount(id) {
       `🕸️ Visual Review</button></div>` +
     `<div class="ai-block"><button class="ai-btn" onclick="runAccountAnalysis('${esc(id)}')">` +
       `🔍 AI analysis</button><div id="ai-analysis" class="ai-analysis"></div></div>` +
+    // risk signals — explains the score, incl. network association on accounts no detector flagged
+    (() => {
+      const sig = a.top_signals || [];
+      if (!sig.length) return "";
+      const label = (s) => s.detector === "network_association"
+        ? "🔗 network association (transacts with high-risk accounts)"
+        : esc(s.detector);
+      return `<div class="section-label">Risk signals</div><div class="sig-list">` +
+        sig.map((s) => `<div class="sig"><span class="sig-name">${label(s)}</span>` +
+          `<span class="sig-score">${Math.round(s.score * 100)}</span></div>`).join("") + `</div>`;
+    })() +
     `<div class="section-label">Findings (${findings.length})</div>` +
     (findings.length
       ? `<div class="evidence">${findings.map((f) =>
           `<div class="ev"><div class="ev-head"><span class="ev-tag">${esc(f.detector)}</span>` +
           `<span class="ev-score">score ${(f.score * 100).toFixed(0)}</span></div>` +
           `<div class="ev-body">${evidenceText(f)}</div></div>`).join("")}</div>`
-      : `<span class="subtle">No detector flagged this account.</span>`) +
+      : ((a.top_signals || []).some((s) => s.detector === "network_association")
+          ? `<span class="subtle">No detector flagged this account directly — its risk comes from <b>network association</b> (its money flows mostly to/from high-risk accounts).</span>`
+          : `<span class="subtle">No detector flagged this account.</span>`)) +
     `<div class="section-label">Recent transactions (${(a.transactions || []).length})</div>` +
     `<div class="tx-scroll"><table class="tx-table">` +
       `<thead><tr><th>When</th><th>Flow</th><th class="amt">Amount</th><th>Channel</th></tr></thead><tbody>` +

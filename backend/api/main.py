@@ -212,6 +212,7 @@ def account(acc_id: str):
     txs = [t for t in STATE["dataset"]["transactions"] if t["src"] == acc_id or t["dst"] == acc_id][:200]
     acc_risk = rmap.get(acc_id, {}).get("risk", 0)
     return {"account": amap[acc_id], "risk": acc_risk,
+            "top_signals": rmap.get(acc_id, {}).get("top_signals", []),
             "findings": findings, "transactions": txs}
 
 
