@@ -18,10 +18,7 @@ WEIGHTS = {"structuring": 0.9, "circular": 0.9, "passthrough": 0.8,
            "fan_in": 0.8, "fan_out": 0.8, "fiat_to_crypto": 0.7,
            "community": 0.15, "round_amounts": 0.25,
            "dormant_reactivation": 0.3, "activity_spike": 0.3,
-           "device_linkage": 0.6,
-           # C6 crypto: mixer/darknet exposure is near-conclusive (auto-flag weight); rest contribute
-           "mixer_exposure": 0.95, "high_risk_wallet": 0.6,
-           "wallet_consolidation": 0.6, "chain_hopping": 0.3}
+           "device_linkage": 0.6}
 
 # Detectors strong enough to seed a ring (community is context only).
 STRONG = {"structuring", "circular", "passthrough", "fan_in", "fan_out"}
