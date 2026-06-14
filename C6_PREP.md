@@ -1,10 +1,11 @@
-# C6 — Crypto Chain-Analysis: implementation preparation
+# C6 — Crypto Chain-Analysis: design note
 
-**Status: PLAN ONLY — not implemented.** This is the prep for the last Tier-C item
-(C6), deferred earlier because it's the heaviest. It needs a *crypto/wallet layer* the
-current account↔transaction model doesn't have. Everything below is additive and follows
-the same discipline as Tier A/B/C: optional/defaulted schema, generator correlates with
-mules + plants hard-negatives, detectors are precision-safe, eval kept green, TDD.
+**Status: IMPLEMENTED (Option A) on branch `feature/detection-tiers-abc`** — see
+`backend/detect/crypto.py`, the schema crypto fields, and the generator crypto cell.
+Originally written as the pre-implementation plan; kept as the design record. Option B
+(full on-chain wallet graph) remains future work. Everything below follows the same
+discipline as Tier A/B/C: optional/defaulted schema, generator correlates with mules +
+plants hard-negatives, detectors are precision-safe, eval kept green, TDD.
 
 ## What C6 must detect (from the original brief)
 1. **Mixer / tumbler exposure** — funds to/from a mixing service.
